@@ -79,6 +79,23 @@ async function run()
         {
             // See if username exists already
             const username = request.body.username;
+            const bannedUsernames = [
+                `login`,
+                `register`,
+                `edit`,
+                `staff`,
+                `logout`,
+                `css`,
+                `js`,
+            ];
+            if (bannedUsernames.includes(username))
+                return response.redirect(`/register`);
+
+            // if username is not A-Z, a-z, 0-9, bail.
+            const regex = /^[\dA-Za-z]+$/;
+            if (!regex.test(username))
+                return response.redirect(`/register`);
+
             const user = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(username);
             const email = request.body.email;
             const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(email);
