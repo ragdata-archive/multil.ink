@@ -19,11 +19,12 @@
         <h1>profile page for /<%=username%>
         </h1>
 
-        <p>Username: <%=username%>
+        <p id="username">Username: <%=username%>
         </p>
-        <p>Display Name: <%=displayName%>
+        <p id="verified">Verified: </p>
+        <p id="displayName">Display Name: <%=displayName%>
         </p>
-        <p>Bio: <%=bio%>
+        <p id="bio">Bio: <%=bio%>
         </p>
         <p>Image:</p>
         <img src="<%=image%>" alt="profile image" id="pfp">
@@ -45,6 +46,15 @@
         });
 
         const paid = Boolean("<%=paid%>");
+        const verified = Boolean("<%=verified%>");
+        if (verified)
+        {
+            document.querySelector('#verified').innerHTML += "Yes";
+        }
+        else
+        {
+            document.querySelector('#verified').innerHTML += "No";
+        }
     </script>
 </body>
 

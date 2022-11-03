@@ -16,7 +16,7 @@ async function run()
         port
     } = require(`./config.json`);
 
-    sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, paid INTEGER, subExpires TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT)`).run();
+    sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT)`).run();
 
     const app = express();
 
@@ -66,9 +66,10 @@ async function run()
             const links = JSON.parse(user.links);
             const linkNames = JSON.parse(user.linkNames);
             const paid = Boolean(user.paid);
+            const verified = Boolean(user.verified);
 
             response.render(`profile.ejs`, {
-                username, displayName, bio, image, links, linkNames, paid
+                username, displayName, bio, image, links, linkNames, paid, verified
             });
         }
         else
