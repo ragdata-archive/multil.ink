@@ -19,7 +19,11 @@
         JavaScript is required to use this app.
     </noscript>
     <main id="main" style="display: none;">
-        <h1>edit page</h1>
+        <h1>edit page, hi, <%=username%>
+        </h1>
+        <form action="/logout?_method=DELETE" method="POST">
+            <button type="submit">Log Out</button>
+        </form>
     </main>
     <script>
         document.getElementById("main").style.display = "block";
