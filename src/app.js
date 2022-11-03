@@ -109,10 +109,14 @@ async function run()
     app.get(`/staff`, checkAuthenticatedStaff, (request, response) => response.render(`staff.ejs`, {}));
 
     // logout
-    app.delete(`/logout`, (request, response) =>
+    app.delete(`/logout`, (request, response, next) =>
     {
-        request.logOut();
-        response.redirect(`/login`);
+        request.logout((error) =>
+        {
+            if (error)
+                return next(error);
+            response.redirect(`/login`);
+        });
     });
 
     // for every other route, get the URL and check if user exists
