@@ -81,7 +81,7 @@ async function run()
         try
         {
             // See if username exists already
-            const username = request.body.username;
+            const username = request.body.username.toLowerCase();
             const bannedUsernames = [
                 `login`,
                 `register`,
@@ -101,7 +101,7 @@ async function run()
                 return response.redirect(`/register`);
 
             // If email is not valid, bail.
-            const email = request.body.email;
+            const email = request.body.email.toLowerCase();
             const regexEmail = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
             if (!regexEmail.test(email))
                 return response.redirect(`/register`);
@@ -111,8 +111,8 @@ async function run()
             if (user || emailExists) // Prevent duplicate usernames/emails
                 return response.redirect(`/register`);
             const hashedPassword = await bcrypt.hash(request.body.password, 10);
-            sql.prepare(`INSERT INTO userAuth (username, email, password) VALUES (?, ?, ?)`).run(request.body.username, request.body.email, hashedPassword);
-            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, displayName, bio, image, links, linkNames) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(request.body.username, 0, 0, ``, request.body.username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`);
+            sql.prepare(`INSERT INTO userAuth (username, email, password) VALUES (?, ?, ?)`).run(username, request.body.email, hashedPassword);
+            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, displayName, bio, image, links, linkNames) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, 0, 0, ``, username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`);
             response.redirect(`/edit`);
         }
         catch
