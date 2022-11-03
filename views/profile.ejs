@@ -22,6 +22,7 @@
         <p id="username">Username: <%=username%>
         </p>
         <p id="verified">Verified: </p>
+        <p id="paid">Paid: </p>
         <p id="displayName">Display Name: <%=displayName%>
         </p>
         <p id="bio">Bio: <%=bio%>
@@ -46,6 +47,15 @@
         });
 
         const paid = Boolean("<%=paid%>");
+        if (paid)
+        {
+            document.querySelector('#paid').innerHTML += "Yes";
+        }
+        else
+        {
+            document.querySelector('#paid').innerHTML += "No";
+        }
+
         const verified = Boolean("<%=verified%>");
         if (verified)
         {
