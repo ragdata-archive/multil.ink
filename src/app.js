@@ -156,12 +156,15 @@ async function run()
             let updatedLinkNames = [];
             for (let index = 0; index < 50; index++)
             {
-                const link = request.body[`link${ index }`].trim();
-                const linkName = request.body[`linkName${ index }`].trim();
-                if (link && linkName && !updatedLinks.includes(link) && link.startsWith(`http`))
+                if (request.body[`link${ index }`])
                 {
-                    updatedLinks.push(link);
-                    updatedLinkNames.push(linkName);
+                    const link = request.body[`link${ index }`].trim();
+                    const linkName = request.body[`linkName${ index }`].trim();
+                    if (link && linkName && !updatedLinks.includes(link) && link.startsWith(`http`))
+                    {
+                        updatedLinks.push(link);
+                        updatedLinkNames.push(linkName);
+                    }
                 }
             }
             updatedLinks = JSON.stringify(updatedLinks);
