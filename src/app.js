@@ -96,8 +96,13 @@ async function run()
             if (!regex.test(username))
                 return response.redirect(`/register`);
 
-            const user = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(username);
+            // If email is not valid, bail.
             const email = request.body.email;
+            const regexEmail = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
+            if (!regexEmail.test(email))
+                return response.redirect(`/register`);
+
+            const user = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(username);
             const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(email);
             if (user || emailExists) // Prevent duplicate usernames/emails
                 return response.redirect(`/register`);
