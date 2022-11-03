@@ -111,7 +111,7 @@ async function run()
             if (user || emailExists) // Prevent duplicate usernames/emails
                 return response.redirect(`/register`);
             const hashedPassword = await bcrypt.hash(request.body.password, 10);
-            sql.prepare(`INSERT INTO userAuth (username, email, password) VALUES (?, ?, ?)`).run(username, request.body.email, hashedPassword);
+            sql.prepare(`INSERT INTO userAuth (username, email, password) VALUES (?, ?, ?)`).run(username, email, hashedPassword);
             sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, displayName, bio, image, links, linkNames) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, 0, 0, ``, username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`);
             response.redirect(`/edit`);
         }
