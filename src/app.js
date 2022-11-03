@@ -137,7 +137,14 @@ async function run()
         const linkNames = JSON.parse(user.linkNames);
         const paid = Boolean(user.paid);
         const subExpires = user.subExpires;
-        const verified = Boolean(user.verified);
+        let verified = user.verified;
+
+        if (verified === -1)
+        {
+            // Suspended
+            return response.redirect(`/`);
+        }
+        verified = Boolean(verified);
 
         response.render(`edit.ejs`, {
             username, displayName, bio, image, links, linkNames, paid, subExpires, verified
@@ -152,6 +159,10 @@ async function run()
             const username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail).username;
             const isPaidUser = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).paid);
             const isStaffMember = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === 2);
+            const isSuspended = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === -1);
+
+            if (isSuspended)
+                return response.redirect(`/`);
 
             const updatedDisplayName = request.body.displayName.trim().slice(0, 30);
             const updatedBio = request.body.bio.trim().slice(0, 140);
@@ -256,7 +267,14 @@ async function run()
             const links = JSON.parse(user.links);
             const linkNames = JSON.parse(user.linkNames);
             const paid = Boolean(user.paid);
-            const verified = Boolean(user.verified);
+            let verified = user.verified;
+
+            if (verified === -1)
+            { // Suspended
+                response.status(404);
+                return response.redirect(`/`);
+            }
+            verified = Boolean(verified);
 
             response.render(`profile.ejs`, {
                 username, displayName, bio, image, links, linkNames, paid, verified
