@@ -37,6 +37,18 @@ async function run()
     // index.ejs
     app.get(`/`, (request, response) => response.render(`index.ejs`, {}));
 
+    // login.ejs
+    app.get(`/login`, (request, response) => response.render(`login.ejs`, {}));
+
+    // register.ejs
+    app.get(`/register`, (request, response) => response.render(`register.ejs`, {}));
+
+    // edit.ejs
+    app.get(`/edit`, (request, response) => response.render(`edit.ejs`, {}));
+
+    // staff.ejs
+    app.get(`/staff`, (request, response) => response.render(`staff.ejs`, {}));
+
     // for every other route, get the URL and check if user exists
     app.get(`/*`, (request, response) =>
     {
