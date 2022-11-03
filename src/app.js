@@ -71,7 +71,10 @@ async function run()
     }));
 
     // register.ejs
-    app.get(`/register`, checkNotAuthenticated, (request, response) => response.render(`register.ejs`, {}));
+    app.get(`/register`, checkNotAuthenticated, (request, response) =>
+    {
+        response.render(`register.ejs`);
+    });
 
     app.post(`/register`, checkNotAuthenticated, async (request, response) =>
     {
@@ -87,6 +90,7 @@ async function run()
                 `logout`,
                 `css`,
                 `js`,
+                `img`,
             ];
             if (bannedUsernames.includes(username))
                 return response.redirect(`/register`);
@@ -108,6 +112,7 @@ async function run()
                 return response.redirect(`/register`);
             const hashedPassword = await bcrypt.hash(request.body.password, 10);
             sql.prepare(`INSERT INTO userAuth (username, email, password) VALUES (?, ?, ?)`).run(request.body.username, request.body.email, hashedPassword);
+            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, displayName, bio, image, links, linkNames) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(request.body.username, 0, 0, ``, request.body.username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`);
             response.redirect(`/edit`);
         }
         catch
@@ -150,6 +155,7 @@ async function run()
             `/favicon.ico`,
             `/css/`,
             `/js/`,
+            `/img/`,
         ];
         if (allowed.includes(request.url)) return;
 
