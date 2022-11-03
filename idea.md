@@ -26,3 +26,4 @@
 * Suspend Users
 * Extending Payment Time (1mo, 3mo, 6mo, 1yr)
 * Verify/Unverify Users
+* Rename Usernames
