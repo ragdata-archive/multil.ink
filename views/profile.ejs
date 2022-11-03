@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="css/profile.css">
+    <script src="js/profile.js"></script>
+
+    <link rel="icon" type="image/ico" sizes="32x32" href="./favicon.ico">
+
+    <title>
+        <%=displayName%>
+    </title>
+</head>
+
+<body>
+    <main>
+        <h1>profile page for /<%=username%>
+        </h1>
+
+        <p>Username: <%=username%>
+        </p>
+        <p>Display Name: <%=displayName%>
+        </p>
+        <p>Bio: <%=bio%>
+        </p>
+        <p>Image:</p>
+        <img src="<%=image%>" alt="profile image" id="pfp">
+        <div class="links"></div>
+    </main>
+
+    <script>
+        const links = "<%=links%>";
+        const linksArray = links.split(",");
+        const linksDiv = document.querySelector('.links');
+        linksArray.forEach(link =>
+        {
+            const linkDiv = document.createElement('div');
+            linkDiv.innerHTML = `<a href="${ link }">${ link }</a>`;
+            linksDiv.appendChild(linkDiv);
+        });
+
+        const paid = Boolean("<%=paid%>");
+    </script>
+</body>
+
+</html>
