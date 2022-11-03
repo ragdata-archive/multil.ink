@@ -13,8 +13,11 @@ const sql = new SQLite(`./db.sqlite`);
 async function run()
 {
     const {
-        port, secret
+        port, secret, linkWhitelist, freeLinks
     } = require(`./config.json`);
+
+    let { premiumLinks } = require(`./config.json`);
+    premiumLinks = [...premiumLinks, ...freeLinks];
 
     sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT)`).run();
     sql.prepare(`CREATE TABLE IF NOT EXISTS userAuth (uid INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT)`).run();
@@ -147,6 +150,8 @@ async function run()
         {
             const userEmail = request.user;
             const username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail).username;
+            const isPaidUser = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).paid);
+            const isStaffMember = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === 2);
 
             const updatedDisplayName = request.body.displayName.trim().slice(0, 30);
             const updatedBio = request.body.bio.trim().slice(0, 140);
@@ -156,14 +161,42 @@ async function run()
             let updatedLinkNames = [];
             for (let index = 0; index < 50; index++)
             {
-                if (request.body[`link${ index }`])
+                if (request.body[`link${ index }`] && request.body[`linkName${ index }`])
                 {
                     const link = request.body[`link${ index }`].trim();
                     const linkName = request.body[`linkName${ index }`].trim();
                     if (link && linkName && !updatedLinks.includes(link) && link.startsWith(`http`))
                     {
-                        updatedLinks.push(link);
-                        updatedLinkNames.push(linkName);
+                        let allowed = false;
+                        if (linkWhitelist)
+                        {
+                            // if end of domain in link is in the whitelist freeLinks, then allow it.
+                            let domain = link.split(`//`)[1].split(`/`)[0];
+                            if (domain.startsWith(`www.`))
+                                domain = domain.slice(4);
+                            /* eslint-disable no-continue */
+                            if (!freeLinks.includes(domain) && !isPaidUser && !isStaffMember) // If free user & link is not in free list, skip.
+                            {
+                                allowed = false;
+                                continue;
+                            }
+
+                            if (!premiumLinks.includes(domain) && isPaidUser && !isStaffMember) // If paid user & link is not in premium list, skip.
+                            {
+                                allowed = false;
+                                continue;
+                            }
+                            /* eslint-enable no-continue */
+                            if (isStaffMember) // If staff member, allow all links.
+                                allowed = true;
+                        }
+
+                        allowed = true; // they passed all checks
+                        if (allowed)
+                        {
+                            updatedLinks.push(link);
+                            updatedLinkNames.push(linkName);
+                        }
                     }
                 }
             }

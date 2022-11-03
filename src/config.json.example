@@ -1,4 +1,12 @@
 {
     "port": 5001,
-    "secret": xxx,
+    "secret": "xxx",
+    "linkWhitelist": true,
+    "freeLinks": [
+        "google.com",
+        "youtube.com"
+    ],
+    "premiumLinks": [
+        "twitter.com"
+    ]
 }
