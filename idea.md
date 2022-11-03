@@ -13,7 +13,7 @@
 * Limited Themes
 
 ## Paid Service Features:
-* Unlimited Links
+* 50 Links
 * Bigger Link Whitelist (but still have one; malware/spam)
 * Custom Domain Support
 * No Ads

@@ -34,7 +34,6 @@
         </p>
         <p>Image:</p>
         <img src="<%=image%>" alt="profile image" id="pfp">
-        <div class="links"></div>
 
         <form action="/edit" method="POST">
             <div>
@@ -45,6 +44,12 @@
                 <label for="bio">Bio</label>
                 <input type="text" id="bio" name="bio" value="<%=bio%>" maxlength="140" required>
             </div>
+            <div>
+                <label for="image">Image</label>
+                <input type="text" id="image" name="image" value="<%=image%>" required>
+            </div>
+            <div class="links"></div>
+            <button id="addLink">Add Link</button>
             <button type="submit">Update Profile</button>
         </form>
     </main>
@@ -60,7 +65,44 @@
         {
             const index = linksArray.indexOf(link);
             const linkDiv = document.createElement('div');
-            linkDiv.innerHTML = `<a href="${ link }">${ linksNamesArray[index] }</a>`;
+            linkDiv.innerHTML = `<label for="link${ index }">Link ${ index + 1 }</label>`;
+            linkDiv.innerHTML += `<input type="text" id="link${ index }" name="link${ index }" value="${ link }" required>`;
+            linkDiv.innerHTML += `<label for="linkName${ index }">Link Name ${ index + 1 }</label>`;
+            linkDiv.innerHTML += `<input type="text" id="linkName${ index }" name="linkName${ index }" value="${ linksNamesArray[index] }" required>`;
+            // delete button
+            const deleteButton = document.createElement('button');
+            deleteButton.innerHTML = 'Delete';
+            deleteButton.addEventListener('click', () =>
+            {
+                linkDiv.remove();
+            });
+            linkDiv.appendChild(deleteButton);
+            linksDiv.appendChild(linkDiv);
+        });
+
+        // on click of add link button
+        document.getElementById('addLink').addEventListener('click', (e) =>
+        {
+            e.preventDefault();
+            const linksDiv = document.querySelector('.links');
+            const linkDiv = document.createElement('div');
+            const index = linksDiv.childElementCount;
+            if (index >= 50)
+            {
+                return; // only can add 50 links
+            }
+            linkDiv.innerHTML = `<label for="link${ index }">Link ${ index + 1 }</label>`;
+            linkDiv.innerHTML += `<input type="text" id="link${ index }" name="link${ index }" required>`;
+            linkDiv.innerHTML += `<label for="linkName${ index }">Link Name ${ index + 1 }</label>`;
+            linkDiv.innerHTML += `<input type="text" id="linkName${ index }" name="linkName${ index }" required>`;
+            // delete button
+            const deleteButton = document.createElement('button');
+            deleteButton.innerHTML = 'Delete';
+            deleteButton.addEventListener('click', () =>
+            {
+                linkDiv.remove();
+            });
+            linkDiv.appendChild(deleteButton);
             linksDiv.appendChild(linkDiv);
         });
 

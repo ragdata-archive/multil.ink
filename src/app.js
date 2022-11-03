@@ -150,8 +150,23 @@ async function run()
 
             const updatedDisplayName = request.body.displayName.trim().slice(0, 30);
             const updatedBio = request.body.bio.trim().slice(0, 140);
-            // TODO img, links
-            sql.prepare(`UPDATE users SET displayName = ?, bio = ? WHERE username = ?`).run(updatedDisplayName, updatedBio, username);
+            const updatedImage = request.body.image.trim();
+
+            let updatedLinks = [];
+            let updatedLinkNames = [];
+            for (let index = 0; index < 50; index++)
+            {
+                const link = request.body[`link${ index }`].trim();
+                const linkName = request.body[`linkName${ index }`].trim();
+                if (link && linkName && !updatedLinks.includes(link) && link.startsWith(`http`))
+                {
+                    updatedLinks.push(link);
+                    updatedLinkNames.push(linkName);
+                }
+            }
+            updatedLinks = JSON.stringify(updatedLinks);
+            updatedLinkNames = JSON.stringify(updatedLinkNames);
+            sql.prepare(`UPDATE users SET displayName = ?, bio = ?, image = ?, links = ?, linkNames = ? WHERE username = ?`).run(updatedDisplayName, updatedBio, updatedImage, updatedLinks, updatedLinkNames, username);
 
             response.redirect(`/edit`);
         }
