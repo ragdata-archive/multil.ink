@@ -33,6 +33,7 @@
         <p>Image:</p>
         <img src="<%=image%>" alt="profile image" id="pfp">
         <div class="links"></div>
+        <p class="ad" style="display: none;">ad here</p>
     </main>
 
     <script>
@@ -50,7 +51,8 @@
             linksDiv.appendChild(linkDiv);
         });
 
-        const paid = Boolean("<%=paid%>");
+        let paid = "<%=paid%>";
+        paid = (paid === 'true');
         if (paid)
         {
             document.querySelector('#paid').innerHTML += "Yes";
@@ -58,9 +60,11 @@
         else
         {
             document.querySelector('#paid').innerHTML += "No";
+            document.querySelector('.ad').style.display = "block";
         }
 
-        const verified = Boolean("<%=verified%>");
+        let verified = "<%=verified%>";
+        verified = (verified === 'true');
         if (verified)
         {
             document.querySelector('#verified').innerHTML += "Yes";
