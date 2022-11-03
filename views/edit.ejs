@@ -4,13 +4,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="css/home.css">
-    <script src="js/home.js"></script>
+    <link rel="stylesheet" href="css/profile.css">
+    <script src="js/profile.js"></script>
 
     <link rel="icon" type="image/ico" sizes="32x32" href="./favicon.ico">
 
     <title>
-        linktree-clone-idea
+        Edit - <%=displayName%>
     </title>
 </head>
 
@@ -19,14 +19,60 @@
         JavaScript is required to use this app.
     </noscript>
     <main id="main" style="display: none;">
-        <h1>edit page, hi, <%=username%>
+        <h1>edit page for /<%=username%>
         </h1>
-        <form action="/logout?_method=DELETE" method="POST">
-            <button type="submit">Log Out</button>
-        </form>
+
+        <p id="username">Username: <%=username%>
+        </p>
+        <p id="verified">Verified: </p>
+        <p id="paid">Paid: </p>
+        <p id="subExpires">Subscription Expires: <%=subExpires%>
+        </p>
+        <p id="displayName">Display Name: <%=displayName%>
+        </p>
+        <p id="bio">Bio: <%=bio%>
+        </p>
+        <p>Image:</p>
+        <img src="<%=image%>" alt="profile image" id="pfp">
+        <div class="links"></div>
     </main>
+
     <script>
         document.getElementById("main").style.display = "block";
+        const links = "<%=links%>";
+        const linksArray = links.split(",");
+        const linksNames = "<%=linkNames%>";
+        const linksNamesArray = linksNames.split(",");
+        const linksDiv = document.querySelector('.links');
+        linksArray.forEach(link =>
+        {
+            const index = linksArray.indexOf(link);
+            const linkDiv = document.createElement('div');
+            linkDiv.innerHTML = `<a href="${ link }">${ linksNamesArray[index] }</a>`;
+            linksDiv.appendChild(linkDiv);
+        });
+
+        let paid = "<%=paid%>";
+        paid = (paid === 'true');
+        if (paid)
+        {
+            document.querySelector('#paid').innerHTML += "Yes";
+        }
+        else
+        {
+            document.querySelector('#paid').innerHTML += "No";
+        }
+
+        let verified = "<%=verified%>";
+        verified = (verified === 'true');
+        if (verified)
+        {
+            document.querySelector('#verified').innerHTML += "Yes";
+        }
+        else
+        {
+            document.querySelector('#verified').innerHTML += "No";
+        }
     </script>
 </body>
 

@@ -126,9 +126,18 @@ async function run()
     {
         const userEmail = request.user;
         const username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail).username;
+        const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
+        const displayName = user.displayName;
+        const bio = user.bio;
+        const image = user.image;
+        const links = JSON.parse(user.links);
+        const linkNames = JSON.parse(user.linkNames);
+        const paid = Boolean(user.paid);
+        const subExpires = user.subExpires;
+        const verified = Boolean(user.verified);
 
         response.render(`edit.ejs`, {
-            username
+            username, displayName, bio, image, links, linkNames, paid, subExpires, verified
         });
     });
 
