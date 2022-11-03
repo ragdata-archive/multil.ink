@@ -38,18 +38,6 @@
 
     <script>
         document.getElementById("main").style.display = "block";
-        const links = "<%=links%>";
-        const linksArray = links.split(",");
-        const linksNames = "<%=linkNames%>";
-        const linksNamesArray = linksNames.split(",");
-        const linksDiv = document.querySelector('.links');
-        linksArray.forEach(link =>
-        {
-            const index = linksArray.indexOf(link);
-            const linkDiv = document.createElement('div');
-            linkDiv.innerHTML = `<a href="${ link }">${ linksNamesArray[index] }</a>`;
-            linksDiv.appendChild(linkDiv);
-        });
 
         let paid = "<%=paid%>";
         paid = (paid === 'true');
@@ -73,6 +61,27 @@
         {
             document.querySelector('#verified').innerHTML += "No";
         }
+
+        const links = "<%=links%>";
+        let linksArray = links.split(",");
+        if (!paid)
+        {
+            linksArray = linksArray.slice(0, 7);
+        }
+        const linksNames = "<%=linkNames%>";
+        let linksNamesArray = linksNames.split(",");
+        if (!paid)
+        {
+            linksNamesArray = linksNamesArray.slice(0, 7);
+        }
+        const linksDiv = document.querySelector('.links');
+        linksArray.forEach(link =>
+        {
+            const index = linksArray.indexOf(link);
+            const linkDiv = document.createElement('div');
+            linkDiv.innerHTML = `<a href="${ link }">${ linksNamesArray[index] }</a>`;
+            linksDiv.appendChild(linkDiv);
+        });
     </script>
 </body>
 
