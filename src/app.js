@@ -250,6 +250,6 @@ function checkAuthenticatedStaff(request, response, next)
 function checkNotAuthenticated(request, response, next)
 {
     if (request.isAuthenticated())
-        return response.redirect(`/`);
+        return response.redirect(`/edit`);
     next();
 }
