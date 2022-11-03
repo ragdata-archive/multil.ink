@@ -1,3 +1,3 @@
 {
-    "some-config-var": "some-value"
+    "port": 5001
 }
