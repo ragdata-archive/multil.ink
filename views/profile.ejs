@@ -33,11 +33,14 @@
     <script>
         const links = "<%=links%>";
         const linksArray = links.split(",");
+        const linksNames = "<%=linkNames%>";
+        const linksNamesArray = linksNames.split(",");
         const linksDiv = document.querySelector('.links');
         linksArray.forEach(link =>
         {
+            const index = linksArray.indexOf(link);
             const linkDiv = document.createElement('div');
-            linkDiv.innerHTML = `<a href="${ link }">${ link }</a>`;
+            linkDiv.innerHTML = `<a href="${ link }">${ linksNamesArray[index] }</a>`;
             linksDiv.appendChild(linkDiv);
         });
 
