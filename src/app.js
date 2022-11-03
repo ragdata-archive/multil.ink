@@ -224,7 +224,33 @@ async function run()
     });
 
     // staff.ejs
-    app.get(`/staff`, checkAuthenticatedStaff, (request, response) => response.render(`staff.ejs`, {}));
+    app.get(`/staff`, checkAuthenticatedStaff, (request, response) =>
+    {
+        const allUsers = sql.prepare(`SELECT * FROM users`).all();
+        const allUserAuth = sql.prepare(`SELECT * FROM userAuth`).all();
+        const userCount = allUsers.length - 1;
+        const usernames = [];
+        const emails = [];
+        const verified = [];
+        const paid = [];
+        const subExpires = [];
+        for (const [index, allUser] of allUsers.entries())
+        {
+            usernames.push(allUser.username);
+            emails.push(allUserAuth[index].email);
+            verified.push(allUser.verified);
+            paid.push(allUser.paid);
+            let subExpire = allUser.subExpires;
+            if (subExpire === ``)
+                subExpire = `n/a`;
+            subExpires.push(subExpire);
+        }
+        const numberOfUsers = userCount + 1;
+
+        response.render(`staff.ejs`, {
+            numberOfUsers, usernames, emails, verified, paid, subExpires
+        });
+    });
 
     // logout
     app.delete(`/logout`, (request, response, next) =>

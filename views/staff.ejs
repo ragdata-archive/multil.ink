@@ -20,9 +20,81 @@
     </noscript>
     <main id="main" style="display: none;">
         <h1>staff page</h1>
+
+        <p>Number of Users: <%=numberOfUsers%>
+        </p>
+
+        <table id="users">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Verified</th>
+                    <th>Paid</th>
+                    <th>Subscription Expires</th>
+                </tr>
+            </thead>
+            <tbody id="usersBody">
+            </tbody>
     </main>
     <script>
         document.getElementById("main").style.display = "block";
+
+        const numberOfUsers = "<%=numberOfUsers%>";
+        const usernames = "<%=usernames%>";
+        const emails = "<%=emails%>";
+        const verified = "<%=verified%>";
+        const paid = "<%=paid%>";
+        const subExpires = "<%=subExpires%>";
+
+        // Make an array of objects
+        const users = [];
+        for (let i = 0; i < numberOfUsers; i++)
+        {
+            users.push({
+                username: usernames.split(`,`)[i],
+                email: emails.split(`,`)[i],
+                verified: verified.split(`,`)[i],
+                paid: paid.split(`,`)[i],
+                subExpires: subExpires.split(`,`)[i]
+            });
+
+            // Add to the table
+            const table = document.getElementById(`usersBody`);
+            const row = table.insertRow();
+            const username = row.insertCell(0);
+            const email = row.insertCell(1);
+            const verifiedCell = row.insertCell(2);
+            const paidCell = row.insertCell(3);
+            const subExpiresCell = row.insertCell(4);
+            username.innerHTML = users[i].username;
+            email.innerHTML = users[i].email;
+            if (users[i].verified === `1`)
+            {
+                verifiedCell.innerHTML = "Yes";
+            } else if (users[i].verified === `2`)
+            {
+                verifiedCell.innerHTML = "Staff Member";
+            }
+            else if (users[i].verified === `0`)
+            {
+                verifiedCell.innerHTML = "No";
+            }
+            else if (users[i].verified === `-1`)
+            {
+                verifiedCell.innerHTML = "Suspended";
+            }
+            if (users[i].paid === `1`)
+            {
+                paidCell.innerHTML = "Yes";
+            }
+            else if (users[i].paid === `0`)
+            {
+                paidCell.innerHTML = "No";
+            }
+            subExpiresCell.innerHTML = users[i].subExpires;
+        }
+
     </script>
 </body>
 
