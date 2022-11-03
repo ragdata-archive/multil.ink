@@ -81,7 +81,7 @@ async function run()
         try
         {
             // See if username exists already
-            const username = request.body.username.toLowerCase();
+            const username = request.body.username.toLowerCase().trim().slice(0, 30);
             const bannedUsernames = [
                 `login`,
                 `register`,
@@ -101,7 +101,7 @@ async function run()
                 return response.redirect(`/register`);
 
             // If email is not valid, bail.
-            const email = request.body.email.toLowerCase();
+            const email = request.body.email.toLowerCase().trim();
             const regexEmail = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
             if (!regexEmail.test(email))
                 return response.redirect(`/register`);
@@ -139,6 +139,26 @@ async function run()
         response.render(`edit.ejs`, {
             username, displayName, bio, image, links, linkNames, paid, subExpires, verified
         });
+    });
+
+    app.post(`/edit`, checkAuthenticated, async (request, response) =>
+    {
+        try
+        {
+            const userEmail = request.user;
+            const username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail).username;
+
+            const updatedDisplayName = request.body.displayName.trim().slice(0, 30);
+            const updatedBio = request.body.bio.trim().slice(0, 140);
+            // TODO img, links
+            sql.prepare(`UPDATE users SET displayName = ?, bio = ? WHERE username = ?`).run(updatedDisplayName, updatedBio, username);
+
+            response.redirect(`/edit`);
+        }
+        catch
+        {
+            response.redirect(`/edit`);
+        }
     });
 
     // staff.ejs

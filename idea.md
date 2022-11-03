@@ -1,5 +1,5 @@
 ## Profile Features:
-* Username (domain.tld/username)
+* Username (domain.tld/username) (30 chars, A-Z 0-9 only)
 * Display Name (30 chars, A-Z 0-9 only)
 * Bio (140 chars, A-Z 0-9 only)
 * Image (8mb max)
