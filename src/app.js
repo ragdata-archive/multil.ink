@@ -178,9 +178,12 @@ async function run()
             {
                 if (request.body[`link${ index }`] && request.body[`linkName${ index }`])
                 {
-                    const link = request.body[`link${ index }`].trim();
+                    let link = request.body[`link${ index }`].trim();
                     const linkName = request.body[`linkName${ index }`].trim();
-                    if (link && linkName && !updatedLinks.includes(link) && link.startsWith(`http`))
+                    if (!link.startsWith(`http://`) && !link.startsWith(`https://`))
+                        link = `https://${ link }`;
+
+                    if (link && linkName && !updatedLinks.includes(link))
                     {
                         let allowed = false;
                         if (linkWhitelist)

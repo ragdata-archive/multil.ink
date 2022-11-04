@@ -29,9 +29,6 @@
 * Extending Payment Time (1mo, 3mo, 6mo, 1yr) **[Done]**
 
 
-
-add https if not there when editing profile
-
 change email/password for users (and on admin dash? [just email tho])
 
 add a self delete option?
