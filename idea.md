@@ -10,14 +10,14 @@
 * Link Whitelist (Big Social Medias only) **[Done]**
 * No custom domain
 * Footer Ad **[Done]**
-* Limited Themes
+* Limited Themes (dropdown with presets)
 
 ## Paid Service Features:
 * 50 Links **[Done]**
 * Bigger Link Whitelist (but still have one; malware/spam) **[Done]**
 * Custom Domain Support
 * No Ads **[Done]**
-* Paid Themes
+* Custom Themes (colorpicker?)
 * Analytics
 * Priced @ $2/mo (bring your own domain or $2/mo + whatever registration fee + $2/mo)
 
@@ -30,11 +30,9 @@
 
 
 
-search bar which does something similar (&search=content)
-
 add https if not there when editing profile
 
-change email/password for users
+change email/password for users (and on admin dash? [just email tho])
 
 add a self delete option?
 

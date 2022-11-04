@@ -62,7 +62,11 @@ async function run()
     app.set(`view engine`, `ejs`);
 
     // index.ejs
-    app.get(`/`, (request, response) => response.render(`index.ejs`, {}));
+    app.get(`/`, (request, response) =>
+    {
+        // TODO show staff portal on homepage nav if staff
+        response.render(`index.ejs`);
+    });
 
     // login.ejs
     app.get(`/login`, checkNotAuthenticated, (request, response) => response.render(`login.ejs`, {}));
