@@ -252,8 +252,6 @@ async function run()
         const linkNames = [];
         for (const [index, allUser] of allUsers.entries())
         {
-            if (allUser.username === `chase` && allUserAuth[index].email !== `c@c.c`)
-                console.log(`info mismatch`);
             usernames.push(allUser.username);
             emails.push(allUserAuth[index].email);
             verified.push(allUser.verified);

@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 for (let index = 1; index < 500; index++)
 {
     console.log(`INSERT INTO userAuth (username, email, password) VALUES ("${ index }", "${ index }@${ index }.${ index }", "123");`);
