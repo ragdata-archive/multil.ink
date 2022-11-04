@@ -363,6 +363,8 @@
 
             if (i === 0)
             {
+                const hr = document.createElement(`hr`);
+                tableNavigation[i].appendChild(hr);
                 // Search bar & button
                 const searchForm = document.createElement(`form`);
                 searchForm.setAttribute(`class`, `d-flex`);
@@ -405,6 +407,8 @@
                     searchForm.appendChild(searchResetButton);
                     searchInput.value = window.location.search.split(`search=`)[1];
                 }
+                const hr2 = document.createElement(`hr`);
+                tableNavigation[i].appendChild(hr2);
             }
         }
 
