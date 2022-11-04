@@ -35,3 +35,7 @@ search bar which does something similar (&search=content)
 
 add https if not there when editing profile
 
+change email/password for users
+
+add a self delete option?
+

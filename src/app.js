@@ -224,11 +224,22 @@ async function run()
     // staff.ejs
     app.get(`/staff`, checkAuthenticatedStaff, (request, response) =>
     {
+        if (!request.query.page)
+            return response.redirect(`/staff?page=1`);
         let myUsername = request.user;
         myUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(myUsername).username;
-        const allUsers = sql.prepare(`SELECT * FROM users`).all();
-        const allUserAuth = sql.prepare(`SELECT * FROM userAuth`).all();
-        const userCount = allUsers.length - 1;
+        const pageNumber = request.query.page || 1;
+        const usersPerPage = 100;
+        // select users from database that are in the page number*100
+        const allUsers = sql.prepare(`SELECT * FROM users LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
+        const allUserAuth = sql.prepare(`SELECT * FROM userAuth ASC LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
+
+        if (allUsers.length === 0)
+            return response.redirect(`/staff?page=1`);
+
+        // const allUsers = sql.prepare(`SELECT * FROM users`).all();
+        // const allUserAuth = sql.prepare(`SELECT * FROM userAuth`).all();
+        const userCount = allUsers.length;
         const usernames = [];
         const emails = [];
         const verified = [];
@@ -241,6 +252,8 @@ async function run()
         const linkNames = [];
         for (const [index, allUser] of allUsers.entries())
         {
+            if (allUser.username === `chase` && allUserAuth[index].email !== `c@c.c`)
+                console.log(`info mismatch`);
             usernames.push(allUser.username);
             emails.push(allUserAuth[index].email);
             verified.push(allUser.verified);
@@ -259,7 +272,7 @@ async function run()
             linkNameData = Buffer.from(linkNameData).toString(`base64`);
             linkNames.push(linkNameData);
         }
-        const numberOfUsers = userCount + 1;
+        const numberOfUsers = userCount;
 
         response.render(`staff.ejs`, {
             numberOfUsers, usernames, emails, verified, paid, subExpires, myUsername, displayNames, bios, images, links, linkNames

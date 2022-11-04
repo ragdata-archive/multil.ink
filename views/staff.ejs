@@ -33,9 +33,9 @@
     <main id="main" style="display: none;">
         <main class="container">
             <div class="bg-dark p-4 m-1 rounded">
-                <p class="text-light">Number of Users: <%=numberOfUsers%>
-                </p>
+                <!-- <p class="text-light">Number of Users: <%=numberOfUsers%> </p>-->
 
+                <div class="tableNav"></div>
                 <table class="table table-dark" id="users">
                     <thead>
                         <tr>
@@ -49,6 +49,8 @@
                     </thead>
                     <tbody id="usersBody">
                     </tbody>
+                </table>
+                <div class="tableNav"></div>
             </div>
 
 
@@ -165,6 +167,7 @@
             const subExpiresCell = row.insertCell(4);
             username.innerHTML = users[i].username;
             email.innerHTML = users[i].email;
+            email.classList.add(`email`);
             if (users[i].verified === `1`)
             {
                 verifiedCell.innerHTML = "Yes";
@@ -329,6 +332,36 @@
             }
         }
 
+        const tableNavigation = document.getElementsByClassName(`tableNav`);
+        for (let i = 0; i < tableNavigation.length; i++)
+        {
+            const previousPage = document.createElement(`button`);
+            previousPage.setAttribute(`class`, `btn btn-secondary`);
+            previousPage.setAttribute(`type`, `button`);
+            previousPage.setAttribute(`onclick`, `tableNavigationAction(-1);`);
+            previousPage.innerHTML = `Previous Page`;
+            let page = window.location.search;
+            page = page.replace(`?page=`, ``);
+            page = page.split(`&`)[0];
+            if (page === `1`)
+            {
+                previousPage.setAttribute(`disabled`, `true`);
+            }
+            tableNavigation[i].appendChild(previousPage);
+
+            const nextPage = document.createElement(`button`);
+            nextPage.setAttribute(`class`, `btn btn-primary`);
+            nextPage.setAttribute(`type`, `button`);
+            nextPage.setAttribute(`onclick`, `tableNavigationAction(1);`);
+            nextPage.innerHTML = `Next Page`;
+            // if amount of users is not 100, disable next page button
+            if (users.length !== 100)
+            {
+                nextPage.setAttribute(`disabled`, `true`);
+            }
+            tableNavigation[i].appendChild(nextPage);
+        }
+
         $('#editModal').on('show.bs.modal', function (event)
         {
             var button = $(event.relatedTarget) // Button that triggered the modal
@@ -458,6 +491,25 @@
 
             window.location.href = `/staff/editUser` + dataToSend;
 
+        }
+
+        function tableNavigationAction(direction)
+        {
+            let currentPage = window.location.search;
+            currentPage = currentPage.replace(`?page=`, ``);
+            currentPage = currentPage.split(`&`)[0];
+            if (direction === -1)
+            {
+                if (currentPage === 1)
+                {
+                    return;
+                }
+                currentPage--;
+            } else if (direction === 1)
+            {
+                currentPage++;
+            }
+            window.location.href = `/staff?page=` + currentPage;
         }
 
     </script>
