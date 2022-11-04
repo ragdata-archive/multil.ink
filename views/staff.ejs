@@ -80,9 +80,9 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="modal-image" class="col-form-label">Image:</label>
-                                    <input class="form-control" id="modal-image" required></input>
+                                    <input class="form-control" id="modal-image" required readonly></input>
                                     <button style="margin-top:5px;" type="button" class="btn btn-danger"
-                                        onclick="document.getElementById('modal-image').value = `${window.location.href.slice(0, -6)}/img/person.png`;">Reset
+                                        onclick="document.getElementById('modal-image').value = `${window.location.href.split(`?`)[0].slice(0, -6)}/img/person.png`;">Reset
                                         Image</button>
                                 </div>
                                 <div class="form-group">
@@ -403,6 +403,7 @@
                     searchResetButton.setAttribute(`onclick`, `resetSearch();`);
                     searchResetButton.innerHTML = `Clear Search`;
                     searchForm.appendChild(searchResetButton);
+                    searchInput.value = window.location.search.split(`search=`)[1];
                 }
             }
         }
