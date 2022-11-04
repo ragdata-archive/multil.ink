@@ -478,7 +478,13 @@ async function run()
     {
         // eslint-disable-next-line no-restricted-syntax
         console.log(`ready on port ${ port }`);
+        checkExpiredSubscriptions();
     });
+
+    setInterval(() =>
+    {
+        checkExpiredSubscriptions();
+    }, 14_400_000); // every 4~ hours
 }
 
 await run();
@@ -536,4 +542,27 @@ function checkNotAuthenticated(request, response, next)
     if (request.isAuthenticated())
         return response.redirect(`/edit`);
     next();
+}
+
+/**
+ * @name checkExpiredSubscriptions
+ * @description Checks all paying users to see if their sub expired, and if so to reset them to free.
+ */
+function checkExpiredSubscriptions()
+{
+    // look in the DB for every user that is paid
+    const users = sql.prepare(`SELECT * FROM users WHERE paid = 1`).all();
+    for (const user of users)
+    {
+        const subExpires = user.subExpires;
+        if (subExpires.startsWith(`9999`))
+            continue;
+        const now = new Date();
+        const subExpiresDate = new Date(subExpires);
+        if (now > subExpiresDate)
+        {
+            sql.prepare(`UPDATE users SET paid = 0 WHERE username = ?`).run(user.username);
+            sql.prepare(`UPDATE users SET subExpires = '' WHERE username = ?`).run(user.username);
+        }
+    }
 }

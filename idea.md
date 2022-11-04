@@ -36,7 +36,5 @@ change email/password for users (and on admin dash? [just email tho])
 
 add a self delete option?
 
-handle subscriptions expiring
-
 image upload/crop (if they change pfp, delete their old one to save space [or when resetting as admin])
 
