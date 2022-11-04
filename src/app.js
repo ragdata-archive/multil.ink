@@ -90,6 +90,7 @@ async function run()
                 `login`,
                 `register`,
                 `edit`,
+                `delete`,
                 `staff`,
                 `logout`,
                 `css`,
@@ -439,12 +440,23 @@ async function run()
     // logout
     app.delete(`/logout`, (request, response, next) =>
     {
-        request.logout((error) =>
-        {
-            if (error)
-                return next(error);
-            response.redirect(`/login`);
-        });
+        logoutUser(request, response, next);
+        return response.redirect(`/login`);
+    });
+
+    app.delete(`/delete`, (request, response, next) =>
+    {
+        const userEmail = request.user;
+        if (!userEmail)
+            return response.redirect(`/login`);
+        const username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail).username;
+        if (!username)
+            return response.redirect(`/login`);
+        sql.prepare(`DELETE FROM users WHERE username = ?`).run(username);
+        sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(username);
+        logoutUser(request, response, next);
+        // TODO: Cancel Payments?
+        return response.redirect(`/login`);
     });
 
     // for every other route, get the URL and check if user exists
@@ -594,4 +606,20 @@ function checkExpiredSubscriptions()
             sql.prepare(`UPDATE users SET subExpires = '' WHERE username = ?`).run(user.username);
         }
     }
+}
+
+/**
+ *
+ * @param request
+ * @param response
+ * @param next
+ */
+function logoutUser(request, response, next)
+{
+    request.logout((error) =>
+    {
+        if (error)
+            return next(error);
+        // return response.redirect(`/login`);
+    });
 }
