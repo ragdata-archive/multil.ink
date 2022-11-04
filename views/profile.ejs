@@ -19,18 +19,11 @@
         JavaScript is required to use this app.
     </noscript>
     <main id="main" style="display: none;">
-        <h1>profile page for /<%=username%>
-        </h1>
-
-        <p id="username">Username: <%=username%>
+        <p id="username">@<%=username%>
         </p>
-        <p id="verified">Verified: </p>
-        <p id="paid">Paid: </p>
-        <p id="displayName">Display Name: <%=displayName%>
+        <p id="bio">
+            <%=bio%>
         </p>
-        <p id="bio">Bio: <%=bio%>
-        </p>
-        <p>Image:</p>
         <img src="<%=image%>" alt="profile image" id="pfp">
         <div class="links"></div>
         <p class="ad" style="display: none;">ad here</p>
@@ -41,26 +34,11 @@
 
         let paid = "<%=paid%>";
         paid = (paid === 'true');
-        if (paid)
-        {
-            document.querySelector('#paid').innerHTML += "Yes";
-        }
-        else
-        {
-            document.querySelector('#paid').innerHTML += "No";
+        if (!paid)
             document.querySelector('.ad').style.display = "block";
-        }
 
         let verified = "<%=verified%>";
         verified = (verified === 'true');
-        if (verified)
-        {
-            document.querySelector('#verified').innerHTML += "Yes";
-        }
-        else
-        {
-            document.querySelector('#verified').innerHTML += "No";
-        }
 
         const links = "<%=links%>";
         let linksArray = links.split(",");

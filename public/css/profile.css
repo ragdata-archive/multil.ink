@@ -1,9 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
 #pfp {
     width: 100px;
     height: 100px;
     border-radius: 50%;
     border: 2px solid #fff;
     box-shadow: 0 0 5px #000;
-    /* margin: 0 auto; */
     display: block;
+    margin: auto;
+}
+
+body {
+    margin: auto;
+    padding: 0px;
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    min-height: 100vh;
+    min-width: 100vw;
+    flex-direction: column;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+main#main {
+    flex: 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+p#username {
+    font-size: 24pt;
+    font-weight: bold;
+}
+
+div.links {
+    padding: 20px 0px;
+}
+
+div.links > div {
+    border-radius: 20px;
+    border: solid black 2px;
+    display: block;
+    margin: 20px auto;
+    padding: 17px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    width: 600px;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+}
+
+div.links > div:hover {
+    transform: scale(1.25); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+    text-decoration: underline;
+}
+
+@media screen and (min-width: 375px) and (max-width: 427px) {
+    div.links > div {
+        width: 300px;
+    }
+}
+
+@media screen and (min-width: 428px) and (max-width: 429px) {
+    div.links > div {
+        width: 353px;
+    }
 }
