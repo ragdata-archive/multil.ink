@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
+body {
+    margin: auto;
+    padding: 0px;
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    min-height: 100vh;
+    min-width: 100vw;
+    flex-direction: column;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+main#main {
+    flex: 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+form > div {
+    margin: 10px auto;
+}
+
+div.links > div {
+    margin: 10px auto;
+}
+
+div.links > div > label {
+    margin: 10px;
+}
