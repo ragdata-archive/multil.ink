@@ -609,10 +609,11 @@ function checkExpiredSubscriptions()
 }
 
 /**
- *
- * @param request
- * @param response
- * @param next
+ * @name logoutUser
+ * @description Logs out the user
+ * @param {*} request Express request object
+ * @param {*} response Express response object
+ * @param {*} next Express next function
  */
 function logoutUser(request, response, next)
 {
