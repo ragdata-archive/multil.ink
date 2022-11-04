@@ -4,10 +4,10 @@
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    border: 2px solid #fff;
-    box-shadow: 0 0 5px #000;
+    border: 2px solid none;
     display: block;
     margin: auto;
+    margin-top: 35px;
 }
 
 body {
@@ -39,7 +39,7 @@ div.links {
     padding: 20px 0px;
 }
 
-div.links > div {
+div.links>div {
     border-radius: 20px;
     border: solid black 2px;
     display: block;
@@ -56,19 +56,40 @@ a {
     color: black;
 }
 
-div.links > div:hover {
-    transform: scale(1.25); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+div.links>div:hover {
+    transform: scale(1.25);
+    /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
     text-decoration: underline;
 }
 
 @media screen and (min-width: 375px) and (max-width: 427px) {
-    div.links > div {
+    div.links>div {
         width: 300px;
     }
 }
 
 @media screen and (min-width: 428px) and (max-width: 429px) {
-    div.links > div {
+    div.links>div {
         width: 353px;
     }
+}
+
+#header {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+
+#header>p {
+    padding-right: 10px;
+    margin-bottom: 5px;
+    margin-top: 15px;
+}
+
+#verifiedBadge {
+    display: block;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 18px;
+    height: 32px;
 }

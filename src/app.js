@@ -16,9 +16,6 @@ async function run()
         port, secret, linkWhitelist, freeLinks
     } = require(`./config.json`);
 
-    let { premiumLinks } = require(`./config.json`);
-    premiumLinks = [...premiumLinks, ...freeLinks];
-
     sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT)`).run();
     sql.prepare(`CREATE TABLE IF NOT EXISTS userAuth (uid INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT)`).run();
 
@@ -197,13 +194,7 @@ async function run()
                                 allowed = false;
                                 continue;
                             }
-
-                            if (!premiumLinks.includes(domain) && isPaidUser && !isStaffMember) // If paid user & link is not in premium list, skip.
-                            {
-                                allowed = false;
-                                continue;
-                            }
-                            if (isStaffMember) // If staff member, allow all links.
+                            else
                                 allowed = true;
                         }
 
