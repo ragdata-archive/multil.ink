@@ -224,15 +224,22 @@ async function run()
     // staff.ejs
     app.get(`/staff`, checkAuthenticatedStaff, (request, response) =>
     {
-        if (!request.query.page)
+        if (!request.query.page && !request.query.search)
             return response.redirect(`/staff?page=1`);
         let myUsername = request.user;
         myUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(myUsername).username;
         const pageNumber = request.query.page || 1;
         const usersPerPage = 100;
         // select users from database that are in the page number*100
-        const allUsers = sql.prepare(`SELECT * FROM users LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
-        const allUserAuth = sql.prepare(`SELECT * FROM userAuth ASC LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
+        let allUsers = sql.prepare(`SELECT * FROM users LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
+        let allUserAuth = sql.prepare(`SELECT * FROM userAuth LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
+
+        const search = request.query.search || ``;
+        if (search)
+        {
+            allUsers = sql.prepare(`SELECT * FROM users WHERE username LIKE ?`).all(`%${ search }%`);
+            allUserAuth = sql.prepare(`SELECT * FROM userAuth WHERE username LIKE ?`).all(`%${ search }%`);
+        }
 
         if (allUsers.length === 0)
             return response.redirect(`/staff?page=1`);

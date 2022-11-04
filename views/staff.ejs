@@ -360,6 +360,51 @@
                 nextPage.setAttribute(`disabled`, `true`);
             }
             tableNavigation[i].appendChild(nextPage);
+
+            if (i === 0)
+            {
+                // Search bar & button
+                const searchForm = document.createElement(`form`);
+                searchForm.setAttribute(`class`, `d-flex`);
+                searchForm.setAttribute(`onsubmit`, `return false;`);
+                tableNavigation[i].appendChild(searchForm);
+
+                const searchInput = document.createElement(`input`);
+                searchInput.setAttribute(`type`, `text`);
+                searchInput.setAttribute(`class`, `form-control form-inline`);
+                searchInput.setAttribute(`id`, `searchInput`);
+                searchInput.setAttribute(`placeholder`, `Search for a user...`);
+                searchInput.addEventListener(`keyup`, function (event)
+                {
+                    if (event.keyCode === 13)
+                    {
+                        event.preventDefault();
+                        document.getElementById(`searchButton`).click();
+                    }
+                });
+                // tableNavigation[i].appendChild(searchInput);
+                searchForm.appendChild(searchInput);
+
+                const searchButton = document.createElement(`button`);
+                searchButton.setAttribute(`class`, `btn btn-primary`);
+                searchButton.setAttribute(`id`, `searchButton`);
+                searchButton.setAttribute(`type`, `button`);
+                searchButton.setAttribute(`onclick`, `searchUser();`);
+                searchButton.innerHTML = `Search`;
+                // tableNavigation[i].appendChild(searchButton);
+                searchForm.appendChild(searchButton);
+
+                if (window.location.search.includes(`search=`))
+                {
+                    const searchResetButton = document.createElement(`button`);
+                    searchResetButton.setAttribute(`class`, `btn btn-secondary`);
+                    searchResetButton.setAttribute(`id`, `searchResetButton`);
+                    searchResetButton.setAttribute(`type`, `button`);
+                    searchResetButton.setAttribute(`onclick`, `resetSearch();`);
+                    searchResetButton.innerHTML = `Clear Search`;
+                    searchForm.appendChild(searchResetButton);
+                }
+            }
         }
 
         $('#editModal').on('show.bs.modal', function (event)
@@ -510,6 +555,18 @@
                 currentPage++;
             }
             window.location.href = `/staff?page=` + currentPage;
+        }
+
+        function searchUser()
+        {
+            const userInput = document.getElementById(`searchInput`).value;
+            if (userInput !== ``)
+                window.location.href = `/staff?page=1&search=` + userInput;
+        }
+
+        function resetSearch()
+        {
+            window.location.href = `/staff?page=1`;
         }
 
     </script>

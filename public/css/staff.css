@@ -65,3 +65,8 @@ body {
 .email:hover {
     filter: blur(0px) opacity(1);
 }
+
+#searchInput {
+    width: 50%;
+    margin-right: 10px;
+}
