@@ -185,7 +185,6 @@ async function run()
                             let domain = link.split(`//`)[1].split(`/`)[0];
                             if (domain.startsWith(`www.`))
                                 domain = domain.slice(4);
-                            /* eslint-disable no-continue */
                             if (!freeLinks.includes(domain) && !isPaidUser && !isStaffMember) // If free user & link is not in free list, skip.
                             {
                                 allowed = false;
@@ -197,7 +196,6 @@ async function run()
                                 allowed = false;
                                 continue;
                             }
-                            /* eslint-enable no-continue */
                             if (isStaffMember) // If staff member, allow all links.
                                 allowed = true;
                         }
@@ -226,6 +224,8 @@ async function run()
     // staff.ejs
     app.get(`/staff`, checkAuthenticatedStaff, (request, response) =>
     {
+        let myUsername = request.user;
+        myUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(myUsername).username;
         const allUsers = sql.prepare(`SELECT * FROM users`).all();
         const allUserAuth = sql.prepare(`SELECT * FROM userAuth`).all();
         const userCount = allUsers.length - 1;
@@ -234,6 +234,11 @@ async function run()
         const verified = [];
         const paid = [];
         const subExpires = [];
+        const displayNames = [];
+        const bios = [];
+        const images = [];
+        const links = [];
+        const linkNames = [];
         for (const [index, allUser] of allUsers.entries())
         {
             usernames.push(allUser.username);
@@ -244,12 +249,140 @@ async function run()
             if (subExpire === ``)
                 subExpire = `n/a`;
             subExpires.push(subExpire);
+            displayNames.push(allUser.displayName);
+            bios.push(allUser.bio);
+            images.push(allUser.image);
+            let linkData = JSON.stringify(allUser.links);
+            linkData = Buffer.from(linkData).toString(`base64`);
+            links.push(linkData);
+            let linkNameData = JSON.stringify(allUser.linkNames);
+            linkNameData = Buffer.from(linkNameData).toString(`base64`);
+            linkNames.push(linkNameData);
         }
         const numberOfUsers = userCount + 1;
 
         response.render(`staff.ejs`, {
-            numberOfUsers, usernames, emails, verified, paid, subExpires
+            numberOfUsers, usernames, emails, verified, paid, subExpires, myUsername, displayNames, bios, images, links, linkNames
         });
+    });
+
+    app.get(`/staff/*`, checkAuthenticatedStaff, (request, response) =>
+    {
+        const actionToTake = request.params[0];
+        const usernameToTakeActionOn = request.query.username;
+        const staffEmail = request.user;
+        const staffUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(staffEmail).username;
+
+        if (usernameToTakeActionOn === staffUsername) // If staff member is trying to take action on themselves, redirect.
+            return response.redirect(`/staff`);
+
+        switch (actionToTake)
+        {
+            case `editUser`: {
+                const urlParameters = new URLSearchParams(request.query);
+                const userToEdit = urlParameters.get(`username`);
+
+                for (const [key, value] of urlParameters)
+                {
+                    if (key === `username`)
+                        continue;
+
+                    if (key === `newUsername`)
+                    {
+                        if (value === ``)
+                            continue;
+                        const newUsername = value;
+                        // ensure new username is not already taken
+                        const usernameExists = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(newUsername);
+                        if (!usernameExists)
+                        {
+                            sql.prepare(`UPDATE users SET username = ? WHERE username = ?`).run(newUsername, userToEdit);
+                            sql.prepare(`UPDATE userAuth SET username = ? WHERE username = ?`).run(newUsername, userToEdit);
+                        }
+                    }
+
+                    if (key === `bio` && value === ``)
+                        sql.prepare(`UPDATE users SET bio = ? WHERE username = ?`).run(`No bio yet.`, userToEdit);
+
+                    if (key === `image` && value === ``)
+                        sql.prepare(`UPDATE users SET image = ? WHERE username = ?`).run(`${ request.protocol }://${ request.get(`host`) }/img/person.png`, userToEdit);
+
+                    if (key === `displayName` && value === ``)
+                        continue;
+
+                    if ((key === `links` && value === ``) || (key === `linkNames` && value === ``))
+                    {
+                        sql.prepare(`UPDATE users SET links = ? WHERE username = ?`).run(`[]`, userToEdit);
+                        sql.prepare(`UPDATE users SET linkNames = ? WHERE username = ?`).run(`[]`, userToEdit);
+                    }
+
+                    else
+                        sql.prepare(`UPDATE users SET ${ key } = ? WHERE username = ?`).run(value, userToEdit);
+                }
+
+                response.redirect(`/staff`);
+                break;
+            }
+            case `verifyUser`: {
+                sql.prepare(`UPDATE users SET verified = 1 WHERE username = ?`).run(usernameToTakeActionOn);
+                response.redirect(`/staff`);
+                break;
+            }
+            case `unverifyUser`: {
+                sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                response.redirect(`/staff`);
+                break;
+            }
+            case `promoteUser`: {
+                sql.prepare(`UPDATE users SET verified = 2 WHERE username = ?`).run(usernameToTakeActionOn);
+                sql.prepare(`UPDATE users SET paid = 1 WHERE username = ?`).run(usernameToTakeActionOn);
+                sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(`9999-01-01`, usernameToTakeActionOn);
+                response.redirect(`/staff`);
+                break;
+            }
+            case `demoteUser`: {
+                sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                sql.prepare(`UPDATE users SET paid = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(``, usernameToTakeActionOn);
+                response.redirect(`/staff`);
+                break;
+            }
+            case `suspendUser`: {
+                sql.prepare(`UPDATE users SET verified = -1 WHERE username = ?`).run(usernameToTakeActionOn);
+                response.redirect(`/staff`);
+                break;
+            }
+            case `unsuspendUser`: {
+                sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                response.redirect(`/staff`);
+                break;
+            }
+            case `deleteUser`: {
+                sql.prepare(`DELETE FROM users WHERE username = ?`).run(usernameToTakeActionOn);
+                sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(usernameToTakeActionOn);
+                response.redirect(`/staff`);
+                break;
+            }
+            case `extendUser`: {
+                const timeToExtendInMonths = request.query.months;
+                const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn);
+                const subExpires = user.subExpires;
+                if (subExpires.startsWith(`9999`))
+                    return response.redirect(`/staff`);
+                let newSubExpires;
+                newSubExpires = subExpires === `` ? new Date() : new Date(subExpires);
+                newSubExpires.setMonth(newSubExpires.getMonth() + Number.parseInt(timeToExtendInMonths, 10));
+                newSubExpires = newSubExpires.toISOString().split(`T`)[0];
+                sql.prepare(`UPDATE users SET paid = 1 WHERE username = ?`).run(usernameToTakeActionOn);
+                sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(newSubExpires, usernameToTakeActionOn);
+                response.redirect(`/staff`);
+                break;
+            }
+            default: {
+                response.redirect(`/staff`);
+                break;
+            }
+        }
     });
 
     // logout
@@ -340,7 +473,6 @@ function checkAuthenticated(request, response, next)
 {
     if (request.isAuthenticated())
         return next();
-
     response.redirect(`/login`);
 }
 

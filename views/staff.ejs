@@ -4,8 +4,16 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="css/home.css">
-    <script src="js/home.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.1.slim.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+        crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="css/staff.css">
+    <script src="js/staff.js"></script>
 
     <link rel="icon" type="image/ico" sizes="32x32" href="./favicon.ico">
 
@@ -18,45 +26,133 @@
     <noscript>
         JavaScript is required to use this app.
     </noscript>
+    <script>
+        document.body.classList.add("bg-dark");
+        document.documentElement.classList.add("bg-dark");
+    </script>
     <main id="main" style="display: none;">
-        <h1>staff page</h1>
+        <main class="container">
+            <div class="bg-dark p-4 m-1 rounded">
+                <p class="text-light">Number of Users: <%=numberOfUsers%>
+                </p>
 
-        <p>Number of Users: <%=numberOfUsers%>
-        </p>
+                <table class="table table-dark" id="users">
+                    <thead>
+                        <tr>
+                            <th scope="col">Username</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Verified</th>
+                            <th scope="col">Paid</th>
+                            <th scope="col">Subscription Expires</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersBody">
+                    </tbody>
+            </div>
 
-        <table id="users">
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Verified</th>
-                    <th>Paid</th>
-                    <th>Subscription Expires</th>
-                </tr>
-            </thead>
-            <tbody id="usersBody">
-            </tbody>
+
+            <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editModalLabel">Edit User</h5>
+                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form>
+                                <div class="form-group">
+                                    <label for="modal-username" class="col-form-label">Username:</label>
+                                    <input type="text" class="form-control" id="modal-username" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="modal-displayName" class="col-form-label">Display Name:</label>
+                                    <input class="form-control" id="modal-displayName" required maxlength="30"></input>
+                                </div>
+                                <div class="form-group">
+                                    <label for="modal-bio" class="col-form-label">Bio:</label>
+                                    <input class="form-control" id="modal-bio" required maxlength="140"></input>
+                                </div>
+                                <div class="form-group">
+                                    <label for="modal-image" class="col-form-label">Image:</label>
+                                    <input class="form-control" id="modal-image" required></input>
+                                    <button style="margin-top:5px;" type="button" class="btn btn-danger"
+                                        onclick="document.getElementById('modal-image').value = `${window.location.href.slice(0, -6)}/img/person.png`;">Reset
+                                        Image</button>
+                                </div>
+                                <div class="form-group">
+                                    <label for="modal-links" class="col-form-label">Links:</label>
+                                    <textarea class="form-control" id="modal-links" rows="" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="modal-linkNames" class="col-form-label">Link Names:</label>
+                                    <textarea class="form-control" id="modal-linkNames" rows="" required></textarea>
+                                </div>
+                                <p id="editingUserOldName" style="display:none;"></p>
+                                <div>
+                                    <button style="margin-top:5px;" type="button" class="btn btn-danger"
+                                        onclick="document.getElementById('modal-links').value = `[]`; document.getElementById('modal-linkNames').value = `[]`; document.getElementById('modal-links').rows = 2; document.getElementById('modal-linkNames').rows = 2;">Remove
+                                        All Links</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="prepareUserEdit();">Save
+                                Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </main>
+
     <script>
         document.getElementById("main").style.display = "block";
 
+        const myUsername = "<%=myUsername%>"
         const numberOfUsers = "<%=numberOfUsers%>";
         const usernames = "<%=usernames%>";
         const emails = "<%=emails%>";
         const verified = "<%=verified%>";
         const paid = "<%=paid%>";
         const subExpires = "<%=subExpires%>";
+        const displayNames = "<%=displayNames%>";
+        const bios = "<%=bios%>";
+        const images = "<%=images%>";
+        const links = "<%=links%>";
+        const linkNames = "<%=linkNames%>";
 
         // Make an array of objects
         const users = [];
         for (let i = 0; i < numberOfUsers; i++)
         {
+            let linkData = links.split(`,`)[i];
+            linkData = decodeURIComponent(atob(linkData));
+            linkData = JSON.stringify(linkData);
+            linkData = linkData.replaceAll(`\\`, ``);
+            linkData = linkData.replaceAll(`""`, `"`);
+            linkData = linkData.slice(1, -1);
+            let linkNamesData = linkNames.split(`,`)[i];
+            linkNamesData = decodeURIComponent(atob(linkNamesData));
+            linkNamesData = JSON.stringify(linkNamesData);
+            linkNamesData = linkNamesData.replaceAll(`\\`, ``);
+            linkNamesData = linkNamesData.replaceAll(`""`, `"`);
+            linkNamesData = linkNamesData.slice(1, -1);
             users.push({
                 username: usernames.split(`,`)[i],
                 email: emails.split(`,`)[i],
                 verified: verified.split(`,`)[i],
                 paid: paid.split(`,`)[i],
-                subExpires: subExpires.split(`,`)[i]
+                subExpires: subExpires.split(`,`)[i],
+                displayName: displayNames.split(`,`)[i],
+                bio: bios.split(`,`)[i],
+                image: images.split(`,`)[i],
+                links: linkData,
+                linkNames: linkNamesData
             });
 
             // Add to the table
@@ -72,7 +168,8 @@
             if (users[i].verified === `1`)
             {
                 verifiedCell.innerHTML = "Yes";
-            } else if (users[i].verified === `2`)
+            }
+            else if (users[i].verified === `2`)
             {
                 verifiedCell.innerHTML = "Staff Member";
             }
@@ -93,6 +190,274 @@
                 paidCell.innerHTML = "No";
             }
             subExpiresCell.innerHTML = users[i].subExpires;
+
+            username.setAttribute(`scope`, `row`);
+
+            const actions = row.insertCell(5);
+
+            const editButton = document.createElement(`button`);
+            editButton.setAttribute(`class`, `btn btn-secondary`);
+            editButton.setAttribute(`type`, `button`);
+            editButton.setAttribute(`data-bs-toggle`, `modal`);
+            editButton.setAttribute(`data-bs-target`, `#editModal`);
+            editButton.setAttribute(`data-username`, `${ users[i].username }`);
+            editButton.setAttribute(`data-index`, `${ i }`);
+            // editButton.setAttribute(`onclick`, `editUser('${ users[i].username }')`);
+            editButton.innerHTML = `Edit`;
+            if (users[i].username === myUsername)
+            {
+                // editButton.setAttribute(`disabled`, `true`);
+                editButton.removeAttribute(`data-bs-toggle`);
+                editButton.setAttribute(`onclick`, `window.location.href = '../edit'`);
+            }
+            actions.appendChild(editButton);
+
+            if (users[i].verified === `0`)
+            {
+                const verifyButton = document.createElement(`button`);
+                verifyButton.setAttribute(`class`, `btn btn-primary`);
+                verifyButton.setAttribute(`type`, `button`);
+                verifyButton.setAttribute(`onclick`, `verifyUser('${ users[i].username }')`);
+                verifyButton.innerHTML = `Verify`;
+                if (users[i].username === myUsername)
+                {
+                    verifyButton.setAttribute(`disabled`, `true`);
+                }
+                actions.appendChild(verifyButton);
+            }
+            else if (users[i].verified === `1`)
+            {
+                const unverifyButton = document.createElement(`button`);
+                unverifyButton.setAttribute(`class`, `btn btn-secondary`);
+                unverifyButton.setAttribute(`type`, `button`);
+                unverifyButton.setAttribute(`onclick`, `unverifyUser('${ users[i].username }')`);
+                unverifyButton.innerHTML = `Unverify`;
+                if (users[i].username === myUsername)
+                {
+                    unverifyButton.setAttribute(`disabled`, `true`);
+                }
+                actions.appendChild(unverifyButton);
+
+                const promoteButton = document.createElement(`button`);
+                promoteButton.setAttribute(`class`, `btn btn-primary`);
+                promoteButton.setAttribute(`type`, `button`);
+                promoteButton.setAttribute(`onclick`, `promoteUser('${ users[i].username }')`);
+                promoteButton.innerHTML = `Promote`;
+                if (users[i].username === myUsername)
+                {
+                    promoteButton.setAttribute(`disabled`, `true`);
+                }
+                actions.appendChild(promoteButton);
+            }
+            else if (users[i].verified === `2`)
+            {
+                const demoteButton = document.createElement(`button`);
+                demoteButton.setAttribute(`class`, `btn btn-warning`);
+                demoteButton.setAttribute(`type`, `button`);
+                demoteButton.setAttribute(`onclick`, `demoteUser('${ users[i].username }')`);
+                demoteButton.innerHTML = `Demote`;
+                if (users[i].username === myUsername)
+                {
+                    demoteButton.setAttribute(`disabled`, `true`);
+                }
+                actions.appendChild(demoteButton);
+            }
+            else if (users[i].verified === `-1`)
+            {
+                const unsuspendButton = document.createElement(`button`);
+                unsuspendButton.setAttribute(`class`, `btn btn-success`);
+                unsuspendButton.setAttribute(`type`, `button`);
+                unsuspendButton.setAttribute(`onclick`, `unsuspendUser('${ users[i].username }')`);
+                unsuspendButton.innerHTML = `Unsuspend`;
+                if (users[i].username === myUsername)
+                {
+                    unsuspendButton.setAttribute(`disabled`, `true`);
+                }
+                actions.appendChild(unsuspendButton);
+            }
+
+            if (users[i].verified !== `-1` && users[i].verified !== `2`)
+            {
+                const suspendButton = document.createElement(`button`);
+                suspendButton.setAttribute(`class`, `btn btn-danger`);
+                suspendButton.setAttribute(`type`, `button`);
+                suspendButton.setAttribute(`onclick`, `suspendUser('${ users[i].username }')`);
+                suspendButton.innerHTML = `Suspend`;
+                if (users[i].username === myUsername)
+                {
+                    suspendButton.setAttribute(`disabled`, `true`);
+                }
+                actions.appendChild(suspendButton);
+            }
+
+            if (users[i].verified === `-1`)
+            {
+                const deleteButton = document.createElement(`button`);
+                deleteButton.setAttribute(`class`, `btn btn-danger`);
+                deleteButton.setAttribute(`type`, `button`);
+                deleteButton.setAttribute(`onclick`, `deleteUser('${ users[i].username }')`);
+                deleteButton.innerHTML = `Delete`;
+                if (users[i].username === myUsername)
+                {
+                    deleteButton.setAttribute(`disabled`, `true`);
+                }
+                actions.appendChild(deleteButton);
+            }
+
+            if (users[i].verified !== `2` && users[i].verified !== `-1`)
+            {
+                let extendClass = `btn btn-primary dropdown-toggle`;
+                if (users[i].username === myUsername)
+                {
+                    extendClass += ` disabled`;
+                }
+                const extendButton = `
+                <button class="${ extendClass }" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Extend Subscription
+                </button>
+                <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="extendUser('${ users[i].username }', 1)">1 Month</a>
+                    <a class="dropdown-item" href="#" onclick="extendUser('${ users[i].username }', 3)">3 Months</a>
+                    <a class="dropdown-item" href="#" onclick="extendUser('${ users[i].username }', 6)">6 Months</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" onclick="extendUser('${ users[i].username }', 12)">1 Year</a>
+                    <a class="dropdown-item" href="#" onclick="extendUser('${ users[i].username }', 24)">2 Years</a>
+                    <a class="dropdown-item" href="#" onclick="extendUser('${ users[i].username }', 36)">3 Years</a>
+                </div>
+               `;
+                actions.innerHTML += extendButton;
+            }
+        }
+
+        $('#editModal').on('show.bs.modal', function (event)
+        {
+            var button = $(event.relatedTarget) // Button that triggered the modal
+            var username = button.data('username') // Extract info from data-* attributes
+            var index = button.data('index') // Extract info from data-* attributes
+            var modal = $(this)
+            modal.find('.modal-title').text('Edit User: ' + username)
+            modal.find('.modal-body #modal-username').val(username)
+            modal.find('.modal-body #editingUserOldName').val(username)
+            modal.find('.modal-body #modal-displayName').val(users[index].displayName)
+            modal.find('.modal-body #modal-bio').val(users[index].bio)
+            modal.find('.modal-body #modal-image').val(users[index].image)
+            let links = users[index].links;
+            links = JSON.parse(links);
+            const jsonLinks = links;
+            links = JSON.stringify(links, null, 2);
+            let linkNames = users[index].linkNames;
+            linkNames = JSON.parse(linkNames);
+            const jsonLinkNames = linkNames;
+            linkNames = JSON.stringify(linkNames, null, 2);
+            modal.find('.modal-body #modal-links').val(links)
+            modal.find('.modal-body #modal-linkNames').val(linkNames)
+            modal.find('.modal-body #modal-links').attr(`rows`, jsonLinks.length + 2);
+            modal.find('.modal-body #modal-linkNames').attr(`rows`, jsonLinkNames.length + 2);
+        });
+
+        function editUser(username)
+        {
+            window.location.href = `/staff/editUser?username=` + username;
+        }
+
+        function verifyUser(username)
+        {
+            window.location.href = `/staff/verifyUser?username=` + username;
+        }
+
+        function unverifyUser(username)
+        {
+            window.location.href = `/staff/unverifyUser?username=` + username;
+        }
+
+        function promoteUser(username)
+        {
+            window.location.href = `/staff/promoteUser?username=` + username;
+        }
+
+        function demoteUser(username)
+        {
+            window.location.href = `/staff/demoteUser?username=` + username;
+        }
+
+        function suspendUser(username)
+        {
+            window.location.href = `/staff/suspendUser?username=` + username;
+        }
+
+        function unsuspendUser(username)
+        {
+            window.location.href = `/staff/unsuspendUser?username=` + username;
+        }
+
+        function deleteUser(username)
+        {
+            window.location.href = `/staff/deleteUser?username=` + username;
+        }
+
+        function extendUser(username, months)
+        {
+            window.location.href = `/staff/extendUser?username=` + username + `&months=` + months;
+        }
+
+        function prepareUserEdit()
+        {
+            const oldUsername = document.getElementById(`editingUserOldName`).value;
+            const newUsername = document.getElementById(`modal-username`).value;
+            const displayName = document.getElementById(`modal-displayName`).value;
+            const bio = document.getElementById(`modal-bio`).value;
+            const image = document.getElementById(`modal-image`).value;
+            const links = document.getElementById(`modal-links`).value;
+            const linkNames = document.getElementById(`modal-linkNames`).value;
+            sendUserEdit(oldUsername, newUsername, displayName, bio, image, links, linkNames);
+        };
+
+        function sendUserEdit(oldUsername, newUsername, displayName, bio, image, links, linkNames)
+        {
+            const index = users.findIndex(user => user.username === oldUsername);
+            const user = users[index];
+
+            let dataToSend = `?username=` + oldUsername;
+
+            if (displayName !== user.displayName)
+            {
+                dataToSend += `&displayName=` + displayName;
+            }
+            if (bio !== user.bio)
+            {
+                if (bio === ``)
+                    bio = `No bio yet.`;
+                dataToSend += `&bio=` + bio;
+            }
+            if (image !== user.image)
+            {
+                dataToSend += `&image=` + image;
+            }
+
+            // flatten links and linkNames (no spaces, all one line)
+            links = links.replace(/ /g, ``);
+            links = links.replace(/\r/g, ``);
+            links = links.replace(/\n/g, ``);
+            linkNames = linkNames.replace(/ /g, ``);
+            linkNames = linkNames.replace(/\r/g, ``);
+            linkNames = linkNames.replace(/\n/g, ``);
+
+            if (links !== user.links)
+            {
+                dataToSend += `&links=` + links;
+            }
+            if (linkNames !== user.linkNames)
+            {
+                dataToSend += `&linkNames=` + linkNames;
+            }
+
+            if (newUsername !== user.username)
+            {
+                dataToSend += `&newUsername=` + newUsername;
+            }
+
+            window.location.href = `/staff/editUser` + dataToSend;
+
         }
 
     </script>
