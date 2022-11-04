@@ -27,4 +27,3 @@
 * Self Delete on `/edit`
 * Image Upload/Crop Framework/Library (If they change PFP delete old one [or when resetting as admin])
 * General CSS and code cleanup
-* Number of accounts/paying/verified/staff on `/staff`

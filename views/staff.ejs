@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <script src="https://code.jquery.com/jquery-3.6.1.slim.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -32,25 +32,47 @@
     </script>
     <main id="main" style="display: none;">
         <main class="container">
-            <div class="bg-dark p-4 m-1 rounded">
-                <!-- <p class="text-light">Number of Users: <%=numberOfUsers%> </p>-->
+            <details class="text-white m-1 p-4">
+                <summary>Statistics</summary>
+                <div class="bg-dark p-4 m-1 rounded">
+                    <div class="stats ">
+                        <h4 class="text-white">Number of Users <span class="badge bg-primary">
+                                <%=userCountTotal%>
+                            </span></h4>
+                        <h4 class="text-white">Paying Users <span class="badge bg-success">
+                                <%=paidCount%>
+                            </span></h4>
+                        <h4 class="text-white">Free Users <span class="badge bg-secondary">
+                                <%=freeCount%>
+                            </span></h4>
+                        <h4 class="text-white">Verified Users <span class="badge bg-info">
+                                <%=verifiedCount%>
+                            </span></h4>
+                        <h4 class="text-white">Staff <span class="badge bg-warning">
+                                <%=staffCount%>
+                            </span></h4>
+                        <h4 class="text-white">Suspended Users <span class="badge bg-danger">
+                                <%=suspendedCount%>
+                            </span></h4>
+                    </div>
+            </details>
 
-                <div class="tableNav"></div>
-                <table class="table table-dark" id="users">
-                    <thead>
-                        <tr>
-                            <th scope="col">Username</th>
-                            <th scope="col">Email</th>
-                            <th scope="col">Verified</th>
-                            <th scope="col">Paid</th>
-                            <th scope="col">Subscription Expires</th>
-                            <th scope="col">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersBody">
-                    </tbody>
-                </table>
-                <div class="tableNav"></div>
+            <div class="tableNav"></div>
+            <table class="table table-dark" id="users">
+                <thead>
+                    <tr>
+                        <th scope="col">Username</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Verified</th>
+                        <th scope="col">Paid</th>
+                        <th scope="col">Subscription Expires</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersBody">
+                </tbody>
+            </table>
+            <div class="tableNav"></div>
             </div>
 
 

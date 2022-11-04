@@ -232,6 +232,13 @@ async function run()
         let allUsers = sql.prepare(`SELECT * FROM users LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
         let allUserAuth = sql.prepare(`SELECT * FROM userAuth LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
 
+        const userCountTotal = sql.prepare(`SELECT COUNT(*) FROM users`).get()[`COUNT(*)`];
+        const verifiedCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = 1`).get()[`COUNT(*)`];
+        const paidCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE paid = 1`).get()[`COUNT(*)`];
+        const suspendedCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = -1`).get()[`COUNT(*)`];
+        const staffCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = 2`).get()[`COUNT(*)`];
+        const freeCount = userCountTotal - paidCount - staffCount;
+
         const search = request.query.search || ``;
         if (search)
         {
@@ -278,7 +285,24 @@ async function run()
         const numberOfUsers = userCount;
 
         response.render(`staff.ejs`, {
-            numberOfUsers, usernames, emails, verified, paid, subExpires, myUsername, displayNames, bios, images, links, linkNames
+            numberOfUsers,
+            usernames,
+            emails,
+            verified,
+            paid,
+            subExpires,
+            myUsername,
+            displayNames,
+            bios,
+            images,
+            links,
+            linkNames,
+            userCountTotal,
+            verifiedCount,
+            paidCount,
+            suspendedCount,
+            staffCount,
+            freeCount
         });
     });
 
