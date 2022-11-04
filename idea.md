@@ -23,7 +23,6 @@
 
 ## TODO:
 * Change Email/Pass on `/edit`
-* Change Email on `/staff` (in the edit button)
 * Self Delete on `/edit`
 * Image Upload/Crop Framework/Library (If they change PFP delete old one [or when resetting as admin])
 * General CSS and code cleanup

@@ -93,6 +93,10 @@
                                     <input type="text" class="form-control" id="modal-username" required>
                                 </div>
                                 <div class="form-group">
+                                    <label for="modal-email" class="col-form-label">Email:</label>
+                                    <input type="text" class="form-control" id="modal-email" required>
+                                </div>
+                                <div class="form-group">
                                     <label for="modal-displayName" class="col-form-label">Display Name:</label>
                                     <input class="form-control" id="modal-displayName" required maxlength="30"></input>
                                 </div>
@@ -442,6 +446,7 @@
             var modal = $(this)
             modal.find('.modal-title').text('Edit User: ' + username)
             modal.find('.modal-body #modal-username').val(username)
+            modal.find('.modal-body #modal-email').val(users[index].email)
             modal.find('.modal-body #editingUserOldName').val(username)
             modal.find('.modal-body #modal-displayName').val(users[index].displayName)
             modal.find('.modal-body #modal-bio').val(users[index].bio)
@@ -509,15 +514,16 @@
         {
             const oldUsername = document.getElementById(`editingUserOldName`).value;
             const newUsername = document.getElementById(`modal-username`).value;
+            const email = document.getElementById(`modal-email`).value;
             const displayName = document.getElementById(`modal-displayName`).value;
             const bio = document.getElementById(`modal-bio`).value;
             const image = document.getElementById(`modal-image`).value;
             const links = document.getElementById(`modal-links`).value;
             const linkNames = document.getElementById(`modal-linkNames`).value;
-            sendUserEdit(oldUsername, newUsername, displayName, bio, image, links, linkNames);
+            sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, links, linkNames);
         };
 
-        function sendUserEdit(oldUsername, newUsername, displayName, bio, image, links, linkNames)
+        function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, links, linkNames)
         {
             const index = users.findIndex(user => user.username === oldUsername);
             const user = users[index];
@@ -537,6 +543,11 @@
             if (image !== user.image)
             {
                 dataToSend += `&image=` + image;
+            }
+
+            if (email !== user.email)
+            {
+                dataToSend += `&email=` + email;
             }
 
             // flatten links and linkNames (no spaces, all one line)

@@ -356,6 +356,17 @@ async function run()
                         sql.prepare(`UPDATE users SET linkNames = ? WHERE username = ?`).run(`[]`, userToEdit);
                     }
 
+                    if (key === `email`)
+                    {
+                        if (value === ``)
+                            continue;
+                        const newEmail = value;
+                        // ensure new email is not already taken
+                        const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
+                        if (!emailExists)
+                            sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userToEdit);
+                    }
+
                     else
                         sql.prepare(`UPDATE users SET ${ key } = ? WHERE username = ?`).run(value, userToEdit);
                 }
