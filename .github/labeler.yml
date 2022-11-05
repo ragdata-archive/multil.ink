@@ -13,4 +13,4 @@ meta:
   - .vscode/**/*
 
 style:
-  - *.css
+  - src/**/*.css
