@@ -23,19 +23,25 @@
         JavaScript is required to use this app.
     </noscript>
     <main id="main" style="display: none;">
-        <h1>login page</h1>
-        <form action="/login" method="POST">
-            <div>
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
+        <div class="wrapper">
+            <div id="formContent">
+
+                <div id="formHeader">
+                    <a href="/register" class="underlineHover">Don't have an account? Register</a>
+                </div>
+                <div id="formHeaderPadding"></div>
+                <form action="/login" method="POST">
+                    <input type="email" id="email" class="" name="email" required maxlength="1024" placeholder="Email">
+                    <input type="password" id="password" class="" required name="password" maxlength="1024"
+                        placeholder="Password">
+                    <div id="formSubmitPadding"></div>
+                    <input type="submit" class="" value="Log In">
+                </form>
+
+                <div id="formFooter">
+                    <a href="#" class="underlineHover">Forgot Password?</a>
+                </div>
             </div>
-            <div>
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit">Login</button>
-        </form>
-        <a href="/register">Register</a>
     </main>
     <script>
         document.getElementById("main").style.display = "block";
