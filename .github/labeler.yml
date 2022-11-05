@@ -11,3 +11,6 @@ meta:
   - .eslintrc.json
   - .github/**/*
   - .vscode/**/*
+
+style:
+  - *.css
