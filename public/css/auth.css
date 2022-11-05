@@ -53,11 +53,21 @@ h2 {
 #formFooter,
 #formHeader {
     background-color: #f6f6f6;
-    border-top: 1px solid #dce8f1;
     padding: 25px;
     text-align: center;
+
+}
+
+#formFooter {
+    border-top: 1px solid #dce8f1;
     -webkit-border-radius: 0 0 10px 10px;
     border-radius: 0 0 10px 10px;
+}
+
+#formHeader {
+    border-top: 1px solid #dce8f1;
+    -webkit-border-radius: 10px 10px 0 0;
+    border-radius: 10px 10px 0 0;
 }
 
 #formHeaderPadding {
