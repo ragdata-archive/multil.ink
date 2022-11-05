@@ -3,6 +3,12 @@ import SQLite from 'better-sqlite3';
 import { createRequire } from "node:module";
 import helmet from "helmet";
 import bodyParser from "body-parser";
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+// const __filename = fileURLToPath(import.meta.url);
+// eslint-disable-next-line no-underscore-dangle
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const require = createRequire(import.meta.url);
 const sql = new SQLite(`./db.sqlite`);
@@ -55,6 +61,11 @@ async function run()
     app.use(methodOverride(`_method`));
     app.use(express.static(`./public`));
     app.use(express.static(`./views`));
+    // hotload jquery & bootstrap
+    const projectRoot = path.join(__dirname, `..`);
+    app.use(`/css`, express.static(path.join(projectRoot, `node_modules/bootstrap/dist/css`)));
+    app.use(`/js`, express.static(path.join(projectRoot, `node_modules/bootstrap/dist/js`)));
+    app.use(`/js`, express.static(path.join(projectRoot, `node_modules/jquery/dist`)));
     app.set(`views`, `./views`);
     app.set(`view engine`, `ejs`);
 
@@ -494,7 +505,12 @@ async function run()
             `/js/`,
             `/img/`,
         ];
-        if (allowed.includes(request.url)) return;
+        if (allowed.includes(request.url))
+        {
+            if (request.url.endsWith(`/`)) // fixes request hanging if they try and go to `/css/` (for example)
+                return response.redirect(`/`);
+            return;
+        }
 
         // If URL is not A-Z, 0-9, then bail.
         if (!/^[\da-z]+$/i.test(potentialUser))
