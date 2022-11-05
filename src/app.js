@@ -455,12 +455,17 @@ async function run()
                 const subExpires = user.subExpires;
                 if (subExpires.startsWith(`9999`))
                     return response.redirect(`/staff`);
-                let newSubExpires;
-                newSubExpires = subExpires === `` ? new Date() : new Date(subExpires);
-                newSubExpires.setMonth(newSubExpires.getMonth() + Number.parseInt(timeToExtendInMonths, 10));
-                newSubExpires = newSubExpires.toISOString().split(`T`)[0];
+                if (timeToExtendInMonths === `-1`)
+                    sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(`9999-01-01`, usernameToTakeActionOn);
+                else
+                {
+                    let newSubExpires;
+                    newSubExpires = subExpires === `` ? new Date() : new Date(subExpires);
+                    newSubExpires.setMonth(newSubExpires.getMonth() + Number.parseInt(timeToExtendInMonths, 10));
+                    newSubExpires = newSubExpires.toISOString().split(`T`)[0];
+                    sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(newSubExpires, usernameToTakeActionOn);
+                }
                 sql.prepare(`UPDATE users SET paid = 1 WHERE username = ?`).run(usernameToTakeActionOn);
-                sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(newSubExpires, usernameToTakeActionOn);
                 response.redirect(`/staff`);
                 break;
             }

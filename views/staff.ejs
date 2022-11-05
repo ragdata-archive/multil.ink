@@ -333,7 +333,7 @@
             if (users[i].verified !== `2` && users[i].verified !== `-1`)
             {
                 let extendClass = `btn btn-primary dropdown-toggle`;
-                if (users[i].username === myUsername)
+                if (users[i].username === myUsername || users[i].subExpires.startsWith(`9999`))
                 {
                     extendClass += ` disabled`;
                 }
@@ -349,6 +349,8 @@
                     <a class="dropdown-item" href="#" onclick="extendUser('${ users[i].username }', 12)">1 Year</a>
                     <a class="dropdown-item" href="#" onclick="extendUser('${ users[i].username }', 24)">2 Years</a>
                     <a class="dropdown-item" href="#" onclick="extendUser('${ users[i].username }', 36)">3 Years</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" onclick="extendUser('${ users[i].username }', -1)">Forever</a>
                 </div>
                `;
                 actions.innerHTML += extendButton;
