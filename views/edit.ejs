@@ -4,13 +4,18 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="../js/jquery.slim.min.js"></script>
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <script src="../js/bootstrap.bundle.min.js"></script>
+
     <link rel="stylesheet" href="css/edit.css">
-    <script src="js/profile.js"></script>
+    <!-- <script src="js/profile.js"></script> -->
 
     <link rel="icon" type="image/ico" sizes="32x32" href="./favicon.ico">
 
     <title>
-        Edit - <%=displayName%>
+        Edit - @<%=username%>
     </title>
 </head>
 
@@ -19,47 +24,59 @@
         JavaScript is required to use this app.
     </noscript>
     <main id="main" style="display: none;">
-        <h1>edit page for /<%=username%>
+        <h1>Edit Your Profile - @<%=username%>
         </h1>
 
-        <p id="username">Username: <%=username%>
-        </p>
-        <p id="verified">Verified: </p>
-        <p id="paid">Paid: </p>
-        <p id="subExpires">Subscription Expires: <%=subExpires%>
-        </p>
-        <p id="displayName">Display Name: <%=displayName%>
-        </p>
-        <p id="bio">Bio: <%=bio%>
-        </p>
-        <p>Image:</p>
+        <div id="accountInfo">
+            <h2>Account Info</h2>
+            <h4 id="verified">Status: </h4>
+            <div id="paymentThings">
+                <h4 id="planText">Plan: </h4>
+                <div id="free" style="display: none;">
+                    <p id="freeText"></p>
+                    <button id="upgrade" class="btn btn-primary">Upgrade</button>
+                </div>
+                <div id="paid" style="display: none;">
+                    <p id="paidText"></p>
+                    <p id="subExpires">Subscription Expires: <%=subExpires%>
+                    </p>
+                    <button id="cancel" class="btn btn-danger">Cancel Subscription</button>
+                </div>
+            </div>
+        </div>
+
         <img src="<%=image%>" alt="profile image" id="pfp">
 
         <form action="/edit" method="POST">
             <div>
                 <label for="displayName">Display Name</label>
-                <input type="text" id="displayName" name="displayName" value="<%=displayName%>" maxlength="30" required>
+                <input type="text" id="displayName" name="displayName" value="<%=displayName%>" maxlength="60" required>
             </div>
             <div>
                 <label for="bio">Bio</label>
-                <input type="text" id="bio" name="bio" value="<%=bio%>" maxlength="140" required>
+                <input type="text" id="bio" name="bio" value="<%=bio%>" maxlength="280" required>
             </div>
             <div>
                 <label for="image">Image</label>
                 <input type="text" id="image" name="image" value="<%=image%>" required>
             </div>
             <div class="links"></div>
-            <button id="addLink">Add Link</button>
-            <button type="submit">Update Profile</button>
+            <div>
+                <button type="button" id="addLink" class="btn btn-primary">Add Another Link</button>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-success">Update Profile</button>
+            </div>
         </form>
 
-        <form action="/logout?_method=DELETE" method="POST">
-            <button type="submit">Log Out</button>
-        </form>
-
-        <form action="/delete?_method=DELETE" method="POST">
-            <button type="submit">Delete my account</button>
-        </form>
+        <div>
+            <form action="/logout?_method=DELETE" method="POST">
+                <button type="submit" class="btn btn-warning">Log Out</button>
+            </form>
+            <form action="/delete?_method=DELETE" method="POST">
+                <button type="submit" class="btn btn-danger">Delete my account</button>
+            </form>
+        </div>
     </main>
 
     <script>
@@ -79,6 +96,7 @@
             linkDiv.innerHTML += `<input type="text" id="linkName${ index }" name="linkName${ index }" value="${ linksNamesArray[index] }" required>`;
             // delete button
             const deleteButton = document.createElement('button');
+            deleteButton.classList.add('btn', 'btn-danger');
             deleteButton.innerHTML = 'Delete';
             deleteButton.addEventListener('click', () =>
             {
@@ -105,6 +123,7 @@
             linkDiv.innerHTML += `<input type="text" id="linkName${ index }" name="linkName${ index }" required>`;
             // delete button
             const deleteButton = document.createElement('button');
+            deleteButton.classList.add('btn', 'btn-danger');
             deleteButton.innerHTML = 'Delete';
             deleteButton.addEventListener('click', () =>
             {
@@ -118,22 +137,28 @@
         paid = (paid === 'true');
         if (paid)
         {
-            document.querySelector('#paid').innerHTML += "Yes";
+            document.getElementById('planText').innerHTML += 'Paid';
+            document.getElementById('paid').style.display = 'block';
         }
         else
         {
-            document.querySelector('#paid').innerHTML += "No";
+            document.getElementById('planText').innerHTML += 'Free';
+            document.getElementById('free').style.display = 'block';
         }
 
         let verified = "<%=verified%>";
-        verified = (verified === 'true');
-        if (verified)
+        if (verified === `2`)
         {
-            document.querySelector('#verified').innerHTML += "Yes";
+            document.getElementById("verified").innerHTML += "Staff Member";
+            document.getElementById('paymentThings').style.display = 'none';
+        }
+        else if (verified === `1`)
+        {
+            document.getElementById("verified").innerHTML += "Verified";
         }
         else
         {
-            document.querySelector('#verified').innerHTML += "No";
+            document.getElementById("verified").style.display = "none";
         }
     </script>
 </body>

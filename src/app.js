@@ -156,14 +156,13 @@ async function run()
         const linkNames = JSON.parse(user.linkNames);
         const paid = Boolean(user.paid);
         const subExpires = user.subExpires;
-        let verified = user.verified;
+        const verified = user.verified;
 
         if (verified === -1)
         {
             // Suspended
             return response.redirect(`/`);
         }
-        verified = Boolean(verified);
 
         response.render(`edit.ejs`, {
             username, displayName, bio, image, links, linkNames, paid, subExpires, verified
@@ -189,8 +188,8 @@ async function run()
             if (isSuspended)
                 return response.redirect(`/`);
 
-            const updatedDisplayName = request.body.displayName.trim().slice(0, 30);
-            const updatedBio = request.body.bio.trim().slice(0, 140);
+            const updatedDisplayName = request.body.displayName.trim().slice(0, 60);
+            const updatedBio = request.body.bio.trim().slice(0, 280);
             const updatedImage = request.body.image.trim();
 
             let updatedLinks = [];
@@ -497,13 +496,13 @@ async function run()
     // for every other route, get the URL and check if user exists
     app.get(`/*`, (request, response) =>
     {
-        const potentialUser = request.url.replace(`/`, ``);
+        const potentialUser = request.url.replaceAll(`/`, ``).replaceAll(`@`, ``).replaceAll(`~`, ``);
         // If the URL is static content, serve it.
         const allowed = [
-            `/favicon.ico`,
-            `/css/`,
-            `/js/`,
-            `/img/`,
+            `favicon.ico`,
+            `css`,
+            `js`,
+            `img`,
         ];
         if (allowed.includes(request.url))
         {
