@@ -127,10 +127,16 @@ async function run()
     });
 
     // edit.ejs
-    app.get(`/edit`, checkAuthenticated, (request, response) =>
+    app.get(`/edit`, checkAuthenticated, (request, response, next) =>
     {
         const userEmail = request.user;
-        const username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail).username;
+        let username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail);
+        if (!username)
+        {
+            logoutUser(request, response, next);
+            return response.redirect(`/login`);
+        }
+        username = username.username;
         const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
         const displayName = user.displayName;
         const bio = user.bio;
@@ -153,12 +159,18 @@ async function run()
         });
     });
 
-    app.post(`/edit`, checkAuthenticated, async (request, response) =>
+    app.post(`/edit`, checkAuthenticated, async (request, response, next) =>
     {
         try
         {
             const userEmail = request.user;
-            const username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail).username;
+            let username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail);
+            if (!username)
+            {
+                logoutUser(request, response, next);
+                return response.redirect(`/login`);
+            }
+            username = username.username;
             const isPaidUser = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).paid);
             const isStaffMember = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === 2);
             const isSuspended = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === -1);
@@ -221,12 +233,18 @@ async function run()
     });
 
     // staff.ejs
-    app.get(`/staff`, checkAuthenticatedStaff, (request, response) =>
+    app.get(`/staff`, checkAuthenticatedStaff, (request, response, next) =>
     {
+        let myUsername = request.user;
+        myUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(myUsername);
+        if (!myUsername)
+        {
+            logoutUser(request, response, next);
+            return response.redirect(`/login`);
+        }
+        myUsername = myUsername.username;
         if (!request.query.page && !request.query.search)
             return response.redirect(`/staff?page=1`);
-        let myUsername = request.user;
-        myUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(myUsername).username;
         const pageNumber = request.query.page || 1;
         const usersPerPage = 100;
         // select users from database that are in the page number*100
@@ -307,12 +325,18 @@ async function run()
         });
     });
 
-    app.get(`/staff/*`, checkAuthenticatedStaff, (request, response) =>
+    app.get(`/staff/*`, checkAuthenticatedStaff, (request, response, next) =>
     {
+        const staffEmail = request.user;
+        let staffUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(staffEmail);
+        if (!staffUsername)
+        {
+            logoutUser(request, response, next);
+            return response.redirect(`/login`);
+        }
+        staffUsername = staffUsername.username;
         const actionToTake = request.params[0];
         const usernameToTakeActionOn = request.query.username;
-        const staffEmail = request.user;
-        const staffUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(staffEmail).username;
 
         if (usernameToTakeActionOn === staffUsername) // If staff member is trying to take action on themselves, redirect.
             return response.redirect(`/staff`);
@@ -558,7 +582,13 @@ function checkAuthenticatedStaff(request, response, next)
     try
     {
         const userEmail = request.user;
-        const username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail).username;
+        let username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail);
+        if (!username)
+        {
+            logoutUser(request, response, next);
+            return response.redirect(`/login`);
+        }
+        username = username.username;
         const userProfile = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
         if (request.isAuthenticated() && userProfile.verified === 2)
             return next();
