@@ -65,7 +65,8 @@
             const index = linksArray.indexOf(link);
             const linkDiv = document.createElement('div');
             linkDiv.innerHTML = `<a href="${ link }">${ linksNamesArray[index] }</a>`;
-            linksDiv.appendChild(linkDiv);
+            if (link !== "")
+                linksDiv.appendChild(linkDiv);
         });
     </script>
 </body>
