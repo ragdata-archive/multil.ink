@@ -58,7 +58,7 @@ a {
 
 div.links>div:hover {
     transform: scale(1.25);
-    text-decoration: underline;
+    /* text-decoration: underline; */
 }
 
 div.links a {
