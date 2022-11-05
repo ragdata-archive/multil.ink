@@ -12,12 +12,13 @@ function initialize(passport, getUserByEmail)
 {
     const authenticateUser = async (email, password, done) =>
     {
-        const user = getUserByEmail(email.email);
+        let user = getUserByEmail(email);
         if (user === undefined)
             return done(undefined, false, { message: `Email/Password incorrect.` });
 
         try
         {
+            user = user.email;
             const userPassword = await sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(email).password;
             if (await bcrypt.compare(password, userPassword))
                 return done(undefined, user);
