@@ -105,6 +105,28 @@
             });
             // if (index > 0)
             linkDiv.appendChild(deleteButton);
+
+            // move up/down buttons
+            const moveUpButton = document.createElement('button');
+            moveUpButton.classList.add('btn', 'btn-primary');
+            moveUpButton.style.marginLeft = '10px';
+            moveUpButton.innerHTML = 'Move Up';
+            moveUpButton.addEventListener('click', () =>
+            {
+                moveUp(index);
+            });
+            linkDiv.appendChild(moveUpButton);
+
+            const moveDownButton = document.createElement('button');
+            moveDownButton.classList.add('btn', 'btn-primary');
+            moveDownButton.style.marginLeft = '10px';
+            moveDownButton.innerHTML = 'Move Down';
+            moveDownButton.addEventListener('click', () =>
+            {
+                moveDown(index);
+            });
+            linkDiv.appendChild(moveDownButton);
+
             linksDiv.appendChild(linkDiv);
         });
 
@@ -132,6 +154,28 @@
                 linkDiv.remove();
             });
             linkDiv.appendChild(deleteButton);
+
+            // move up/down buttons
+            const moveUpButton = document.createElement('button');
+            moveUpButton.classList.add('btn', 'btn-primary');
+            moveUpButton.style.marginLeft = '10px';
+            moveUpButton.innerHTML = 'Move Up';
+            moveUpButton.addEventListener('click', () =>
+            {
+                moveUp(index);
+            });
+            linkDiv.appendChild(moveUpButton);
+
+            const moveDownButton = document.createElement('button');
+            moveDownButton.classList.add('btn', 'btn-primary');
+            moveDownButton.style.marginLeft = '10px';
+            moveDownButton.innerHTML = 'Move Down';
+            moveDownButton.addEventListener('click', () =>
+            {
+                moveDown(index);
+            });
+            linkDiv.appendChild(moveDownButton);
+
             linksDiv.appendChild(linkDiv);
         });
 
@@ -161,6 +205,43 @@
         else
         {
             document.getElementById("verified").style.display = "none";
+        }
+
+        function moveUp(index)
+        {
+            if (index === 0)
+            {
+                return;
+            }
+            const oldLink = document.getElementById(`link${ index }`);
+            const oldLinkName = document.getElementById(`linkName${ index }`);
+            const newLink = document.getElementById(`link${ index - 1 }`);
+            const newLinkName = document.getElementById(`linkName${ index - 1 }`);
+            const tempLink = oldLink.value;
+            const tempLinkName = oldLinkName.value;
+            oldLink.value = newLink.value;
+            oldLinkName.value = newLinkName.value;
+            newLink.value = tempLink;
+            newLinkName.value = tempLinkName;
+        }
+
+        function moveDown(index)
+        {
+            const linksDiv = document.querySelector('.links');
+            if (index === linksDiv.childElementCount - 1)
+            {
+                return;
+            }
+            const oldLink = document.getElementById(`link${ index }`);
+            const oldLinkName = document.getElementById(`linkName${ index }`);
+            const newLink = document.getElementById(`link${ index + 1 }`);
+            const newLinkName = document.getElementById(`linkName${ index + 1 }`);
+            const tempLink = oldLink.value;
+            const tempLinkName = oldLinkName.value;
+            oldLink.value = newLink.value;
+            oldLinkName.value = newLinkName.value;
+            newLink.value = tempLink;
+            newLinkName.value = tempLinkName;
         }
     </script>
 </body>
