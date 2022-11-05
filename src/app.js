@@ -38,8 +38,8 @@ async function run()
     const initializePassport = require(`../passport-config.cjs`);
     initializePassport(
         passport,
-        (email) => sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(email).email,
-        (id) => sql.prepare(`SELECT * FROM userAuth WHERE uid = ?`).get(id).uid
+        (email) => sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(email),
+        (id) => sql.prepare(`SELECT * FROM userAuth WHERE uid = ?`).get(id)
     );
 
     app.use(bodyParser.json());

@@ -12,7 +12,7 @@ function initialize(passport, getUserByEmail)
 {
     const authenticateUser = async (email, password, done) =>
     {
-        const user = getUserByEmail(email);
+        const user = getUserByEmail(email.email);
         if (user === undefined)
             return done(undefined, false, { message: `Email/Password incorrect.` });
 
