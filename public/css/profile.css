@@ -85,7 +85,8 @@ div.links a {
     margin-top: 15px;
 }
 
-#verifiedBadge {
+#verifiedBadge,
+#verifiedBadgeStaff {
     display: block;
     margin-left: 0;
     margin-right: 0;

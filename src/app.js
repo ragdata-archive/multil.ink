@@ -528,14 +528,13 @@ async function run()
             const links = JSON.parse(user.links);
             const linkNames = JSON.parse(user.linkNames);
             const paid = Boolean(user.paid);
-            let verified = user.verified;
+            const verified = user.verified;
 
             if (verified === -1)
             { // Suspended
                 response.status(404);
                 return response.redirect(`/`);
             }
-            verified = Boolean(verified);
 
             response.render(`profile.ejs`, {
                 username, displayName, bio, image, links, linkNames, paid, verified
