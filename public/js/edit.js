@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 
 document.querySelector(`#main`).style.display = `block`;
 const linksArray = links.split(`,`);
@@ -138,4 +139,38 @@ function moveDown(index)
     oldLinkName.value = newLinkName.value;
     newLink.value = temporaryLink;
     newLinkName.value = temporaryLinkName;
+}
+
+/**
+ * @name logout
+ * @description Logs the user out
+ */
+function logout()
+{
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
+    $.ajax(`${ protocol }//${ domain }/logout?_method=DELETE`, {
+        type: `POST`,
+    });
+    window.location.reload();
+}
+
+/**
+ * @name deleteAccount
+ * @description Deletes the account
+ */
+function deleteAccount()
+{
+    const buttonText = document.querySelector(`#deleteAccountButton`).innerHTML;
+    if (buttonText.includes(`sure?`))
+    {
+        const protocol = window.location.protocol;
+        const domain = window.location.href.split(`/`)[2];
+        $.ajax(`${ protocol }//${ domain }/delete?_method=DELETE`, {
+            type: `POST`,
+        });
+        window.location.reload();
+    }
+    else
+        document.querySelector(`#deleteAccountButton`).innerHTML = `Are you sure?`;
 }
