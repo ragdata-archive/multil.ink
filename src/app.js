@@ -72,7 +72,6 @@ async function run()
     // index.ejs
     app.get(`/`, (request, response) =>
     {
-        // TODO show staff portal on homepage nav if staff
         response.render(`index.ejs`);
     });
 
@@ -239,6 +238,65 @@ async function run()
         catch
         {
             response.redirect(`/edit`);
+        }
+    });
+
+    app.post(`/edit/*`, checkAuthenticated, async (request, response, next) =>
+    {
+        const usersCurrentEmail = request.user;
+        let userUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(usersCurrentEmail);
+        if (!userUsername)
+        {
+            logoutUser(request, response, next);
+            return response.redirect(`/login`);
+        }
+        userUsername = userUsername.username;
+        const actionToTake = request.params[0];
+
+        switch (actionToTake)
+        {
+            case `changeEmail`: {
+                const urlParameters = new URLSearchParams(request.query);
+                const oldEmailInput = urlParameters.get(`oldEmail`).toLowerCase().trim();
+                const newEmail = urlParameters.get(`newEmail`).toLowerCase().trim();
+                const password = urlParameters.get(`password`).trim();
+                const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
+                const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
+
+                if ((oldEmailInput === usersCurrentEmail) && isCorrectPassword && newEmail && newEmail.length > 0 && newEmail.length < 1024)
+                {
+                    const regexEmail = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
+                    if (regexEmail.test(newEmail))
+                    {
+                        // ensure new email is not already taken
+                        const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
+                        if (!emailExists)
+                            sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userUsername);
+                    }
+                }
+
+                response.redirect(`/edit`);
+                break;
+            }
+            case `changePassword`: {
+                const urlParameters = new URLSearchParams(request.query);
+                const oldPassword = urlParameters.get(`oldPassword`).trim();
+                const newPassword = urlParameters.get(`newPassword`).trim();
+                const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
+                const isCorrectPassword = await bcrypt.compare(oldPassword, usersHashedPassword);
+
+                if (isCorrectPassword && newPassword && newPassword.length > 0 && newPassword.length < 1024)
+                {
+                    const hashedPassword = await bcrypt.hash(newPassword, 10);
+                    sql.prepare(`UPDATE userAuth SET password = ? WHERE username = ?`).run(hashedPassword, userUsername);
+                }
+                response.redirect(`/edit`);
+                break;
+            }
+            default: {
+                response.redirect(`/edit`);
+                break;
+            }
         }
     });
 
@@ -494,7 +552,6 @@ async function run()
         sql.prepare(`DELETE FROM users WHERE username = ?`).run(username);
         sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(username);
         logoutUser(request, response, next);
-        // TODO: Cancel Payments?
         return response.redirect(`/login`);
     });
 
@@ -553,6 +610,18 @@ async function run()
     });
 
     app.get(`*`, (request, response) =>
+    {
+        response.status(404);
+        return response.redirect(`/`);
+    });
+
+    app.post(`*`, (request, response) =>
+    {
+        response.status(404);
+        return response.redirect(`/`);
+    });
+
+    app.delete(`*`, (request, response) =>
     {
         response.status(404);
         return response.redirect(`/`);
@@ -670,6 +739,5 @@ function logoutUser(request, response, next)
     {
         if (error)
             return next(error);
-        // return response.redirect(`/login`);
     });
 }

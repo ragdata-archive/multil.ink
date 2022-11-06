@@ -145,11 +145,11 @@ function moveDown(index)
  * @name logout
  * @description Logs the user out
  */
-function logout()
+async function logout()
 {
     const protocol = window.location.protocol;
     const domain = window.location.href.split(`/`)[2];
-    $.ajax(`${ protocol }//${ domain }/logout?_method=DELETE`, {
+    await $.ajax(`${ protocol }//${ domain }/logout?_method=DELETE`, {
         type: `POST`,
     });
     window.location.reload();
@@ -159,18 +159,62 @@ function logout()
  * @name deleteAccount
  * @description Deletes the account
  */
-function deleteAccount()
+async function deleteAccount()
 {
     const buttonText = document.querySelector(`#deleteAccountButton`).innerHTML;
     if (buttonText.includes(`sure?`))
     {
         const protocol = window.location.protocol;
         const domain = window.location.href.split(`/`)[2];
-        $.ajax(`${ protocol }//${ domain }/delete?_method=DELETE`, {
+        await $.ajax(`${ protocol }//${ domain }/delete?_method=DELETE`, {
             type: `POST`,
         });
         window.location.reload();
     }
     else
         document.querySelector(`#deleteAccountButton`).innerHTML = `Are you sure?`;
+}
+
+/**
+ * @name changeEmail
+ * @description Changes the users email
+ * @param {string} oldEmailGuess Old email the user entered
+ * @param {string} newEmail New email the user entered
+ * @param {string} password The users password
+ */
+async function changeEmail(oldEmailGuess, newEmail, password)
+{
+    if ((oldEmailGuess !== oldEmail) || (newEmail === oldEmail) || (newEmail.length > 1024))
+        return;
+
+    const regexEmail = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
+    if (!regexEmail.test(newEmail))
+        return;
+
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
+    await $.ajax(`${ protocol }//${ domain }/edit/changeEmail?oldEmail=${ oldEmailGuess }&newEmail=${ newEmail }&password=${ password }`, {
+        type: `POST`,
+    });
+    window.location.reload();
+}
+
+/**
+ * @name changePassword
+ * @description Changes the users password
+ * @param {string} oldPasswordGuess Old password the user entered
+ * @param {string} newPassword New password the user entered
+ * @param {string} newPasswordRepeat New password repeated
+ */
+async function changePassword(oldPasswordGuess, newPassword, newPasswordRepeat)
+{
+    if ((newPassword !== newPasswordRepeat) || newPassword.length < 0 || newPassword.length > 1024)
+        return;
+
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
+    await $.ajax(`${ protocol }//${ domain }/edit/changePassword?oldPassword=${ oldPasswordGuess }&newPassword=${ newPassword }`, {
+        type: `POST`,
+    });
+    logout();
 }

@@ -72,6 +72,87 @@
         <button type="submit" class="btn btn-warning" id="logoutButton" onclick="logout()">Log Out</button>
         <button type="submit" class="btn btn-danger" id="deleteAccountButton" onclick="deleteAccount()">Delete my
             account</button>
+        <button type="submit" class="btn btn-danger" id="changeEmail" data-bs-toggle="modal"
+            data-bs-target="#changeEmailModal" data-email="<%=userEmail%>">Change Email</button>
+        <button type="submit" class="btn btn-danger" id="changePassword" data-bs-toggle="modal"
+            data-bs-target="#changePasswordModal">Change Password</button>
+
+
+        <div class="modal fade" id="changeEmailModal" tabindex="-1" role="dialog"
+            aria-labelledby="changeEmailModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="changeEmailModalLabel">Change Email</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="changeEmailForm">
+                            <div class="form-group">
+                                <label for="modal-email" class="col-form-label">Old Email:</label>
+                                <input type="email" class="form-control" id="modal-email" maxlength="1024" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="modal-new-email" class="col-form-label">New Email:</label>
+                                <input type="email" class="form-control" id="modal-new-email" maxlength="1024" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="modal-password" class="col-form-label">Password:</label>
+                                <input type="password" class="form-control" id="modal-password" maxlength="1024"
+                                    required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary"
+                            onclick="changeEmail(`${document.getElementById('modal-email').value}`, `${document.getElementById('modal-new-email').value}`, `${document.getElementById('modal-password').value}`);">Save
+                            Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog"
+            aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="changePasswordForm">
+                            <div class="form-group">
+                                <label for="modal-old-password" class="col-form-label">Old Password:</label>
+                                <input type="password" class="form-control" id="modal-old-password" maxlength="1024"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="modal-new-password" class="col-form-label">New Password:</label>
+                                <input type="password" class="form-control" id="modal-new-password" maxlength="1024"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="modal-new-password2" class="col-form-label">New Password:</label>
+                                <input type="password" class="form-control" id="modal-new-password2" maxlength="1024"
+                                    required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary"
+                            onclick="changePassword(`${document.getElementById('modal-old-password').value}`, `${document.getElementById('modal-new-password').value}`, `${document.getElementById('modal-new-password2').value}`);">Save
+                            Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script>
@@ -79,6 +160,7 @@
         const linksNames = "<%=linkNames%>";
         let paid = "<%=paid%>";
         const verified = `<%=verified%>`;
+        // const oldEmail = `<%=userEmail%>`;
     </script>
     <script src="js/edit.js"></script>
 </body>
