@@ -22,7 +22,7 @@ async function run()
         port, secret, linkWhitelist, freeLinks
     } = require(`./config.json`);
 
-    sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT)`).run();
+    sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT)`).run();
     sql.prepare(`CREATE TABLE IF NOT EXISTS userAuth (uid INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT)`).run();
 
     const app = express();
@@ -127,7 +127,12 @@ async function run()
                 return response.redirect(`/register`);
             const hashedPassword = await bcrypt.hash(request.body.password.trim().slice(0, 1024), 10);
             sql.prepare(`INSERT INTO userAuth (username, email, password) VALUES (?, ?, ?)`).run(username, email, hashedPassword);
-            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, displayName, bio, image, links, linkNames) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, 0, 0, ``, username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`);
+            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, 0, 0, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`);
+            const userCount = sql.prepare(`SELECT COUNT(*) FROM userAuth`).get();
+            // if this is the first user, make them a staff member
+            if (userCount[`COUNT(*)`] === 1)
+                sql.prepare(`UPDATE users SET paid = ?, subExpires = ?, verified = ? WHERE username = ?`).run(1, `9999-01-01`, `2`, username);
+
             response.redirect(`/edit`);
         }
         catch
@@ -136,7 +141,6 @@ async function run()
         }
     });
 
-    // edit.ejs
     app.get(`/edit`, checkAuthenticated, (request, response, next) =>
     {
         const userEmail = request.user;
@@ -289,6 +293,40 @@ async function run()
                 {
                     const hashedPassword = await bcrypt.hash(newPassword, 10);
                     sql.prepare(`UPDATE userAuth SET password = ? WHERE username = ?`).run(hashedPassword, userUsername);
+                }
+                response.redirect(`/edit`);
+                break;
+            }
+            case `changeUsername`: {
+                const urlParameters = new URLSearchParams(request.query);
+                const newUsername = urlParameters.get(`username`).trim();
+                const password = urlParameters.get(`password`).trim();
+                const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
+                const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
+
+                if (isCorrectPassword && newUsername && newUsername.length > 0 && newUsername.length < 60)
+                {
+                    const regex = /^[\dA-Za-z]+$/;
+                    if (regex.test(newUsername))
+                    {
+                        // ensure new username is not already taken
+                        const usernameExists = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(newUsername);
+                        if (!usernameExists)
+                        {
+                            let lastChangeDate = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userUsername).lastUsernameChange;
+                            const isPaidUser = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userUsername).paid);
+                            if (!lastChangeDate || lastChangeDate === null || lastChangeDate === ``)
+                                lastChangeDate = 0;
+                            lastChangeDate = new Date(lastChangeDate);
+                            const timeSinceLastChange = Date.now() - lastChangeDate;
+                            const currentDate = new Date(Date.now()).toISOString().slice(0, 10);
+                            if (timeSinceLastChange > 7_776_000_000 || isPaidUser) // 3 months
+                            {
+                                sql.prepare(`UPDATE userAuth SET username = ? WHERE username = ?`).run(newUsername, userUsername);
+                                sql.prepare(`UPDATE users SET username = ?, lastUsernameChange = ? WHERE username = ?`).run(newUsername, currentDate, userUsername);
+                            }
+                        }
+                    }
                 }
                 response.redirect(`/edit`);
                 break;
@@ -534,7 +572,6 @@ async function run()
         }
     });
 
-    // logout
     app.delete(`/logout`, (request, response, next) =>
     {
         logoutUser(request, response, next);

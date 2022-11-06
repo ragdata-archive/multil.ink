@@ -216,3 +216,22 @@ async function changePassword(oldPasswordGuess, newPassword, newPasswordRepeat)
     });
     logout();
 }
+
+/**
+ * @name changeUsername
+ * @description Changes the users username
+ * @param {string} username The new username
+ * @param {string} password The users password
+ */
+async function changeUsername(username, password)
+{
+    if (username.length > 60 || username.length === 0 || password.length === 0 || password.length > 1024)
+        return;
+
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
+    await $.ajax(`${ protocol }//${ domain }/edit/changeUsername?username=${ username }&password=${ password }`, {
+        type: `POST`,
+    });
+    window.location.reload();
+}

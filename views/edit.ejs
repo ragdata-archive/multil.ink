@@ -76,6 +76,8 @@
             data-bs-target="#changeEmailModal" data-email="">Change Email</button>
         <button type="submit" class="btn btn-danger" id="changePassword" data-bs-toggle="modal"
             data-bs-target="#changePasswordModal">Change Password</button>
+        <button type="submit" class="btn btn-danger" id="changeUsername" data-bs-toggle="modal"
+            data-bs-target="#changeUsernameModal">Change Username</button>
 
 
         <div class="modal fade" id="changeEmailModal" tabindex="-1" role="dialog"
@@ -180,6 +182,40 @@
                             delete
                             my
                             account</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="changeUsernameModal" tabindex="-1" role="dialog"
+            aria-labelledby="changeUsernameModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="changeUsernameModalLabel">Change Username</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="changeUsernameForm">
+                            <div class="form-group">
+                                <label for="modal-change-username" class="col-form-label">New Username:</label>
+                                <input type="text" class="form-control" id="modal-change-username" maxlength="60"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="modal-cu-password" class="col-form-label">Password:</label>
+                                <input type="password" class="form-control" id="modal-cu-password" maxlength="1024"
+                                    required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary"
+                            onclick="changeUsername(`${document.getElementById('modal-change-username').value}`, `${document.getElementById('modal-cu-password').value}`);">Save
+                            Changes</button>
                     </div>
                 </div>
             </div>
