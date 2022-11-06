@@ -46,27 +46,21 @@ for (let index = 0; index < numberOfUsers; index++)
     email.innerHTML = users[index].email;
     email.classList.add(`email`);
     if (users[index].verified === `1`)
-
         verifiedCell.innerHTML = `Yes`;
 
     else if (users[index].verified === `2`)
-
         verifiedCell.innerHTML = `Staff Member`;
 
     else if (users[index].verified === `0`)
-
         verifiedCell.innerHTML = `No`;
 
     else if (users[index].verified === `-1`)
-
         verifiedCell.innerHTML = `Suspended`;
 
     if (users[index].paid === `1`)
-
         paidCell.innerHTML = `Yes`;
 
     else if (users[index].paid === `0`)
-
         paidCell.innerHTML = `No`;
 
     subExpiresCell.innerHTML = users[index].subExpires;
@@ -100,7 +94,6 @@ for (let index = 0; index < numberOfUsers; index++)
         verifyButton.setAttribute(`onclick`, `verifyUser('${ users[index].username }')`);
         verifyButton.innerHTML = `Verify`;
         if (users[index].username === myUsername)
-
             verifyButton.setAttribute(`disabled`, `true`);
 
         actions.append(verifyButton);
@@ -113,7 +106,6 @@ for (let index = 0; index < numberOfUsers; index++)
         unverifyButton.setAttribute(`onclick`, `unverifyUser('${ users[index].username }')`);
         unverifyButton.innerHTML = `Unverify`;
         if (users[index].username === myUsername)
-
             unverifyButton.setAttribute(`disabled`, `true`);
 
         actions.append(unverifyButton);
@@ -124,7 +116,6 @@ for (let index = 0; index < numberOfUsers; index++)
         promoteButton.setAttribute(`onclick`, `promoteUser('${ users[index].username }')`);
         promoteButton.innerHTML = `Promote`;
         if (users[index].username === myUsername)
-
             promoteButton.setAttribute(`disabled`, `true`);
 
         actions.append(promoteButton);
@@ -137,7 +128,6 @@ for (let index = 0; index < numberOfUsers; index++)
         demoteButton.setAttribute(`onclick`, `demoteUser('${ users[index].username }')`);
         demoteButton.innerHTML = `Demote`;
         if (users[index].username === myUsername)
-
             demoteButton.setAttribute(`disabled`, `true`);
 
         actions.append(demoteButton);
@@ -150,7 +140,6 @@ for (let index = 0; index < numberOfUsers; index++)
         unsuspendButton.setAttribute(`onclick`, `unsuspendUser('${ users[index].username }')`);
         unsuspendButton.innerHTML = `Unsuspend`;
         if (users[index].username === myUsername)
-
             unsuspendButton.setAttribute(`disabled`, `true`);
 
         actions.append(unsuspendButton);
@@ -164,7 +153,6 @@ for (let index = 0; index < numberOfUsers; index++)
         suspendButton.setAttribute(`onclick`, `suspendUser('${ users[index].username }')`);
         suspendButton.innerHTML = `Suspend`;
         if (users[index].username === myUsername)
-
             suspendButton.setAttribute(`disabled`, `true`);
 
         actions.append(suspendButton);
@@ -178,7 +166,6 @@ for (let index = 0; index < numberOfUsers; index++)
         deleteButton.setAttribute(`onclick`, `deleteUser('${ users[index].username }')`);
         deleteButton.innerHTML = `Delete`;
         if (users[index].username === myUsername)
-
             deleteButton.setAttribute(`disabled`, `true`);
 
         actions.append(deleteButton);
@@ -188,7 +175,6 @@ for (let index = 0; index < numberOfUsers; index++)
     {
         let extendClass = `btn btn-primary dropdown-toggle`;
         if (users[index].username === myUsername || users[index].subExpires.startsWith(`9999`))
-
             extendClass += ` disabled`;
 
         const extendButton = `
@@ -223,7 +209,6 @@ for (const [index, element] of tableNavigation.entries())
     page = page.replace(`?page=`, ``);
     page = page.split(`&`)[0];
     if (page === `1`)
-
         previousPage.setAttribute(`disabled`, `true`);
 
     element.append(previousPage);
@@ -235,7 +220,6 @@ for (const [index, element] of tableNavigation.entries())
     nextPage.innerHTML = `Next Page`;
     // if amount of users is not 100, disable next page button
     if (users.length !== 100)
-
         nextPage.setAttribute(`disabled`, `true`);
 
     element.append(nextPage);
@@ -446,7 +430,6 @@ function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, 
     let dataToSend = `?username=${ oldUsername }`;
 
     if (displayName !== user.displayName)
-
         dataToSend += `&displayName=${ displayName }`;
 
     if (bio !== user.bio)
@@ -456,11 +439,9 @@ function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, 
         dataToSend += `&bio=${ bio }`;
     }
     if (image !== user.image)
-
         dataToSend += `&image=${ image }`;
 
     if (email !== user.email)
-
         dataToSend += `&email=${ email }`;
 
     // flatten links and linkNames (no spaces, all one line)
@@ -472,15 +453,12 @@ function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, 
     linkNames = linkNames.replace(/\n/g, ``);
 
     if (links !== user.links)
-
         dataToSend += `&links=${ links }`;
 
     if (linkNames !== user.linkNames)
-
         dataToSend += `&linkNames=${ linkNames }`;
 
     if (newUsername !== user.username)
-
         dataToSend += `&newUsername=${ newUsername }`;
 
     window.location.href = `/staff/editUser${ dataToSend }`;
@@ -504,7 +482,6 @@ function tableNavigationAction(direction)
         currentPage -= 1;
     }
     else if (direction === 1)
-
         currentPage += 1;
 
     window.location.href = `/staff?page=${ currentPage }`;

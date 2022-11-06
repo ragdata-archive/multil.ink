@@ -151,7 +151,6 @@ function moveDown(index)
 {
     const linksDiv = document.querySelector(`.links`);
     if (index === linksDiv.childElementCount - 1)
-
         return;
 
     const oldLink = document.querySelector(`#link${ index }`);
