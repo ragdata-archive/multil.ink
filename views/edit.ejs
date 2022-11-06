@@ -69,181 +69,27 @@
             </div>
         </form>
 
-        <div>
-            <form action="/logout?_method=DELETE" method="POST">
-                <button type="submit" class="btn btn-warning">Log Out</button>
-            </form>
-            <form action="/delete?_method=DELETE" method="POST">
-                <button type="submit" class="btn btn-danger">Delete my account</button>
-            </form>
+        <div class="row">
+            <div class="span6">
+                <form class="" action="/logout?_method=DELETE" method="POST">
+                    <button type="submit" class="btn btn-warning">Log Out</button>
+                </form>
+            </div>
+            <div class="span6">
+                <form class="" action="/delete?_method=DELETE" method="POST">
+                    <button type="submit" class="btn btn-danger">Delete my account</button>
+                </form>
+            </div>
         </div>
     </main>
 
     <script>
-        document.getElementById("main").style.display = "block";
         const links = "<%=links%>";
-        const linksArray = links.split(",");
         const linksNames = "<%=linkNames%>";
-        const linksNamesArray = linksNames.split(",");
-        const linksDiv = document.querySelector('.links');
-        linksArray.forEach(link =>
-        {
-            const index = linksArray.indexOf(link);
-            const linkDiv = document.createElement('div');
-            linkDiv.innerHTML = `<label for="link${ index }">Link ${ index + 1 }</label>`;
-            linkDiv.innerHTML += `<input type="text" id="link${ index }" name="link${ index }" value="${ link }" required>`;
-            linkDiv.innerHTML += `<label for="linkName${ index }">Link Name ${ index + 1 }</label>`;
-            linkDiv.innerHTML += `<input type="text" id="linkName${ index }" name="linkName${ index }" value="${ linksNamesArray[index] }" required>`;
-            // delete button
-            const deleteButton = document.createElement('button');
-            deleteButton.classList.add('btn', 'btn-danger');
-            deleteButton.style.marginLeft = '10px';
-            deleteButton.innerHTML = 'Delete';
-            deleteButton.addEventListener('click', () =>
-            {
-                linkDiv.remove();
-            });
-            // if (index > 0)
-            linkDiv.appendChild(deleteButton);
-
-            // move up/down buttons
-            const moveUpButton = document.createElement('button');
-            moveUpButton.classList.add('btn', 'btn-primary');
-            moveUpButton.style.marginLeft = '10px';
-            moveUpButton.innerHTML = 'Move Up';
-            moveUpButton.addEventListener('click', () =>
-            {
-                moveUp(index);
-            });
-            linkDiv.appendChild(moveUpButton);
-
-            const moveDownButton = document.createElement('button');
-            moveDownButton.classList.add('btn', 'btn-primary');
-            moveDownButton.style.marginLeft = '10px';
-            moveDownButton.innerHTML = 'Move Down';
-            moveDownButton.addEventListener('click', () =>
-            {
-                moveDown(index);
-            });
-            linkDiv.appendChild(moveDownButton);
-
-            linksDiv.appendChild(linkDiv);
-        });
-
-        // on click of add link button
-        document.getElementById('addLink').addEventListener('click', (e) =>
-        {
-            e.preventDefault();
-            const linksDiv = document.querySelector('.links');
-            const linkDiv = document.createElement('div');
-            const index = linksDiv.childElementCount;
-            if (index >= 50)
-            {
-                return; // only can add 50 links
-            }
-            linkDiv.innerHTML = `<label for="link${ index }">Link ${ index + 1 }</label>`;
-            linkDiv.innerHTML += `<input type="text" id="link${ index }" name="link${ index }" required>`;
-            linkDiv.innerHTML += `<label for="linkName${ index }">Link Name ${ index + 1 }</label>`;
-            linkDiv.innerHTML += `<input type="text" id="linkName${ index }" name="linkName${ index }" required>`;
-            // delete button
-            const deleteButton = document.createElement('button');
-            deleteButton.classList.add('btn', 'btn-danger');
-            deleteButton.innerHTML = 'Delete';
-            deleteButton.addEventListener('click', () =>
-            {
-                linkDiv.remove();
-            });
-            linkDiv.appendChild(deleteButton);
-
-            // move up/down buttons
-            const moveUpButton = document.createElement('button');
-            moveUpButton.classList.add('btn', 'btn-primary');
-            moveUpButton.style.marginLeft = '10px';
-            moveUpButton.innerHTML = 'Move Up';
-            moveUpButton.addEventListener('click', () =>
-            {
-                moveUp(index);
-            });
-            linkDiv.appendChild(moveUpButton);
-
-            const moveDownButton = document.createElement('button');
-            moveDownButton.classList.add('btn', 'btn-primary');
-            moveDownButton.style.marginLeft = '10px';
-            moveDownButton.innerHTML = 'Move Down';
-            moveDownButton.addEventListener('click', () =>
-            {
-                moveDown(index);
-            });
-            linkDiv.appendChild(moveDownButton);
-
-            linksDiv.appendChild(linkDiv);
-        });
-
         let paid = "<%=paid%>";
-        paid = (paid === 'true');
-        if (paid)
-        {
-            document.getElementById('planText').innerHTML += 'Paid';
-            document.getElementById('paid').style.display = 'block';
-        }
-        else
-        {
-            document.getElementById('planText').innerHTML += 'Free';
-            document.getElementById('free').style.display = 'block';
-        }
-
-        let verified = "<%=verified%>";
-        if (verified === `2`)
-        {
-            document.getElementById("verified").innerHTML += "Staff Member";
-            document.getElementById('paymentThings').style.display = 'none';
-        }
-        else if (verified === `1`)
-        {
-            document.getElementById("verified").innerHTML += "Verified";
-        }
-        else
-        {
-            document.getElementById("verified").style.display = "none";
-        }
-
-        function moveUp(index)
-        {
-            if (index === 0)
-            {
-                return;
-            }
-            const oldLink = document.getElementById(`link${ index }`);
-            const oldLinkName = document.getElementById(`linkName${ index }`);
-            const newLink = document.getElementById(`link${ index - 1 }`);
-            const newLinkName = document.getElementById(`linkName${ index - 1 }`);
-            const tempLink = oldLink.value;
-            const tempLinkName = oldLinkName.value;
-            oldLink.value = newLink.value;
-            oldLinkName.value = newLinkName.value;
-            newLink.value = tempLink;
-            newLinkName.value = tempLinkName;
-        }
-
-        function moveDown(index)
-        {
-            const linksDiv = document.querySelector('.links');
-            if (index === linksDiv.childElementCount - 1)
-            {
-                return;
-            }
-            const oldLink = document.getElementById(`link${ index }`);
-            const oldLinkName = document.getElementById(`linkName${ index }`);
-            const newLink = document.getElementById(`link${ index + 1 }`);
-            const newLinkName = document.getElementById(`linkName${ index + 1 }`);
-            const tempLink = oldLink.value;
-            const tempLinkName = oldLinkName.value;
-            oldLink.value = newLink.value;
-            oldLinkName.value = newLinkName.value;
-            newLink.value = tempLink;
-            newLinkName.value = tempLinkName;
-        }
+        const verified = `<%=verified%>`;
     </script>
+    <script src="js/edit.js"></script>
 </body>
 
 </html>
