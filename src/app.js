@@ -541,17 +541,27 @@ async function run()
         return response.redirect(`/login`);
     });
 
-    app.delete(`/delete`, (request, response, next) =>
+    app.post(`/delete`, async (request, response, next) =>
     {
         const userEmail = request.user;
         if (!userEmail)
             return response.redirect(`/login`);
-        const username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail).username;
+        let username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail);
         if (!username)
             return response.redirect(`/login`);
-        sql.prepare(`DELETE FROM users WHERE username = ?`).run(username);
-        sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(username);
-        logoutUser(request, response, next);
+        username = username.username;
+
+        const urlParameters = new URLSearchParams(request.query);
+        const password = urlParameters.get(`password`).trim();
+        const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(username).password;
+        const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
+        if (isCorrectPassword)
+        {
+            sql.prepare(`DELETE FROM users WHERE username = ?`).run(username);
+            sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(username);
+            logoutUser(request, response, next);
+        }
+
         return response.redirect(`/login`);
     });
 

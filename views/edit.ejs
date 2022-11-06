@@ -70,10 +70,10 @@
         </form>
 
         <button type="submit" class="btn btn-warning" id="logoutButton" onclick="logout()">Log Out</button>
-        <button type="submit" class="btn btn-danger" id="deleteAccountButton" onclick="deleteAccount()">Delete my
-            account</button>
+        <button type="submit" class="btn btn-danger" id="deleteAccountButton" data-bs-toggle="modal"
+            data-bs-target="#deleteAccountModal">Delete my account</button>
         <button type="submit" class="btn btn-danger" id="changeEmail" data-bs-toggle="modal"
-            data-bs-target="#changeEmailModal" data-email="<%=userEmail%>">Change Email</button>
+            data-bs-target="#changeEmailModal" data-email="">Change Email</button>
         <button type="submit" class="btn btn-danger" id="changePassword" data-bs-toggle="modal"
             data-bs-target="#changePasswordModal">Change Password</button>
 
@@ -153,6 +153,37 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="deleteAccountModal" tabindex="-1" role="dialog"
+            aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteAccountModalLabel">Delete Account</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="deleteAccountForm">
+                            <div class="form-group">
+                                <label for="modal-delete-password" class="col-form-label">Password:</label>
+                                <input type="password" class="form-control" id="modal-delete-password" maxlength="1024"
+                                    required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-danger"
+                            onclick="deleteAccount(`${document.getElementById('modal-delete-password').value}`);">Yes,
+                            delete
+                            my
+                            account</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script>
@@ -160,7 +191,6 @@
         const linksNames = "<%=linkNames%>";
         let paid = "<%=paid%>";
         const verified = `<%=verified%>`;
-        // const oldEmail = `<%=userEmail%>`;
     </script>
     <script src="js/edit.js"></script>
 </body>

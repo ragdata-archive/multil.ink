@@ -158,21 +158,19 @@ async function logout()
 /**
  * @name deleteAccount
  * @description Deletes the account
+ * @param {string} password The password of the account
  */
-async function deleteAccount()
+async function deleteAccount(password)
 {
-    const buttonText = document.querySelector(`#deleteAccountButton`).innerHTML;
-    if (buttonText.includes(`sure?`))
-    {
-        const protocol = window.location.protocol;
-        const domain = window.location.href.split(`/`)[2];
-        await $.ajax(`${ protocol }//${ domain }/delete?_method=DELETE`, {
-            type: `POST`,
-        });
-        window.location.reload();
-    }
-    else
-        document.querySelector(`#deleteAccountButton`).innerHTML = `Are you sure?`;
+    if (!password || password === ``)
+        return;
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
+    await $.ajax(`${ protocol }//${ domain }/delete?password=${ password }`, {
+        type: `POST`,
+    });
+    // logout();
+    window.location.reload();
 }
 
 /**
