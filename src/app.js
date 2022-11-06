@@ -6,7 +6,6 @@ import bodyParser from "body-parser";
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-// const __filename = fileURLToPath(import.meta.url);
 // eslint-disable-next-line no-underscore-dangle
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -69,13 +68,11 @@ async function run()
     app.set(`views`, `./views`);
     app.set(`view engine`, `ejs`);
 
-    // index.ejs
     app.get(`/`, (request, response) =>
     {
         response.render(`index.ejs`);
     });
 
-    // login.ejs
     app.get(`/login`, checkNotAuthenticated, (request, response) => response.render(`login.ejs`, {}));
 
     app.post(`/login`, checkNotAuthenticated, passport.authenticate(`local`, {
@@ -84,7 +81,6 @@ async function run()
         failureFlash: true
     }));
 
-    // register.ejs
     app.get(`/register`, checkNotAuthenticated, (request, response) =>
     {
         response.render(`register.ejs`);
@@ -94,7 +90,6 @@ async function run()
     {
         try
         {
-            // See if username exists already
             const username = request.body.username.toLowerCase().trim().slice(0, 60);
             const bannedUsernames = [
                 `login`,
@@ -128,8 +123,8 @@ async function run()
             const hashedPassword = await bcrypt.hash(request.body.password.trim().slice(0, 1024), 10);
             sql.prepare(`INSERT INTO userAuth (username, email, password) VALUES (?, ?, ?)`).run(username, email, hashedPassword);
             sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, 0, 0, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`);
+            // If this is the first user, make them staff.
             const userCount = sql.prepare(`SELECT COUNT(*) FROM userAuth`).get();
-            // if this is the first user, make them a staff member
             if (userCount[`COUNT(*)`] === 1)
                 sql.prepare(`UPDATE users SET paid = ?, subExpires = ?, verified = ? WHERE username = ?`).run(1, `9999-01-01`, `2`, username);
 
@@ -162,10 +157,7 @@ async function run()
         const verified = user.verified;
 
         if (verified === -1)
-        {
-            // Suspended
             return response.redirect(`/`);
-        }
 
         response.render(`edit.ejs`, {
             username, displayName, bio, image, links, linkNames, paid, subExpires, verified
@@ -338,7 +330,6 @@ async function run()
         }
     });
 
-    // staff.ejs
     app.get(`/staff`, checkAuthenticatedStaff, (request, response, next) =>
     {
         let myUsername = request.user;
@@ -374,8 +365,6 @@ async function run()
         if (allUsers.length === 0)
             return response.redirect(`/staff?page=1`);
 
-        // const allUsers = sql.prepare(`SELECT * FROM users`).all();
-        // const allUserAuth = sql.prepare(`SELECT * FROM userAuth`).all();
         const userCount = allUsers.length;
         const usernames = [];
         const emails = [];
@@ -640,7 +629,7 @@ async function run()
             const verified = user.verified;
 
             if (verified === -1)
-            { // Suspended
+            {
                 response.status(404);
                 return response.redirect(`/`);
             }
@@ -756,7 +745,6 @@ function checkNotAuthenticated(request, response, next)
  */
 function checkExpiredSubscriptions()
 {
-    // look in the DB for every user that is paid
     const users = sql.prepare(`SELECT * FROM users WHERE paid = 1`).all();
     for (const user of users)
     {
