@@ -8,17 +8,16 @@ if (!paid)
 
 if (verified === `2`)
     document.querySelector(`#verifiedBadgeStaff`).style.display = `block`;
-
 else if (verified === `1`)
     document.querySelector(`#verifiedBadge`).style.display = `block`;
 
 let linksArray = links.split(`,`);
-if (!paid)
-    linksArray = linksArray.slice(0, 7);
-
 let linksNamesArray = linksNames.split(`,`);
 if (!paid)
+{
+    linksArray = linksArray.slice(0, 7);
     linksNamesArray = linksNamesArray.slice(0, 7);
+}
 
 const linksDiv = document.querySelector(`.links`);
 for (const link of linksArray)

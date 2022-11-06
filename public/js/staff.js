@@ -1,9 +1,9 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 
+document.querySelector(`#main`).style.display = `block`;
 document.body.classList.add(`bg-dark`);
 document.documentElement.classList.add(`bg-dark`);
-document.querySelector(`#main`).style.display = `block`;
 
 // Make an array of objects
 const users = [];
@@ -45,21 +45,18 @@ for (let index = 0; index < numberOfUsers; index++)
     username.innerHTML = users[index].username;
     email.innerHTML = users[index].email;
     email.classList.add(`email`);
+
     if (users[index].verified === `1`)
         verifiedCell.innerHTML = `Yes`;
-
     else if (users[index].verified === `2`)
         verifiedCell.innerHTML = `Staff Member`;
-
     else if (users[index].verified === `0`)
         verifiedCell.innerHTML = `No`;
-
     else if (users[index].verified === `-1`)
         verifiedCell.innerHTML = `Suspended`;
 
     if (users[index].paid === `1`)
         paidCell.innerHTML = `Yes`;
-
     else if (users[index].paid === `0`)
         paidCell.innerHTML = `No`;
 
