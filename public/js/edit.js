@@ -37,6 +37,16 @@ if (verified === `2`)
 {
     document.querySelector(`#verified`).innerHTML += `Staff Member`;
     document.querySelector(`#paymentThings`).style.display = `none`;
+
+    // add menu option to staff portal in #profileDropdown
+    const hr = document.createElement(`hr`);
+    hr.classList.add(`dropdown-divider`);
+    document.querySelector(`#profileDropdown`).prepend(hr);
+    const staffPortal = document.createElement(`a`);
+    staffPortal.classList.add(`dropdown-item`);
+    staffPortal.href = `/staff`;
+    staffPortal.innerHTML = `Staff Portal`;
+    document.querySelector(`#profileDropdown`).prepend(staffPortal);
 }
 else if (verified === `1`)
     document.querySelector(`#verified`).innerHTML += `Verified`;
