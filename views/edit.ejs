@@ -24,6 +24,41 @@
         JavaScript is required to use this app.
     </noscript>
     <main id="main" style="display: none;">
+
+        <nav class="navbar navbar-dark bg-dark navbar-expand-sm justify-content-between" style="margin-bottom: 15px;">
+            <a class="navbar-brand" href="#" style="margin-left: 15px;">
+                projectName
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-list-4"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse dropstart navbar-dark bg-dark" id="navbar-list-4"
+                style="flex-grow: 0; margin-right: 15px;">
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <img src="<%=image%>" width="40" height="40" class="rounded-circle">
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                data-bs-target="#changeUsernameModal">Change Username</a>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                data-bs-target="#changeEmailModal">Change Email</a>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                data-bs-target="#changePasswordModal">Change Password</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                data-bs-target="#deleteAccountModal">Delete Account</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#" onclick="logout();">Log Out</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
         <h1>Edit Your Profile - @<%=username%>
         </h1>
 
@@ -44,8 +79,6 @@
                 </div>
             </div>
         </div>
-
-        <img src="<%=image%>" alt="profile image" id="pfp">
 
         <form action="/edit" method="POST">
             <div>
@@ -68,16 +101,6 @@
                 <button type="submit" class="btn btn-success">Update Profile</button>
             </div>
         </form>
-
-        <button type="submit" class="btn btn-secondary" id="changeUsername" data-bs-toggle="modal"
-            data-bs-target="#changeUsernameModal">Change Username</button>
-        <button type="submit" class="btn btn-warning" id="logoutButton" onclick="logout()">Log Out</button>
-        <button type="submit" class="btn btn-danger" id="deleteAccountButton" data-bs-toggle="modal"
-            data-bs-target="#deleteAccountModal">Delete my account</button>
-        <button type="submit" class="btn btn-secondary" id="changeEmail" data-bs-toggle="modal"
-            data-bs-target="#changeEmailModal" data-email="">Change Email</button>
-        <button type="submit" class="btn btn-secondary" id="changePassword" data-bs-toggle="modal"
-            data-bs-target="#changePasswordModal">Change Password</button>
 
 
         <div class="modal fade" id="changeEmailModal" tabindex="-1" role="dialog"
