@@ -766,7 +766,7 @@ async function run()
     app.listen(port, async () =>
     {
         // eslint-disable-next-line no-restricted-syntax
-        console.log(`ready on port ${ port }`);
+        console.log(`Server now ready: http://localhost:${ port }/`);
         checkExpiredSubscriptions();
     });
 
