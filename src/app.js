@@ -210,7 +210,8 @@ async function run()
                     if (!link.startsWith(`http://`) && !link.startsWith(`https://`))
                         link = `https://${ link }`;
 
-                    if (link && linkName && !updatedLinks.includes(link))
+                    const linkRegex = /https?:\/\/(www\.)?[\w#%+.:=@~-]{1,256}\.[\d()A-Za-z]{1,6}\b([\w!#%&()+./:=?@~-]*)/gm;
+                    if (linkRegex.test(link) && link && linkName && !updatedLinks.includes(link))
                     {
                         let allowed = false;
                         if (linkWhitelist)

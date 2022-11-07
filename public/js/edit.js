@@ -83,6 +83,7 @@ function addLink(index, link, linkName)
 
     const moveUpButton = document.createElement(`button`);
     moveUpButton.classList.add(`btn`, `btn-primary`);
+    moveUpButton.type = `button`;
     moveUpButton.style.marginLeft = `10px`;
     moveUpButton.innerHTML = `Move Up`;
     moveUpButton.addEventListener(`click`, () =>
@@ -93,6 +94,7 @@ function addLink(index, link, linkName)
 
     const moveDownButton = document.createElement(`button`);
     moveDownButton.classList.add(`btn`, `btn-primary`);
+    moveDownButton.type = `button`;
     moveDownButton.style.marginLeft = `10px`;
     moveDownButton.innerHTML = `Move Down`;
     moveDownButton.addEventListener(`click`, () =>
