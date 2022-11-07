@@ -69,10 +69,12 @@ div.links a {
 }
 
 @media screen and (max-width: 600px) {
-    div.links>div {
+    div.links>div>button {
         width: 65%;
     }
 }
+
+
 
 #header {
     display: flex;
