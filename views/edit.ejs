@@ -79,12 +79,14 @@
 
         <form action="/edit" method="POST">
             <div>
-                <label for="displayName">Display Name</label>
-                <input type="text" id="displayName" name="displayName" value="<%=displayName%>" maxlength="60" required>
+                <label for="displayName">Page Title</label>
+                <input type="text" id="displayName" name="displayName" value="<%=displayName%>" placeholder="Page Title"
+                    maxlength="60" required>
             </div>
             <div>
                 <label for="bio">Bio</label>
-                <input type="text" id="bio" name="bio" value="<%=bio%>" maxlength="280" required>
+                <input type="text" id="bio" name="bio" value="<%=bio%>" placeholder="No bio yet." maxlength="280"
+                    required>
             </div>
             <div>
                 <label for="image">Image</label>

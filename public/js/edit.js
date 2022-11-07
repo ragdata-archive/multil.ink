@@ -65,10 +65,28 @@ function addLink(index, link, linkName)
     const linkDiv = document.createElement(`div`);
     if (index >= 50)
         return; // only can add 50 links
-    linkDiv.innerHTML = `<label for="link${ index }">Link ${ index + 1 }</label>`;
-    linkDiv.innerHTML += `<input type="text" id="link${ index }" name="link${ index }" value="${ link }" required>`;
-    linkDiv.innerHTML += `<label for="linkName${ index }">Link Name ${ index + 1 }</label>`;
-    linkDiv.innerHTML += linkName !== `` ? `<input type="text" id="linkName${ index }" name="linkName${ index }" value="${ linksNamesArray[index] }" required>` : `<input type="text" id="linkName${ index }" name="linkName${ index }" required>`;
+
+    if (index === 0)
+    {
+        const hrForMobile = document.createElement(`hr`);
+        hrForMobile.id = `hrForMobile`;
+        linkDiv.append(hrForMobile);
+    }
+    // linkDiv.innerHTML += `<label for="link${ index }">Link ${ index + 1 }</label>`;
+    linkDiv.innerHTML += `<input type="text" id="link${ index }" name="link${ index }" value="${ link }" placeholder="Link" required>`;
+
+    const brForLinkName = document.createElement(`br`);
+    brForLinkName.id = `pageBreakForButtons`;
+    brForLinkName.style = `line-height: 12em;`;
+    linkDiv.append(brForLinkName);
+
+    // linkDiv.innerHTML += `<label for="linkName${ index }">Link Name ${ index + 1 }</label>`;
+    linkDiv.innerHTML += linkName !== `` ? `<input type="text" id="linkName${ index }" name="linkName${ index }" value="${ linksNamesArray[index] }" placeholder="Link Name" required>` : `<input type="text" id="linkName${ index }" name="linkName${ index }" placeholder="Link Name" required>`;
+
+    const brForButtons = document.createElement(`br`);
+    brForButtons.id = `pageBreakForButtons`;
+    brForButtons.style = `line-height: 12em;`;
+    linkDiv.append(brForButtons);
 
     const deleteButton = document.createElement(`button`);
     deleteButton.classList.add(`btn`, `btn-danger`);
@@ -102,6 +120,10 @@ function addLink(index, link, linkName)
         moveDown(index);
     });
     linkDiv.append(moveDownButton);
+
+    const hrForMobile = document.createElement(`hr`);
+    hrForMobile.id = `hrForMobile`;
+    linkDiv.append(hrForMobile);
 
     linksDiv.append(linkDiv);
 }

@@ -55,6 +55,36 @@ input[type=password] {
     input[type=text],
     input[type=email],
     input[type=password] {
-        width: 35%;
+        width: 40%;
+    }
+}
+
+@media screen and (max-width: 600px) {
+
+    #pageBreakForButtons {
+        display: block;
+    }
+
+    #pageBreakForLinkName {
+        display: block;
+    }
+
+    #hrForMobile {
+        display: block;
+    }
+}
+
+@media screen and (min-width: 600px) {
+
+    #pageBreakForButtons {
+        display: none;
+    }
+
+    #pageBreakForLinkName {
+        display: none;
+    }
+
+    #hrForMobile {
+        display: none;
     }
 }
