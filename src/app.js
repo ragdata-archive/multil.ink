@@ -104,12 +104,12 @@ async function run()
         const verifyResults = await verify(hcaptchaSecret, captchaToken);
         if (!verifyResults.success)
         {
-            request.flash(`error`, `Invalid captcha`);
-            return response.redirect(`/login`);
+            request.flash(`error`, `Please fill out the captcha.`);
+            return response.redirect(`/login?message=Please fill out the captcha.&type=error`);
         }
         passport.authenticate(`local`, {
             successRedirect: `/edit`,
-            failureRedirect: `/login`,
+            failureRedirect: `/login?message=Email/Password incorrect.&type=error`,
             failureFlash: true
         })(request, response, next);
     });
@@ -130,8 +130,8 @@ async function run()
             const verifyResults = await verify(hcaptchaSecret, captchaToken);
             if (!verifyResults.success)
             {
-                request.flash(`error`, `Invalid captcha`);
-                return response.redirect(`/register`);
+                request.flash(`error`, `Please fill out the captcha.`);
+                return response.redirect(`/register?message=Please fill out the captcha.&type=error`);
             }
             const username = request.body.username.toLowerCase().trim().slice(0, 60);
             const bannedUsernames = [
@@ -148,23 +148,23 @@ async function run()
                 `privacy`
             ];
             if (bannedUsernames.includes(username))
-                return response.redirect(`/register`);
+                return response.redirect(`/register?message=That username is not available.&type=error`);
 
             // if username is not A-Z, a-z, 0-9, bail.
             const regex = /^[\dA-Za-z]+$/;
             if (!regex.test(username))
-                return response.redirect(`/register`);
+                return response.redirect(`/register?message=That username is not available.&type=error`);
 
             // If email is not valid, bail.
             const email = request.body.email.toLowerCase().trim().slice(0, 1024);
             const regexEmail = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
             if (!regexEmail.test(email))
-                return response.redirect(`/register`);
+                return response.redirect(`/register?message=That email is not valid.&type=error`);
 
             const user = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(username);
             const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(email);
             if (user || emailExists) // Prevent duplicate usernames/emails
-                return response.redirect(`/register`);
+                return response.redirect(`/register?message=That username/email is already in use.&type=error`);
             const hashedPassword = await bcrypt.hash(request.body.password.trim().slice(0, 1024), 10);
             sql.prepare(`INSERT INTO userAuth (username, email, password) VALUES (?, ?, ?)`).run(username, email, hashedPassword);
             sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, 0, 0, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`);
@@ -177,7 +177,7 @@ async function run()
         }
         catch
         {
-            response.redirect(`/register`);
+            response.redirect(`/register?message=An error occurred.&type=error`);
         }
     });
 
@@ -189,7 +189,7 @@ async function run()
         if (!username)
         {
             logoutUser(request, response, next);
-            return response.redirect(`/login`);
+            return response.redirect(`/login?message=An error occurred.&type=error`);
         }
         username = username.username;
         const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
@@ -203,7 +203,10 @@ async function run()
         const verified = user.verified;
 
         if (verified === -1)
-            return response.redirect(`/`);
+        {
+            logoutUser(request, response, next);
+            return response.redirect(`/login?message=Your account has been suspended. Please contact support.&type=error`);
+        }
 
         response.render(`edit.ejs`, {
             username, displayName, bio, image, links, linkNames, paid, subExpires, verified, ourImage
@@ -219,7 +222,7 @@ async function run()
             if (!username)
             {
                 logoutUser(request, response, next);
-                return response.redirect(`/login`);
+                return response.redirect(`/login?message=An error occurred.&type=error`);
             }
             username = username.username;
             const isPaidUser = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).paid);
@@ -280,7 +283,7 @@ async function run()
         }
         catch
         {
-            response.redirect(`/edit`);
+            response.redirect(`/edit?message=An error occurred.&type=error`);
         }
     });
 
@@ -291,7 +294,7 @@ async function run()
         if (!userUsername)
         {
             logoutUser(request, response, next);
-            return response.redirect(`/login`);
+            return response.redirect(`/login?message=An error occurred.&type=error`);
         }
         userUsername = userUsername.username;
         const actionToTake = request.params[0];
