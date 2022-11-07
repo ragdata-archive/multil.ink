@@ -79,3 +79,28 @@ hr {
 .hidden {
     display: none;
 }
+
+@media (prefers-color-scheme: dark) {
+    .modal-content {
+        background-color: #1e1e1e;
+        color: white;
+    }
+
+    input,
+    textarea {
+        background-color: #1e1e1e !important;
+        color: white !important;
+    }
+}
+
+button.close {
+    border: none;
+    background-color: transparent;
+    color: #000;
+}
+
+@media (prefers-color-scheme: dark) {
+    button.close {
+        color: white;
+    }
+}

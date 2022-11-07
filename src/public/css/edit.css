@@ -100,8 +100,14 @@ input[type=password] {
     }
 }
 
-button>.close {
-    background: none;
+button.close {
     border: none;
+    background-color: transparent;
     color: #000;
+}
+
+@media (prefers-color-scheme: dark) {
+    button.close {
+        color: white;
+    }
 }
