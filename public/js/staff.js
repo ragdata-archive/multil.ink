@@ -170,7 +170,7 @@ for (let index = 0; index < numberOfUsers; index++)
     {
         let extendClass = `btn btn-primary dropdown-toggle`;
         if (users[index].username === myUsername || users[index].subExpires.startsWith(`9999`))
-            extendClass += ` disabled`;
+            extendClass += ` hidden`;
 
         const extendButton = `
                 <button class="${ extendClass }" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
