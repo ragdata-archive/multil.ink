@@ -39,7 +39,7 @@ div.links {
     padding: 20px 0px;
 }
 
-div.links>div {
+div.links>div>button {
     border-radius: 20px;
     border: solid black 2px;
     display: block;
@@ -49,6 +49,7 @@ div.links>div {
     font-weight: 500;
     text-align: center;
     width: 600px;
+    background-color: white;
 }
 
 a {
