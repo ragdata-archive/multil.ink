@@ -7,5 +7,8 @@
         "example.org"
     ],
     "projectName": "projectName",
-    "projectDescription": "projectDescription"
+    "projectDescription": "projectDescription",
+    "dev": true,
+    "hcaptchaSiteKey": "",
+    "hcaptchaSecret": ""
 }

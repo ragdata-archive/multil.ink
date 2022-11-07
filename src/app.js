@@ -6,6 +6,7 @@ import bodyParser from "body-parser";
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from "node:fs";
+import { verify } from 'hcaptcha';
 
 // eslint-disable-next-line no-underscore-dangle
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -21,8 +22,18 @@ async function run()
     await initSetup();
 
     const {
-        port, secret, linkWhitelist, freeLinks, projectName, projectDescription
+        port, secret, linkWhitelist, freeLinks, projectName, projectDescription, dev
     } = require(`./config.json`);
+
+    let {
+        hcaptchaSiteKey, hcaptchaSecret
+    } = require(`./config.json`);
+
+    if (dev)
+    {
+        hcaptchaSiteKey = `10000000-ffff-ffff-ffff-000000000001`;
+        hcaptchaSecret = `0x0000000000000000000000000000000000000000`;
+    }
 
     sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT)`).run();
     sql.prepare(`CREATE TABLE IF NOT EXISTS userAuth (uid INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT)`).run();
@@ -83,21 +94,31 @@ async function run()
     {
         const image = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         response.render(`login.ejs`, {
-            projectName, projectDescription, image
+            projectName, projectDescription, image, hcaptchaSiteKey
         });
     });
 
-    app.post(`/login`, checkNotAuthenticated, passport.authenticate(`local`, {
-        successRedirect: `/edit`,
-        failureRedirect: `/login`,
-        failureFlash: true
-    }));
+    app.post(`/login`, checkNotAuthenticated, async (request, response, next) =>
+    {
+        const captchaToken = request.body[`h-captcha-response`];
+        const verifyResults = await verify(hcaptchaSecret, captchaToken);
+        if (!verifyResults.success)
+        {
+            request.flash(`error`, `Invalid captcha`);
+            return response.redirect(`/login`);
+        }
+        passport.authenticate(`local`, {
+            successRedirect: `/edit`,
+            failureRedirect: `/login`,
+            failureFlash: true
+        })(request, response, next);
+    });
 
     app.get(`/register`, checkNotAuthenticated, (request, response) =>
     {
         const image = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         response.render(`register.ejs`, {
-            projectName, projectDescription, image
+            projectName, projectDescription, image, hcaptchaSiteKey
         });
     });
 
@@ -105,6 +126,13 @@ async function run()
     {
         try
         {
+            const captchaToken = request.body[`h-captcha-response`];
+            const verifyResults = await verify(hcaptchaSecret, captchaToken);
+            if (!verifyResults.success)
+            {
+                request.flash(`error`, `Invalid captcha`);
+                return response.redirect(`/register`);
+            }
             const username = request.body.username.toLowerCase().trim().slice(0, 60);
             const bannedUsernames = [
                 `login`,
