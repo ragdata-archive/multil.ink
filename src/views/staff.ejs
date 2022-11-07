@@ -27,24 +27,21 @@
                 <summary>Statistics</summary>
                 <div class="bg-dark p-4 m-1 rounded">
                     <div class="stats ">
-                        <h4 class="text-white">Number of Users <span class="badge bg-primary">
-                                <%=userCountTotal%>
-                            </span></h4>
-                        <h4 class="text-white">Paying Users <span class="badge bg-success">
-                                <%=paidCount%>
-                            </span></h4>
-                        <h4 class="text-white">Free Users <span class="badge bg-secondary">
-                                <%=freeCount%>
-                            </span></h4>
-                        <h4 class="text-white">Verified Users <span class="badge bg-info">
-                                <%=verifiedCount%>
-                            </span></h4>
-                        <h4 class="text-white">Staff <span class="badge bg-warning">
-                                <%=staffCount%>
-                            </span></h4>
-                        <h4 class="text-white">Suspended Users <span class="badge bg-danger">
-                                <%=suspendedCount%>
-                            </span></h4>
+                        <h4 class="text-white">Number of Users <span class="badge bg-primary"
+                                id="userCountTotal"></span></h4>
+                        <hr>
+                        <h4 class="text-white">Paying Users <span class="badge bg-success" id="paidCount"></span></h4>
+                        <h4 class="text-white">Free Users <span class="badge bg-secondary" id="freeCount"></span></h4>
+                        <hr>
+                        <h4 class="text-white">Verified Users <span class="badge bg-info" id="verifiedCount"> </span>
+                        </h4>
+                        <hr>
+                        <h4 class="text-white">Staff <span class="badge bg-warning" id="staffCount"></span></h4>
+                        <h4 class="text-white">Suspended Users <span class="badge bg-danger" id="suspendedCount"></span>
+                        </h4>
+                        <hr>
+                        <h4 class="text-white">Shadow Profiles <span class="badge bg-secondary"
+                                id="shadowUserCount"></span></h4>
                     </div>
             </details>
 
@@ -212,6 +209,30 @@
         const images = "<%=images%>";
         const links = "<%=links%>";
         const linkNames = "<%=linkNames%>";
+
+        const userCountTotal = `<%=userCountTotal%>`;
+        const verifiedCount = `<%=verifiedCount%>`;
+        const paidCount = `<%=paidCount %>`;
+        const suspendedCount = `<%=suspendedCount%>`;
+        const staffCount = `<%=staffCount%>`;
+        const freeCount = `<%=freeCount%>`;
+        const shadowUserCount = `<%=shadowUserCount%>`;
+
+        const percentOfUsersVerified = Math.round((verifiedCount / userCountTotal) * 100);
+        const percentOfUsersPaid = Math.round((paidCount / userCountTotal) * 100);
+        const percentOfUsersSuspended = Math.round((suspendedCount / userCountTotal) * 100);
+        const percentOfUsersStaff = Math.round((staffCount / userCountTotal) * 100);
+        const percentOfUsersFree = Math.round((freeCount / userCountTotal) * 100);
+        const percentOfUsersShadow = Math.round((shadowUserCount / (userCountTotal + shadowUserCount)) * 100);
+
+        document.getElementById(`userCountTotal`).innerText = userCountTotal;
+        document.getElementById(`paidCount`).innerText = `${ paidCount } (${ percentOfUsersPaid }%)`;
+        document.getElementById(`verifiedCount`).innerText = `${ verifiedCount } (${ percentOfUsersVerified }%)`;
+        document.getElementById(`suspendedCount`).innerText = `${ suspendedCount } (${ percentOfUsersSuspended }%)`;
+        document.getElementById(`staffCount`).innerText = `${ staffCount } (${ percentOfUsersStaff }%)`;
+        document.getElementById(`freeCount`).innerText = `${ freeCount } (${ percentOfUsersFree }%)`;
+        document.getElementById(`shadowUserCount`).innerText = shadowUserCount;
+
     </script>
     <script src="js/staff.js"></script>
 </body>

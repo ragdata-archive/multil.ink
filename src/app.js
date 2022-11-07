@@ -399,14 +399,19 @@ async function run()
         let allUsers = sql.prepare(`SELECT * FROM users LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
         let allUserAuth = sql.prepare(`SELECT * FROM userAuth LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
 
-        const userCountTotal = sql.prepare(`SELECT COUNT(*) FROM users`).get()[`COUNT(*)`];
+        let userCountTotal = sql.prepare(`SELECT COUNT(*) FROM users`).get()[`COUNT(*)`];
         const verifiedCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = 1`).get()[`COUNT(*)`];
-        const paidCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE paid = 1`).get()[`COUNT(*)`];
+        let paidCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE paid = 1`).get()[`COUNT(*)`];
         const suspendedCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = -1`).get()[`COUNT(*)`];
         const staffCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = 2`).get()[`COUNT(*)`];
-        let freeCount = userCountTotal - paidCount - staffCount;
+        const shadowUserCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = -2`).get()[`COUNT(*)`];
+
+        let freeCount = userCountTotal - paidCount - staffCount - shadowUserCount;
         if (freeCount < 0)
             freeCount = 0;
+
+        userCountTotal -= shadowUserCount;
+        paidCount -= staffCount;
 
         const search = request.query.search || ``;
         if (search)
@@ -470,6 +475,7 @@ async function run()
             suspendedCount,
             staffCount,
             freeCount,
+            shadowUserCount,
             projectName,
             ourImage
         });
