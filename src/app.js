@@ -11,7 +11,7 @@ import fs from "node:fs";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const require = createRequire(import.meta.url);
-const sql = new SQLite(`./db.sqlite`);
+const sql = new SQLite(`./src/db.sqlite`);
 
 /**
  * initial setup process and token validation
@@ -43,7 +43,7 @@ async function run()
     const session = require(`express-session`);
     const methodOverride = require(`method-override`);
 
-    const initializePassport = require(`../passport-config.cjs`);
+    const initializePassport = require(`./passport-config.cjs`);
     initializePassport(
         passport,
         (email) => sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(email),
@@ -61,14 +61,14 @@ async function run()
     app.use(passport.initialize());
     app.use(passport.session());
     app.use(methodOverride(`_method`));
-    app.use(express.static(`./public`));
-    app.use(express.static(`./views`));
+    app.use(express.static(`./src/public`));
+    app.use(express.static(`./src/views`));
     // hotload jquery & bootstrap
     const projectRoot = path.join(__dirname, `..`);
     app.use(`/css`, express.static(path.join(projectRoot, `node_modules/bootstrap/dist/css`)));
     app.use(`/js`, express.static(path.join(projectRoot, `node_modules/bootstrap/dist/js`)));
     app.use(`/js`, express.static(path.join(projectRoot, `node_modules/jquery/dist`)));
-    app.set(`views`, `./views`);
+    app.set(`views`, `./src/views`);
     app.set(`view engine`, `ejs`);
 
     app.get(`/`, (request, response) =>
@@ -371,7 +371,9 @@ async function run()
         const paidCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE paid = 1`).get()[`COUNT(*)`];
         const suspendedCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = -1`).get()[`COUNT(*)`];
         const staffCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = 2`).get()[`COUNT(*)`];
-        const freeCount = userCountTotal - paidCount - staffCount;
+        let freeCount = userCountTotal - paidCount - staffCount;
+        if (freeCount < 0)
+            freeCount = 0;
 
         const search = request.query.search || ``;
         if (search)
@@ -721,7 +723,7 @@ async function initSetup()
             if (!(key in defaultConfig))
                 delete config[key];
         }
-        fs.writeFileSync(`./config.json`, JSON.stringify(config, undefined, 4));
+        fs.writeFileSync(`./src/config.json`, JSON.stringify(config, undefined, 4));
         return;
     }
 

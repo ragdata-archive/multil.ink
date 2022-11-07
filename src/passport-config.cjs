@@ -1,7 +1,7 @@
 const SQLite = require(`better-sqlite3`);
 const LocalStrategy = require(`passport-local`).Strategy;
 const bcrypt = require(`bcrypt`);
-const sql = new SQLite(`./db.sqlite`);
+const sql = new SQLite(`./src/db.sqlite`);
 
 /**
  *
