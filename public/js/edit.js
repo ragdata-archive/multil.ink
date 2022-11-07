@@ -12,7 +12,6 @@ for (const link of linksArray)
     addLink(index, link, linksNamesArray[index]);
 }
 
-// on click of add link button
 document.querySelector(`#addLink`).addEventListener(`click`, (event) =>
 {
     event.preventDefault();
@@ -70,7 +69,7 @@ function addLink(index, link, linkName)
     linkDiv.innerHTML += `<input type="text" id="link${ index }" name="link${ index }" value="${ link }" required>`;
     linkDiv.innerHTML += `<label for="linkName${ index }">Link Name ${ index + 1 }</label>`;
     linkDiv.innerHTML += linkName !== `` ? `<input type="text" id="linkName${ index }" name="linkName${ index }" value="${ linksNamesArray[index] }" required>` : `<input type="text" id="linkName${ index }" name="linkName${ index }" required>`;
-    // delete button
+
     const deleteButton = document.createElement(`button`);
     deleteButton.classList.add(`btn`, `btn-danger`);
     deleteButton.style.marginLeft = `10px`;
@@ -82,7 +81,6 @@ function addLink(index, link, linkName)
 
     linkDiv.append(deleteButton);
 
-    // move up/down buttons
     const moveUpButton = document.createElement(`button`);
     moveUpButton.classList.add(`btn`, `btn-primary`);
     moveUpButton.style.marginLeft = `10px`;

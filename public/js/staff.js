@@ -73,11 +73,9 @@ for (let index = 0; index < numberOfUsers; index++)
     editButton.setAttribute(`data-bs-target`, `#editModal`);
     editButton.setAttribute(`data-username`, `${ users[index].username }`);
     editButton.setAttribute(`data-index`, `${ index }`);
-    // editButton.setAttribute(`onclick`, `editUser('${ users[i].username }')`);
     editButton.innerHTML = `Edit`;
     if (users[index].username === myUsername)
     {
-        // editButton.setAttribute(`disabled`, `true`);
         editButton.removeAttribute(`data-bs-toggle`);
         editButton.setAttribute(`onclick`, `window.location.href = '../edit'`);
     }
@@ -215,7 +213,7 @@ for (const [index, element] of tableNavigation.entries())
     nextPage.setAttribute(`type`, `button`);
     nextPage.setAttribute(`onclick`, `tableNavigationAction(1);`);
     nextPage.innerHTML = `Next Page`;
-    // if amount of users is not 100, disable next page button
+
     if (users.length !== 100)
         nextPage.setAttribute(`disabled`, `true`);
 
@@ -225,7 +223,6 @@ for (const [index, element] of tableNavigation.entries())
     {
         const hr = document.createElement(`hr`);
         element.append(hr);
-        // Search bar & button
         const searchForm = document.createElement(`form`);
         searchForm.setAttribute(`class`, `d-flex`);
         searchForm.setAttribute(`onsubmit`, `return false;`);
@@ -244,7 +241,7 @@ for (const [index, element] of tableNavigation.entries())
                 document.querySelector(`#searchButton`).click();
             }
         });
-        // tableNavigation[i].appendChild(searchInput);
+
         searchForm.append(searchInput);
 
         const searchButton = document.createElement(`button`);
@@ -253,7 +250,6 @@ for (const [index, element] of tableNavigation.entries())
         searchButton.setAttribute(`type`, `button`);
         searchButton.setAttribute(`onclick`, `searchUser();`);
         searchButton.innerHTML = `Search`;
-        // tableNavigation[i].appendChild(searchButton);
         searchForm.append(searchButton);
 
         if (window.location.search.includes(`search=`))
