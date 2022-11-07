@@ -6,5 +6,6 @@
         "example.com",
         "example.org"
     ],
-    "projectName": "projectName"
+    "projectName": "projectName",
+    "projectDescription": "projectDescription"
 }

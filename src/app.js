@@ -21,7 +21,7 @@ async function run()
     await initSetup();
 
     const {
-        port, secret, linkWhitelist, freeLinks, projectName
+        port, secret, linkWhitelist, freeLinks, projectName, projectDescription
     } = require(`./config.json`);
 
     sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT)`).run();
@@ -73,15 +73,17 @@ async function run()
 
     app.get(`/`, (request, response) =>
     {
+        const image = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         response.render(`index.ejs`, {
-            projectName
+            projectName, projectDescription, image
         });
     });
 
     app.get(`/login`, checkNotAuthenticated, (request, response) =>
     {
+        const image = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         response.render(`login.ejs`, {
-            projectName
+            projectName, projectDescription, image
         });
     });
 
@@ -93,8 +95,9 @@ async function run()
 
     app.get(`/register`, checkNotAuthenticated, (request, response) =>
     {
+        const image = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         response.render(`register.ejs`, {
-            projectName
+            projectName, projectDescription, image
         });
     });
 
@@ -150,6 +153,7 @@ async function run()
 
     app.get(`/edit`, checkAuthenticated, (request, response, next) =>
     {
+        const ourImage = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         const userEmail = request.user;
         let username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail);
         if (!username)
@@ -172,7 +176,7 @@ async function run()
             return response.redirect(`/`);
 
         response.render(`edit.ejs`, {
-            username, displayName, bio, image, links, linkNames, paid, subExpires, verified
+            username, displayName, bio, image, links, linkNames, paid, subExpires, verified, ourImage
         });
     });
 
@@ -345,6 +349,7 @@ async function run()
 
     app.get(`/staff`, checkAuthenticatedStaff, (request, response, next) =>
     {
+        const ourImage = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         let myUsername = request.user;
         myUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(myUsername);
         if (!myUsername)
@@ -430,7 +435,8 @@ async function run()
             suspendedCount,
             staffCount,
             freeCount,
-            projectName
+            projectName,
+            ourImage
         });
     });
 
@@ -608,6 +614,7 @@ async function run()
     // for every other route, get the URL and check if user exists
     app.get(`/*`, (request, response) =>
     {
+        const ourImage = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         const potentialUser = request.url.replaceAll(`/`, ``).replaceAll(`@`, ``).replaceAll(`~`, ``);
         // If the URL is static content, serve it.
         const allowed = [
@@ -649,7 +656,7 @@ async function run()
             }
 
             response.render(`profile.ejs`, {
-                username, displayName, bio, image, links, linkNames, paid, verified
+                username, displayName, bio, image, links, linkNames, paid, verified, ourImage
             });
         }
         else
