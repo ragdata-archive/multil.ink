@@ -24,7 +24,7 @@ for (const link of linksArray)
 {
     const index = linksArray.indexOf(link);
     const linkDiv = document.createElement(`div`);
-    linkDiv.innerHTML = `<button type="button" onclick="location.href='${ link }';">${ linksNamesArray[index] }</button>`;
+    linkDiv.innerHTML = `<button type="button" onclick="window.open('${ link }', '_blank');">${ linksNamesArray[index] }</button>`;
     if (link !== ``)
         linksDiv.append(linkDiv);
 }
