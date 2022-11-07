@@ -1,9 +1,10 @@
 {
-    "port": 5001,
-    "secret": "xxx",
+    "port": 5000,
+    "secret": "",
     "linkWhitelist": true,
     "freeLinks": [
-        "google.com",
-        "youtube.com"
-    ]
+        "example.com",
+        "example.org"
+    ],
+    "projectName": "projectName"
 }

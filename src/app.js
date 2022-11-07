@@ -5,6 +5,7 @@ import helmet from "helmet";
 import bodyParser from "body-parser";
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import fs from "node:fs";
 
 // eslint-disable-next-line no-underscore-dangle
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -17,8 +18,10 @@ const sql = new SQLite(`./db.sqlite`);
  */
 async function run()
 {
+    await initSetup();
+
     const {
-        port, secret, linkWhitelist, freeLinks
+        port, secret, linkWhitelist, freeLinks, projectName
     } = require(`./config.json`);
 
     sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT)`).run();
@@ -70,10 +73,17 @@ async function run()
 
     app.get(`/`, (request, response) =>
     {
-        response.render(`index.ejs`);
+        response.render(`index.ejs`, {
+            projectName
+        });
     });
 
-    app.get(`/login`, checkNotAuthenticated, (request, response) => response.render(`login.ejs`, {}));
+    app.get(`/login`, checkNotAuthenticated, (request, response) =>
+    {
+        response.render(`login.ejs`, {
+            projectName
+        });
+    });
 
     app.post(`/login`, checkNotAuthenticated, passport.authenticate(`local`, {
         successRedirect: `/edit`,
@@ -83,7 +93,9 @@ async function run()
 
     app.get(`/register`, checkNotAuthenticated, (request, response) =>
     {
-        response.render(`register.ejs`);
+        response.render(`register.ejs`, {
+            projectName
+        });
     });
 
     app.post(`/register`, checkNotAuthenticated, async (request, response) =>
@@ -416,7 +428,8 @@ async function run()
             paidCount,
             suspendedCount,
             staffCount,
-            freeCount
+            freeCount,
+            projectName
         });
     });
 
@@ -677,6 +690,44 @@ async function run()
 }
 
 await run();
+
+/**
+ * @name initSetup
+ * @description Sets up config.json.
+ */
+async function initSetup()
+{
+    if (fs.existsSync(`./src/config.json`))
+    {
+        const rawConfig = fs.readFileSync(`./src/config.json`);
+        const config = JSON.parse(rawConfig);
+        const rawDefaultConfig = fs.readFileSync(`./src/config.json.example`);
+        const defaultConfig = JSON.parse(rawDefaultConfig);
+        for (const key in defaultConfig)
+        { // If we already have a config, check and see if everything from defaultConfig is set.
+            if (!(key in config))
+                config[key] = defaultConfig[key];
+        }
+        for (const key in config)
+        { // Clean Legacy Config Options. (If something in config is not in defaultConfig, remove it from config).
+            if (!(key in defaultConfig))
+                delete config[key];
+        }
+        fs.writeFileSync(`./config.json`, JSON.stringify(config, undefined, 4));
+        return;
+    }
+
+    fs.copyFileSync(`./src/config.json.example`, `./src/config.json`);
+    const config = require(`./src/config.json`);
+
+    let sessionSecret = ``;
+    const possible = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`;
+    for (let index = 0; index < 50; index++)
+        sessionSecret += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    config.secret = sessionSecret;
+    fs.writeFileSync(`./src/config.json`, JSON.stringify(config, undefined, 4)); // save settings to config
+}
 
 /**
  * @name checkAuthenticated
