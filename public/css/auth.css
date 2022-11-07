@@ -1,7 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 
+/* color-scheme preferdark */
+
+
 html {
     background-color: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #1e1e1e;
+        color: white;
+    }
 }
 
 body {
@@ -55,7 +65,6 @@ h2 {
     background-color: #f6f6f6;
     padding: 25px;
     text-align: center;
-
 }
 
 #formFooter {
@@ -68,6 +77,28 @@ h2 {
     border-top: 1px solid #dce8f1;
     -webkit-border-radius: 10px 10px 0 0;
     border-radius: 10px 10px 0 0;
+}
+
+@media (prefers-color-scheme: dark) {
+
+    #formContent {
+        background-color: #373737;
+        color: white;
+    }
+
+    #formHeader,
+    #formFooter {
+        background-color: #1e1e1e;
+        color: white;
+    }
+
+    #formHeader {
+        border-top: 1px solid #1e1e1e;
+    }
+
+    #formFooter {
+        border-top: 1px solid #1e1e1e;
+    }
 }
 
 #formHeaderPadding {
@@ -165,6 +196,33 @@ input[type=password]:placeholder {
 
 .underlineHover:hover {
     color: #0d0d0d;
+}
+
+@media (prefers-color-scheme: dark) {
+
+    input[type=text],
+    input[type=email],
+    input[type=password] {
+        background-color: #373737;
+        color: white;
+    }
+
+    input[type=text]:focus,
+    input[type=email]:focus,
+    input[type=password]:focus {
+        background-color: #1e1e1e;
+        border-bottom: 2px solid #5fbae9;
+    }
+
+    input[type=text]:placeholder,
+    input[type=email]:placeholder,
+    input[type=password]:placeholder {
+        color: #cccccc;
+    }
+
+    .underlineHover:hover {
+        color: #5b5b5b;
+    }
 }
 
 .underlineHover:hover:after {

@@ -2,6 +2,34 @@
 /* eslint-disable no-unused-vars */
 
 document.querySelector(`#main`).style.display = `block`;
+
+/**
+ * @name darkMode
+ * @description Adds the dark mode class to the dropdown menu
+ * @param {string} dark if user is using dark
+ */
+function darkMode(dark)
+{
+    if (dark === `dark`)
+    {
+        // dropdown-menu-dark
+        document.querySelector(`.dropdown-menu`).classList.add(`dropdown-menu-dark`);
+    }
+    else
+    {
+        // remove dropdown-menu-dark
+        document.querySelector(`.dropdown-menu`).classList.remove(`dropdown-menu-dark`);
+    }
+}
+
+window.matchMedia(`(prefers-color-scheme: dark)`).addEventListener(`change`, (event) =>
+{
+    const colorScheme = event.matches ? `dark` : `light`;
+    darkMode(colorScheme);
+});
+
+darkMode(window.matchMedia(`(prefers-color-scheme: dark)`).matches ? `dark` : `light`);
+
 const linksArray = links.split(`,`);
 const linksNamesArray = linksNames.split(`,`);
 const linksDiv = document.querySelector(`.links`);
