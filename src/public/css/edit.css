@@ -59,6 +59,10 @@ input[type=password] {
     }
 }
 
+.modalInput {
+    width: 80% !important;
+}
+
 @media screen and (max-width: 600px) {
 
     #pageBreakForButtons {
@@ -87,4 +91,17 @@ input[type=password] {
     #hrForMobile {
         display: none;
     }
+}
+
+@media (prefers-color-scheme: dark) {
+    .modal-content {
+        background-color: #1e1e1e;
+        color: white;
+    }
+}
+
+button>.close {
+    background: none;
+    border: none;
+    color: #000;
 }

@@ -14,11 +14,15 @@ function darkMode(dark)
     {
         // dropdown-menu-dark
         document.querySelector(`.dropdown-menu`).classList.add(`dropdown-menu-dark`);
+        // add dark modal class
+        // document.querySelector(`.modal-content`).classList.add(`modal-content-dark`);
     }
     else
     {
         // remove dropdown-menu-dark
         document.querySelector(`.dropdown-menu`).classList.remove(`dropdown-menu-dark`);
+        // remove dark modal class
+        // document.querySelector(`.modal-content`).classList.remove(`modal-content-dark`);
     }
 }
 

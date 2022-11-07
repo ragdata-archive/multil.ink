@@ -144,6 +144,8 @@ async function run()
                 `css`,
                 `js`,
                 `img`,
+                `tos`,
+                `privacy`
             ];
             if (bannedUsernames.includes(username))
                 return response.redirect(`/register`);
@@ -641,6 +643,22 @@ async function run()
         return response.redirect(`/login`);
     });
 
+    app.get(`/tos`, (request, response) =>
+    {
+        const ourImage = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
+        response.render(`tos.ejs`, {
+            projectName, projectDescription, ourImage
+        });
+    });
+
+    app.get(`/privacy`, (request, response) =>
+    {
+        const ourImage = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
+        response.render(`privacy.ejs`, {
+            projectName, projectDescription, ourImage
+        });
+    });
+
     // for every other route, get the URL and check if user exists
     app.get(`/*`, (request, response) =>
     {
@@ -648,10 +666,9 @@ async function run()
         const potentialUser = request.url.replaceAll(`/`, ``).replaceAll(`@`, ``).replaceAll(`~`, ``);
         // If the URL is static content, serve it.
         const allowed = [
-            `favicon.ico`,
             `css`,
             `js`,
-            `img`,
+            `img`
         ];
         if (allowed.includes(request.url))
         {
