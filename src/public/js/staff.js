@@ -54,13 +54,16 @@ for (let index = 0; index < numberOfUsers; index++)
         verifiedCell.innerHTML = `No`;
     else if (users[index].verified === `-1`)
         verifiedCell.innerHTML = `Suspended`;
+    else if (users[index].verified === `-2`)
+        verifiedCell.innerHTML = `Shadow Profile`;
 
     if (users[index].paid === `1`)
         paidCell.innerHTML = `Yes`;
-    else if (users[index].paid === `0`)
+    else if (users[index].paid === `0` && users[index].verified !== `-2`)
         paidCell.innerHTML = `No`;
 
-    subExpiresCell.innerHTML = users[index].subExpires;
+    if (users[index].verified !== `-2`)
+        subExpiresCell.innerHTML = users[index].subExpires;
 
     username.setAttribute(`scope`, `row`);
 
@@ -79,6 +82,9 @@ for (let index = 0; index < numberOfUsers; index++)
         editButton.removeAttribute(`data-bs-toggle`);
         editButton.setAttribute(`onclick`, `window.location.href = '../edit'`);
     }
+    if (users[index].verified === `-2`)
+        editButton.setAttribute(`data-bs-target`, `#editShadowModal`);
+
     actions.append(editButton);
 
     if (users[index].verified === `0`)
@@ -140,7 +146,7 @@ for (let index = 0; index < numberOfUsers; index++)
         actions.append(unsuspendButton);
     }
 
-    if (users[index].verified !== `-1` && users[index].verified !== `2`)
+    if (users[index].verified !== `-1` && users[index].verified !== `2` && users[index].verified !== `-2`)
     {
         const suspendButton = document.createElement(`button`);
         suspendButton.setAttribute(`class`, `btn btn-danger`);
@@ -153,7 +159,7 @@ for (let index = 0; index < numberOfUsers; index++)
         actions.append(suspendButton);
     }
 
-    if (users[index].verified === `-1`)
+    if (users[index].verified === `-1` || users[index].verified === `-2`)
     {
         const deleteButton = document.createElement(`button`);
         deleteButton.setAttribute(`class`, `btn btn-danger`);
@@ -166,7 +172,7 @@ for (let index = 0; index < numberOfUsers; index++)
         actions.append(deleteButton);
     }
 
-    if (users[index].verified !== `2` && users[index].verified !== `-1`)
+    if (users[index].verified !== `2` && users[index].verified !== `-1` && users[index].verified !== `-2`)
     {
         let extendClass = `btn btn-primary dropdown-toggle`;
         if (users[index].username === myUsername || users[index].subExpires.startsWith(`9999`))
@@ -195,30 +201,6 @@ for (let index = 0; index < numberOfUsers; index++)
 const tableNavigation = document.querySelectorAll(`.tableNav`);
 for (const [index, element] of tableNavigation.entries())
 {
-    const previousPage = document.createElement(`button`);
-    previousPage.setAttribute(`class`, `btn btn-secondary`);
-    previousPage.setAttribute(`type`, `button`);
-    previousPage.setAttribute(`onclick`, `tableNavigationAction(-1);`);
-    previousPage.innerHTML = `Previous Page`;
-    let page = window.location.search;
-    page = page.replace(`?page=`, ``);
-    page = page.split(`&`)[0];
-    if (page === `1`)
-        previousPage.setAttribute(`disabled`, `true`);
-
-    element.append(previousPage);
-
-    const nextPage = document.createElement(`button`);
-    nextPage.setAttribute(`class`, `btn btn-primary`);
-    nextPage.setAttribute(`type`, `button`);
-    nextPage.setAttribute(`onclick`, `tableNavigationAction(1);`);
-    nextPage.innerHTML = `Next Page`;
-
-    if (users.length !== 100)
-        nextPage.setAttribute(`disabled`, `true`);
-
-    element.append(nextPage);
-
     if (index === 0)
     {
         const hr = document.createElement(`hr`);
@@ -266,6 +248,30 @@ for (const [index, element] of tableNavigation.entries())
         const hr2 = document.createElement(`hr`);
         element.append(hr2);
     }
+
+    const previousPage = document.createElement(`button`);
+    previousPage.setAttribute(`class`, `btn btn-secondary`);
+    previousPage.setAttribute(`type`, `button`);
+    previousPage.setAttribute(`onclick`, `tableNavigationAction(-1);`);
+    previousPage.innerHTML = `Previous Page`;
+    let page = window.location.search;
+    page = page.replace(`?page=`, ``);
+    page = page.split(`&`)[0];
+    if (page === `1`)
+        previousPage.setAttribute(`disabled`, `true`);
+
+    element.append(previousPage);
+
+    const nextPage = document.createElement(`button`);
+    nextPage.setAttribute(`class`, `btn btn-primary`);
+    nextPage.setAttribute(`type`, `button`);
+    nextPage.setAttribute(`onclick`, `tableNavigationAction(1);`);
+    nextPage.innerHTML = `Next Page`;
+
+    if (users.length !== 100)
+        nextPage.setAttribute(`disabled`, `true`);
+
+    element.append(nextPage);
 }
 
 $(`#editModal`).on(`show.bs.modal`, function (event)
@@ -293,6 +299,16 @@ $(`#editModal`).on(`show.bs.modal`, function (event)
     modal.find(`.modal-body #modal-linkNames`).val(linkNames);
     modal.find(`.modal-body #modal-links`).attr(`rows`, jsonLinks.length + 2);
     modal.find(`.modal-body #modal-linkNames`).attr(`rows`, jsonLinkNames.length + 2);
+});
+
+$(`#editShadowModal`).on(`show.bs.modal`, function (event)
+{
+    var button = $(event.relatedTarget); // Button that triggered the modal
+    var username = button.data(`username`); // Extract info from data-* attributes
+    var index = button.data(`index`); // Extract info from data-* attributes
+    var modal = $(this);
+    modal.find(`.modal-title`).text(`Edit Shadow User: ${ username }`);
+    modal.find(`.modal-body #modal-edit-shadow-displayName`).val(users[index].displayName);
 });
 
 /**
@@ -404,6 +420,18 @@ function prepareUserEdit()
 }
 
 /**
+ * @name shadowUserEdit
+ * @description Change redirect URL
+ * @param {string} username The shadow profile to update
+ */
+function shadowUserEdit(username)
+{
+    const newRedirect = document.querySelector(`#modal-edit-shadow-displayName`).value;
+    const dataToSend = `?username=${ username }&displayName=${ newRedirect }`;
+    window.location.href = `/staff/editUser${ dataToSend }`;
+}
+
+/**
  * @name sendUserEdit
  * @description Sends the user edit data to the server.
  * @param {string} oldUsername The old username of the user
@@ -498,4 +526,19 @@ function searchUser()
 function resetSearch()
 {
     window.location.href = `/staff?page=1`;
+}
+
+/**
+ * @name prepareShadowCreation
+ * @description Prepares shadow user creation.
+ */
+function prepareShadowCreation()
+{
+    const userToCreate = document.querySelector(`#modal-shadow-username`).value;
+    const userToRedirectTo = document.querySelector(`#modal-shadow-redirect`).value;
+
+    if (userToCreate === `` || userToRedirectTo === `` || userToCreate === userToRedirectTo)
+        return;
+
+    window.location.href = `/staff/createShadowUser?username=${ userToCreate }&redirect=${ userToRedirectTo }`;
 }

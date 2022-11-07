@@ -606,6 +606,24 @@ async function run()
                 response.redirect(`/staff`);
                 break;
             }
+            case `createShadowUser`: {
+                const urlParameters = new URLSearchParams(request.query);
+                const username = urlParameters.get(`username`);
+                const redirectTo = urlParameters.get(`redirect`);
+
+                if (!username || !redirectTo)
+                    return response.redirect(`/staff`);
+
+                const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
+                if (user)
+                    return response.redirect(`/staff`);
+
+                sql.prepare(`INSERT INTO users (username, displayName, bio, image, links, linkNames, verified, paid, subExpires) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, redirectTo, ``, ``, `[]`, `[]`, `-2`, `0`, ``);
+                sql.prepare(`INSERT INTO userAuth (username, password, email) VALUES (?, ?, ?)`).run(username, ``, ``);
+
+                response.redirect(`/staff`);
+                break;
+            }
             default: {
                 response.redirect(`/staff`);
                 break;
@@ -700,6 +718,11 @@ async function run()
             {
                 response.status(404);
                 return response.redirect(`/`);
+            }
+            if (verified === -2)
+            {
+                response.status(302);
+                return response.redirect(`/${ displayName }`);
             }
 
             response.render(`profile.ejs`, {

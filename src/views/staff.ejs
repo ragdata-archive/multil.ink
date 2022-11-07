@@ -48,6 +48,11 @@
                     </div>
             </details>
 
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createShadowUserModal">Create
+                Shadow
+                Profile</button>
+            <hr>
+
             <div class="tableNav"></div>
             <table class="table table-dark" id="users">
                 <thead>
@@ -126,6 +131,71 @@
                     </div>
                 </div>
             </div>
+
+            <div class="modal fade" id="createShadowUserModal" tabindex="-1" role="dialog"
+                aria-labelledby="createShadowUserModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="createShadowUserModalLabel">Create Shadow User</h5>
+                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form>
+                                <div class="form-group">
+                                    <label for="modal-shadow-username" class="col-form-label">Username:</label>
+                                    <input type="text" class="form-control" id="modal-shadow-username" maxlength="60"
+                                        required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="modal-shadow-redirect" class="col-form-label">Redirect To:</label>
+                                    <input type="text" class="form-control" id="modal-shadow-redirect" maxlength="60"
+                                        required>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="prepareShadowCreation();">Save
+                                Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="editShadowModal" tabindex="-1" role="dialog"
+                aria-labelledby="editShadowModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editShadowModalLabel">Edit User</h5>
+                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form>
+                                <div class="form-group">
+                                    <label for="modal-edit-shadow-displayName" class="col-form-label">Redirect
+                                        To:</label>
+                                    <input class="form-control" id="modal-edit-shadow-displayName" required
+                                        maxlength="60"></input>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary"
+                                onclick="shadowUserEdit(`${document.getElementById(`editShadowModalLabel`).innerText.split(`: `)[1]}`);">Save
+                                Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
         </main>
     </main>
 
