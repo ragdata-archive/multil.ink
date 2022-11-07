@@ -52,17 +52,12 @@ div.links>div>button {
     background-color: white;
 }
 
-a {
-    text-decoration: none;
-    color: black;
-}
-
-div.links>div:hover {
+div.links>div>button:hover {
     transform: scale(1.25);
     /* text-decoration: underline; */
 }
 
-div.links a {
+div.links button {
     overflow-wrap: break-word;
     word-break: break-word;
     hyphens: auto;
