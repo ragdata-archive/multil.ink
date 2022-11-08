@@ -139,17 +139,14 @@
                     <div class="modal-body">
                         <form id="changeEmailForm">
                             <div class="form-group">
-                                <!-- <label for="modal-email" class="col-form-label">Old Email:</label> -->
                                 <input type="email" class="form-control modalInput" id="modal-email" maxlength="1024"
                                     required placeholder="Old Email">
                             </div>
                             <div class="form-group">
-                                <!-- <label for="modal-new-email" class="col-form-label">New Email:</label> -->
                                 <input type="email" class="form-control modalInput" id="modal-new-email"
                                     maxlength="1024" required placeholder="New Email">
                             </div>
                             <div class="form-group">
-                                <!-- <label for="modal-password" class="col-form-label">Password:</label> -->
                                 <input type="password" class="form-control modalInput" id="modal-password"
                                     maxlength="1024" required placeholder="Password">
                             </div>
@@ -178,17 +175,14 @@
                     <div class="modal-body">
                         <form id="changePasswordForm">
                             <div class="form-group">
-                                <!-- <label for="modal-old-password" class="col-form-label">Old Password:</label> -->
                                 <input type="password" class="form-control modalInput" id="modal-old-password"
                                     maxlength="1024" required placeholder="Old Password">
                             </div>
                             <div class="form-group">
-                                <!-- <label for="modal-new-password" class="col-form-label">New Password:</label> -->
                                 <input type="password" class="form-control modalInput" id="modal-new-password"
                                     maxlength="1024" required placeholder="New Password">
                             </div>
                             <div class="form-group">
-                                <!-- <label for="modal-new-password2" class="col-form-label">New Password:</label> -->
                                 <input type="password" class="form-control modalInput" id="modal-new-password2"
                                     maxlength="1024" required placeholder="New Password Again">
                             </div>
@@ -217,7 +211,6 @@
                     <div class="modal-body">
                         <form id="deleteAccountForm">
                             <div class="form-group">
-                                <!-- <label for="modal-delete-password" class="col-form-label">Password:</label> -->
                                 <input type="password" class="form-control modalInput" id="modal-delete-password"
                                     maxlength="1024" required placeholder="Password">
                             </div>
@@ -248,12 +241,10 @@
                     <div class="modal-body">
                         <form id="changeUsernameForm">
                             <div class="form-group">
-                                <!-- <label for="modal-change-username" class="col-form-label">New Username:</label> -->
                                 <input type="text" class="form-control modalInput" id="modal-change-username"
                                     maxlength="60" required placeholder="New Username">
                             </div>
                             <div class="form-group">
-                                <!-- <label for="modal-cu-password" class="col-form-label">Password:</label> -->
                                 <input type="password" class="form-control modalInput" id="modal-cu-password"
                                     maxlength="1024" required placeholder="Password">
                             </div>
@@ -273,21 +264,7 @@
             aria-labelledby="changeImageModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
-                    <!-- <div class="modal-header">
-                        <h5 class="modal-title" id="changeImageModalLabel">Change Profile Picture</h5>
-                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div> -->
-                    <!-- <div class="modal-body"> -->
                     <div id="drag-drop-area"></div>
-                    <!-- </div> -->
-                    <!-- <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        <button type="button" class="btn btn-primary"
-                                            onclick="changeImage(`${document.getElementById('modal-email').value}`, `${document.getElementById('modal-new-email').value}`, `${document.getElementById('modal-password').value}`);">Save
-                                            Changes</button>
-                                    </div> -->
                 </div>
             </div>
         </div>
@@ -316,9 +293,9 @@
         const protocol = window.location.protocol;
         const domain = window.location.href.split(`/`)[2];
         const uploadDirectory = `${ protocol }//${ domain }/img`;
-        import { Uppy, Dashboard, XHRUpload } from "../js/uppy.min.mjs"
+        import { Uppy, Dashboard, XHRUpload, ImageEditor, Compressor } from "../js/uppy.min.mjs"
         const uppy = new Uppy({
-            autoProceed: true,
+            autoProceed: false,
             allowMultipleUploadBatches: false,
             restrictions: {
                 maxFileSize: 8388608,
@@ -331,11 +308,55 @@
             .use(Dashboard, {
                 inline: true,
                 target: `#drag-drop-area`,
-            }).use(XHRUpload, {
+            })
+            .use(ImageEditor, {
+                target: Dashboard,
+                quality: 0.6,
+                cropperOptions: {
+                    viewMode: 1,
+                    background: false,
+                    autoCropArea: 0.8,
+                    responsive: true,
+                    croppedCanvasOptions: {},
+                },
+                actions: {
+                    revert: true,
+                    rotate: true,
+                    granularRotate: false,
+                    flip: true,
+                    zoomIn: true,
+                    zoomOut: true,
+                    cropSquare: true,
+                    cropWidescreen: false,
+                    cropWidescreenVertical: false,
+                },
+            })
+            .use(Compressor, {
+                quality: 0.6,
+            })
+            .use(XHRUpload, {
                 endpoint: uploadDirectory,
                 fieldName: `photo`,
                 formData: true,
             });
+
+        uppy.on('file-added', (file) =>
+        {
+            setTimeout(() =>
+            {
+                const editButton = document.querySelector(`.uppy-Dashboard-Item-action--edit`);
+                editButton.click();
+            }, 150);
+        });
+
+        uppy.on('file-editor:complete', (updatedFile) =>
+        {
+            setTimeout(() =>
+            {
+                const editButton = document.querySelector(`.uppy-StatusBar-actionBtn--upload`);
+                editButton.click();
+            }, 150);
+        });
 
         uppy.on('complete', (result) =>
         {
