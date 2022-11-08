@@ -15,6 +15,10 @@
     <meta property="og:image" content="<%=image%>" />
     <meta property="og:type" content="profile:username" />
 
+    <script src="../js/jquery.min.js"></script>
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <script src="../js/bootstrap.bundle.min.js"></script>
+
     <link rel="stylesheet" href="css/profile.css">
     <%-themeContent%>
         <link rel="icon" type="image/png" href="<%=ourImage%>">
@@ -41,11 +45,28 @@
         <p class="ad" style="display: none;">ad here</p>
     </main>
 
+    <div id="ageGate" style="display: none;">
+        <div class="ageGate">
+            <h1>Sensitive Content</h1>
+            <p>Please confirm you are willing to see potentially sensitive content, and are over the age of 18.</p>
+            <div>
+                <button id="ageGateYes" class="btn btn-success"
+                    onclick="document.getElementById(`ageGate`).style = `display: none;`; document.getElementById(`main`).style = `display: block;`">I
+                    confirm</button>
+            </div>
+            <div style="padding-top: 15px;">
+                <button id="ageGateNo" class="btn btn-danger" onclick="window.location.href = `../`;">I do not
+                    confirm</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let paid = "<%=paid%>";
         let verified = "<%=verified%>";
         const links = "<%=links%>";
         const linksNames = "<%=linkNames%>";
+        const ageGated = "<%=ageGated%>";
     </script>
     <script src="js/profile.js"></script>
 </body>

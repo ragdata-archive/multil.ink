@@ -47,7 +47,7 @@ async function run()
         hcaptchaSecret = `0x0000000000000000000000000000000000000000`;
     }
 
-    sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT, theme TEXT, advancedTheme TEXT)`).run();
+    sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT, theme TEXT, advancedTheme TEXT, ageGated TEXT)`).run();
     sql.prepare(`CREATE TABLE IF NOT EXISTS userAuth (uid INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT)`).run();
 
     const app = express();
@@ -195,7 +195,7 @@ async function run()
                 return response.redirect(`/register?message=That username/email is already in use.&type=error`);
             const hashedPassword = await bcrypt.hash(request.body.password.trim().slice(0, 1024), 10);
             sql.prepare(`INSERT INTO userAuth (username, email, password) VALUES (?, ?, ?)`).run(username, email, hashedPassword);
-            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames, theme, advancedTheme) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, 0, 0, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`, `light`, ``);
+            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, 0, 0, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`, `light`, ``, `0`);
             // If this is the first user, make them staff.
             const userCount = sql.prepare(`SELECT COUNT(*) FROM userAuth`).get();
             if (userCount[`COUNT(*)`] === 1)
@@ -231,6 +231,8 @@ async function run()
         const verified = user.verified;
         const theme = user.theme;
         const advancedTheme = user.advancedTheme;
+        let ageGated = user.ageGated;
+        ageGated = ageGated === `1` ? `checked` : ``;
 
         if (verified === -1)
         {
@@ -264,7 +266,8 @@ async function run()
             themes,
             backgroundColor,
             textColor,
-            borderColor
+            borderColor,
+            ageGated,
         });
     });
 
@@ -286,6 +289,9 @@ async function run()
 
             if (isSuspended)
                 return response.redirect(`/`);
+
+            let ageGated = request.body.adultContent;
+            ageGated = ageGated === `` ? `1` : `0`;
 
             const updatedDisplayName = request.body.displayName.trim().slice(0, 60);
             const updatedBio = request.body.bio.trim().slice(0, 280);
@@ -341,7 +347,7 @@ async function run()
             }
             updatedLinks = JSON.stringify(updatedLinks);
             updatedLinkNames = JSON.stringify(updatedLinkNames);
-            sql.prepare(`UPDATE users SET displayName = ?, bio = ?, image = ?, links = ?, linkNames = ?, theme = ?, advancedTheme = ? WHERE username = ?`).run(updatedDisplayName, updatedBio, updatedImage, updatedLinks, updatedLinkNames, theme, advancedTheme, username);
+            sql.prepare(`UPDATE users SET displayName = ?, bio = ?, image = ?, links = ?, linkNames = ?, theme = ?, advancedTheme = ?, ageGated = ? WHERE username = ?`).run(updatedDisplayName, updatedBio, updatedImage, updatedLinks, updatedLinkNames, theme, advancedTheme, ageGated, username);
 
             response.redirect(`/edit`);
         }
@@ -691,7 +697,7 @@ async function run()
                 if (user)
                     return response.redirect(`/staff`);
 
-                sql.prepare(`INSERT INTO users (username, displayName, bio, image, links, linkNames, verified, paid, subExpires, theme, advancedTheme) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, redirectTo, ``, ``, `[]`, `[]`, `-2`, `0`, ``, ``, ``);
+                sql.prepare(`INSERT INTO users (username, displayName, bio, image, links, linkNames, verified, paid, subExpires, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, redirectTo, ``, ``, `[]`, `[]`, `-2`, `0`, ``, ``, ``, `0`);
                 sql.prepare(`INSERT INTO userAuth (username, password, email) VALUES (?, ?, ?)`).run(username, ``, ``);
 
                 response.redirect(`/staff`);
@@ -795,6 +801,7 @@ async function run()
             const verified = user.verified;
             const theme = user.theme;
             const advancedTheme = user.advancedTheme;
+            const ageGated = user.ageGated;
 
             if (verified === -1)
             {
@@ -816,7 +823,7 @@ async function run()
                 themeContent = `<link rel="stylesheet" href="css/theme-${ theme.toLowerCase() }.css">`;
 
             response.render(`profile.ejs`, {
-                username, displayName, bio, image, links, linkNames, paid, verified, ourImage, themeContent
+                username, displayName, bio, image, links, linkNames, paid, verified, ourImage, themeContent, ageGated
             });
         }
         else

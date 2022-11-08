@@ -1,6 +1,11 @@
 /* eslint-disable no-undef */
 
 document.querySelector(`#main`).style.display = `block`;
+if (ageGated === `1`)
+{
+    document.querySelector(`#main`).style.display = `none`;
+    document.querySelector(`#ageGate`).style.display = `block`;
+}
 
 paid = (paid === `true`);
 if (!paid)
