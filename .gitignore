@@ -4,6 +4,8 @@ node_modules/
 # Private Data
 config.json
 db.*
+src/public/img/ugc/*
+!src/public/img/ugc/.gitkeep
 
 # Misc
 *.bak

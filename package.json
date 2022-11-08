@@ -40,9 +40,11 @@
         "helmet": "6.0.0",
         "jquery": "3.6.1",
         "method-override": "3.0.0",
+        "multer": "1.4.5-lts.1",
         "node-fetch": "3.2.10",
         "passport": "0.6.0",
-        "passport-local": "1.0.0"
+        "passport-local": "1.0.0",
+        "uppy": "3.2.2"
     },
     "devDependencies": {
         "eslint": "8.27.0",

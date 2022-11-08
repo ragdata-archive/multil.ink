@@ -66,6 +66,20 @@ async function run()
     const session = require(`express-session`);
     const methodOverride = require(`method-override`);
 
+    const multer = require(`multer`);
+    const storage = multer.diskStorage(
+        {
+            destination: `./src/public/img/ugc/`,
+            filename: (request, file, callback) =>
+            {
+                const fileName = `${ Date.now() }${ path.extname(file.originalname) }`;
+                callback(undefined, fileName);
+            }
+        }
+    );
+
+    const uploadImage = multer({ storage }).single(`photo`);
+
     const initializePassport = require(`./passport-config.cjs`);
     initializePassport(
         passport,
@@ -91,6 +105,8 @@ async function run()
     app.use(`/css`, express.static(path.join(projectRoot, `node_modules/bootstrap/dist/css`)));
     app.use(`/js`, express.static(path.join(projectRoot, `node_modules/bootstrap/dist/js`)));
     app.use(`/js`, express.static(path.join(projectRoot, `node_modules/jquery/dist`)));
+    app.use(`/js`, express.static(path.join(projectRoot, `node_modules/uppy/dist`)));
+    app.use(`/css`, express.static(path.join(projectRoot, `node_modules/uppy/dist`)));
     app.set(`views`, `./src/views`);
     app.set(`view engine`, `ejs`);
 
@@ -734,6 +750,13 @@ async function run()
         });
     });
 
+    app.post(`/img`, uploadImage, checkAuthenticated, (request, response) =>
+    {
+        if (request.file)
+            return response.json({ url: `${ request.protocol }://${ request.get(`host`) }/img/ugc/${ request.file.filename }` });
+        return response.send(`Image upload failed.`);
+    });
+
     // for every other route, get the URL and check if user exists
     app.get(`/*`, (request, response) =>
     {
@@ -826,11 +849,13 @@ async function run()
         // eslint-disable-next-line no-restricted-syntax
         console.log(`Server now ready: http://localhost:${ port }/`);
         checkExpiredSubscriptions();
+        cleanUGC();
     });
 
     setInterval(() =>
     {
         checkExpiredSubscriptions();
+        cleanUGC();
     }, 14_400_000); // every 4~ hours
 }
 
@@ -971,4 +996,29 @@ function logoutUser(request, response, next)
         if (error)
             return next(error);
     });
+}
+
+/**
+ * @name cleanUGC
+ * @description Cleans up UGC that is no longer assigned to an account.
+ */
+function cleanUGC()
+{
+    // look at ./src/public/img/ugc/ and delete any files not associated with a user.
+    const files = fs.readdirSync(`./src/public/img/ugc/`);
+    for (const file of files)
+    {
+        if (file === `.gitkeep`)
+            continue;
+
+        const users = sql.prepare(`SELECT * FROM users`).all();
+        const userImages = [];
+        for (const user of users)
+        {
+            if (user.image && user.image.includes(`ugc/`))
+                userImages.push(user.image.split(`/`)[5]);
+        }
+        if (!userImages.includes(file))
+            fs.unlinkSync(`./src/public/img/ugc/${ file }`);
+    }
 }

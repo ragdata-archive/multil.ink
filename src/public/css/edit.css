@@ -115,3 +115,10 @@ button.close {
 .colorPicker {
     margin-right: 10px;
 }
+
+#drag-drop-area {
+    /* center everything */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

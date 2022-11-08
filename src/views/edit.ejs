@@ -12,6 +12,7 @@
     <script src="../js/jquery.min.js"></script>
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <script src="../js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="../css/uppy.min.css">
 
     <link rel="stylesheet" href="css/edit.css">
     <link rel="icon" type="image/png" href="<%=ourImage%>">
@@ -42,6 +43,8 @@
                         <div class="dropdown-menu" id="profileDropdown" aria-labelledby="navbarDropdownMenuLink">
                             <a class="dropdown-item" href="./<%=username%>" target="_blank">View my Profile</a>
                             <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                data-bs-target="#changeImageModal">Change Profile Picture</a>
                             <a class="dropdown-item" href="#" data-bs-toggle="modal"
                                 data-bs-target="#changeUsernameModal">Change Username</a>
                             <a class="dropdown-item" href="#" data-bs-toggle="modal"
@@ -109,16 +112,16 @@
                 <input type="text" id="bio" name="bio" value="<%=bio%>" placeholder="No bio yet." maxlength="280"
                     required>
             </div>
-            <div>
+            <div style="display: none;">
                 <label for="image">Image</label>
-                <input type="text" id="image" name="image" value="<%=image%>" required>
+                <input type="text" id="image" name="image" value="<%=image%>" required readonly>
             </div>
             <div class="links"></div>
             <div>
                 <button type="button" id="addLink" class="btn btn-primary">Add Another Link</button>
             </div>
             <div>
-                <button type="submit" class="btn btn-success">Update Profile</button>
+                <button type="submit" class="btn btn-success" id="updateProfileSubmitButton">Update Profile</button>
             </div>
         </form>
 
@@ -265,6 +268,29 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="changeImageModal" tabindex="-1" role="dialog"
+            aria-labelledby="changeImageModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <!-- <div class="modal-header">
+                        <h5 class="modal-title" id="changeImageModalLabel">Change Profile Picture</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div> -->
+                    <!-- <div class="modal-body"> -->
+                    <div id="drag-drop-area"></div>
+                    <!-- </div> -->
+                    <!-- <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-primary"
+                                            onclick="changeImage(`${document.getElementById('modal-email').value}`, `${document.getElementById('modal-new-email').value}`, `${document.getElementById('modal-password').value}`);">Save
+                                            Changes</button>
+                                    </div> -->
+                </div>
+            </div>
+        </div>
     </main>
 
     <script>
@@ -286,6 +312,42 @@
         const advancedTheme = `<%-advancedTheme%>`;
     </script>
     <script src="js/edit.js"></script>
+    <script type="module">
+        const protocol = window.location.protocol;
+        const domain = window.location.href.split(`/`)[2];
+        const uploadDirectory = `${ protocol }//${ domain }/img`;
+        import { Uppy, Dashboard, XHRUpload } from "../js/uppy.min.mjs"
+        const uppy = new Uppy({
+            autoProceed: true,
+            allowMultipleUploadBatches: false,
+            restrictions: {
+                maxFileSize: 8388608,
+                minFileSize: null,
+                maxNumberOfFiles: 1,
+                allowedFileTypes: [`image/*`],
+                requiredMetaFields: [],
+            },
+        })
+            .use(Dashboard, {
+                inline: true,
+                target: `#drag-drop-area`,
+            }).use(XHRUpload, {
+                endpoint: uploadDirectory,
+                fieldName: `photo`,
+                formData: true,
+            });
+
+        uppy.on('complete', (result) =>
+        {
+            document.getElementById(`image`).value = result.successful[0].response.body.url;
+            document.getElementById(`updateProfileSubmitButton`).click();
+        });
+
+        uppy.on('error', (error) =>
+        {
+            window.location.reload();
+        });
+    </script>
 </body>
 
 </html>
