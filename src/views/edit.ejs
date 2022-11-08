@@ -80,6 +80,24 @@
 
         <form action="/edit" method="POST">
             <div>
+                <label for="themePicker" class="form-label">Theme</label>
+                <input type="text" class="" list="themeOptions" id="themePicker" name="theme"
+                    placeholder="Type to search..." value="<%=theme%>" required>
+                <datalist id="themeOptions"></datalist>
+            </div>
+            <div id="advancedThemes">
+                <label for="backgroundColor" class="">Background Color</label>
+                <input type="color" class="colorPicker" id="backgroundColor" name="backgroundColor"
+                    value="<%=backgroundColor%>">
+                <label for="textColor" class="">Text Color</label>
+                <input type="color" class="colorPicker" id="textColor" name="textColor" value="<%=textColor%>">
+                <label for="borderColor" class="">Border Color</label>
+                <input type="color" class="colorPicker" id="borderColor" name="borderColor" value="<%=borderColor%>">
+                <div id="" style="display: none;">
+                    <input type="text" class="finalCSS" id="finalCSS" name="finalCSS" readonly required>
+                </div>
+            </div>
+            <div>
                 <label for="displayName">Page Title</label>
                 <input type="text" id="displayName" name="displayName" value="<%=displayName%>" placeholder="Page Title"
                     maxlength="60" required>
@@ -252,6 +270,18 @@
         const linksNames = "<%=linkNames%>";
         let paid = "<%=paid%>";
         const verified = `<%=verified%>`;
+
+        let themes = `<%=themes%>`;
+        themes = themes.split(",");
+        for (let i = 0; i < themes.length; i++)
+        {
+            document.getElementById("themeOptions").innerHTML += `<option value="${ themes[i] }">${ themes[i] }</option>`;
+        }
+        if (paid === `1` || paid === `true`)
+            document.getElementById("themeOptions").innerHTML += `<option value="Custom">Custom</option>`;
+
+        const userTheme = `<%=theme%>`;
+        const advancedTheme = `<%-advancedTheme%>`;
     </script>
     <script src="js/edit.js"></script>
 </body>

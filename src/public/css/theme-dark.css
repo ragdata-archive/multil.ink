@@ -1,0 +1,22 @@
+:root {
+    --background-color: black;
+    --text-color: white;
+    --border-color: white;
+}
+
+html,
+body,
+main,
+div.links>div>button {
+    background-color: var(--background-color);
+}
+
+p,
+a {
+    color: var(--text-color);
+}
+
+div.links>div>button {
+    border: solid var(--border-color) 2px;
+    color: var(--text-color);
+}

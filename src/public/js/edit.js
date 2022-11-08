@@ -322,3 +322,61 @@ async function changeUsername(username, password)
     });
     window.location.reload();
 }
+
+/**
+ * @name updateCSS
+ * @description Update Advanced Theme CSS
+ */
+function updateCSS()
+{
+    const backgroundColor = document.querySelector(`#backgroundColor`).value;
+    const textColor = document.querySelector(`#textColor`).value;
+    const borderColor = document.querySelector(`#borderColor`).value;
+    const finalCSS = document.querySelector(`#finalCSS`);
+    finalCSS.value = `<style>
+    :root {
+    --background-color: ${ backgroundColor };
+    --text-color: ${ textColor };
+    --border-color: ${ borderColor };
+}
+
+    html,
+    body,
+    main,
+    div.links>div>button {
+        background-color: var(--background-color);
+    }
+
+    p,
+    a {
+        color: var(--text-color);
+    }
+
+    div.links>div>button {
+        border: solid var(--border-color) 2px;
+        color: var(--text-color);
+    }
+    </style>`;
+}
+
+/**
+ *
+ */
+function showHideColorPickers()
+{
+    if (document.querySelector(`#themePicker`).value === `Custom`)
+        document.querySelector(`#advancedThemes`).style.display = `block`;
+    else
+        document.querySelector(`#advancedThemes`).style.display = `none`;
+}
+
+// when any color picker changes, update the CSS
+document.querySelector(`#backgroundColor`).addEventListener(`change`, updateCSS);
+document.querySelector(`#textColor`).addEventListener(`change`, updateCSS);
+document.querySelector(`#borderColor`).addEventListener(`change`, updateCSS);
+
+// when themeOptions is set to `Custom` then show advancedThemes class
+document.querySelector(`#themePicker`).addEventListener(`change`, showHideColorPickers);
+
+updateCSS(); // just on page load also update the finalCSS.
+showHideColorPickers(); // same as above

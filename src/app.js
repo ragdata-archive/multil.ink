@@ -29,13 +29,25 @@ async function run()
         hcaptchaSiteKey, hcaptchaSecret
     } = require(`./config.json`);
 
+    const themes = [];
+    const files = fs.readdirSync(`./src/public/css/`);
+    for (const file of files)
+    {
+        if (file.startsWith(`theme`))
+        {
+            let themeName = file.split(`theme-`)[1].split(`.css`)[0];
+            themeName = themeName.charAt(0).toUpperCase() + themeName.slice(1);
+            themes.push(themeName);
+        }
+    }
+
     if (dev)
     {
         hcaptchaSiteKey = `10000000-ffff-ffff-ffff-000000000001`;
         hcaptchaSecret = `0x0000000000000000000000000000000000000000`;
     }
 
-    sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT)`).run();
+    sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT, theme TEXT, advancedTheme TEXT)`).run();
     sql.prepare(`CREATE TABLE IF NOT EXISTS userAuth (uid INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT)`).run();
 
     const app = express();
@@ -167,7 +179,7 @@ async function run()
                 return response.redirect(`/register?message=That username/email is already in use.&type=error`);
             const hashedPassword = await bcrypt.hash(request.body.password.trim().slice(0, 1024), 10);
             sql.prepare(`INSERT INTO userAuth (username, email, password) VALUES (?, ?, ?)`).run(username, email, hashedPassword);
-            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, 0, 0, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`);
+            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames, theme, advancedTheme) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, 0, 0, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`, `light`, ``);
             // If this is the first user, make them staff.
             const userCount = sql.prepare(`SELECT COUNT(*) FROM userAuth`).get();
             if (userCount[`COUNT(*)`] === 1)
@@ -201,6 +213,8 @@ async function run()
         const paid = Boolean(user.paid);
         const subExpires = user.subExpires;
         const verified = user.verified;
+        const theme = user.theme;
+        const advancedTheme = user.advancedTheme;
 
         if (verified === -1)
         {
@@ -208,8 +222,33 @@ async function run()
             return response.redirect(`/login?message=Your account has been suspended. Please contact support.&type=error`);
         }
 
+        let backgroundColor = `#ffffff`;
+        let textColor = `#000000`;
+        let borderColor = `#fffff`;
+        if (advancedTheme.includes(`style`))
+        {
+            backgroundColor = advancedTheme.split(`--background-color: `)[1].split(`;`)[0];
+            textColor = advancedTheme.split(`--text-color: `)[1].split(`;`)[0];
+            borderColor = advancedTheme.split(`--border-color: `)[1].split(`;`)[0];
+        }
+
         response.render(`edit.ejs`, {
-            username, displayName, bio, image, links, linkNames, paid, subExpires, verified, ourImage
+            username,
+            displayName,
+            bio,
+            image,
+            links,
+            linkNames,
+            paid,
+            subExpires,
+            verified,
+            ourImage,
+            theme,
+            advancedTheme,
+            themes,
+            backgroundColor,
+            textColor,
+            borderColor
         });
     });
 
@@ -235,6 +274,15 @@ async function run()
             const updatedDisplayName = request.body.displayName.trim().slice(0, 60);
             const updatedBio = request.body.bio.trim().slice(0, 280);
             const updatedImage = request.body.image.trim();
+            let theme = request.body.theme.trim();
+            let advancedTheme = request.body.finalCSS.trim();
+            advancedTheme = advancedTheme.replace(/ {2}/g, ` `);
+
+            if ((!themes.includes(theme) || theme !== `Custom`) && (!isPaidUser && theme === `Custom`))
+                theme = `Light`;
+
+            if (theme !== `Custom`)
+                advancedTheme = ``;
 
             let updatedLinks = [];
             let updatedLinkNames = [];
@@ -277,7 +325,7 @@ async function run()
             }
             updatedLinks = JSON.stringify(updatedLinks);
             updatedLinkNames = JSON.stringify(updatedLinkNames);
-            sql.prepare(`UPDATE users SET displayName = ?, bio = ?, image = ?, links = ?, linkNames = ? WHERE username = ?`).run(updatedDisplayName, updatedBio, updatedImage, updatedLinks, updatedLinkNames, username);
+            sql.prepare(`UPDATE users SET displayName = ?, bio = ?, image = ?, links = ?, linkNames = ?, theme = ?, advancedTheme = ? WHERE username = ?`).run(updatedDisplayName, updatedBio, updatedImage, updatedLinks, updatedLinkNames, theme, advancedTheme, username);
 
             response.redirect(`/edit`);
         }
@@ -627,7 +675,7 @@ async function run()
                 if (user)
                     return response.redirect(`/staff`);
 
-                sql.prepare(`INSERT INTO users (username, displayName, bio, image, links, linkNames, verified, paid, subExpires) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, redirectTo, ``, ``, `[]`, `[]`, `-2`, `0`, ``);
+                sql.prepare(`INSERT INTO users (username, displayName, bio, image, links, linkNames, verified, paid, subExpires, theme, advancedTheme) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, redirectTo, ``, ``, `[]`, `[]`, `-2`, `0`, ``, ``, ``);
                 sql.prepare(`INSERT INTO userAuth (username, password, email) VALUES (?, ?, ?)`).run(username, ``, ``);
 
                 response.redirect(`/staff`);
@@ -722,6 +770,8 @@ async function run()
             const linkNames = JSON.parse(user.linkNames);
             const paid = Boolean(user.paid);
             const verified = user.verified;
+            const theme = user.theme;
+            const advancedTheme = user.advancedTheme;
 
             if (verified === -1)
             {
@@ -734,8 +784,16 @@ async function run()
                 return response.redirect(`/${ displayName }`);
             }
 
+            let themeContent = ``;
+            if (paid && advancedTheme.includes(`style`)) // If paid user & has custom CSS, use that.
+                themeContent = advancedTheme;
+            else if (!paid && advancedTheme.includes(`style`)) // If not paid user & has custom CSS, use default theme. (Sub expired)
+                themeContent = `<link rel="stylesheet" href="css/theme-light.css">`;
+            else // Everyone else gets the theme they chose.
+                themeContent = `<link rel="stylesheet" href="css/theme-${ theme.toLowerCase() }.css">`;
+
             response.render(`profile.ejs`, {
-                username, displayName, bio, image, links, linkNames, paid, verified, ourImage
+                username, displayName, bio, image, links, linkNames, paid, verified, ourImage, themeContent
             });
         }
         else
