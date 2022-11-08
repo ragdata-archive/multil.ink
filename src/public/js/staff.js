@@ -21,6 +21,8 @@ for (let index = 0; index < numberOfUsers; index++)
     linkNamesData = linkNamesData.replaceAll(`\\`, ``);
     linkNamesData = linkNamesData.replaceAll(`""`, `"`);
     linkNamesData = linkNamesData.slice(1, -1);
+    let ageGated = ageGatedUsers.split(`,`)[index];
+    ageGated = ageGated === `1` ? `checked` : ``;
     users.push({
         username: usernames.split(`,`)[index],
         email: emails.split(`,`)[index],
@@ -31,7 +33,8 @@ for (let index = 0; index < numberOfUsers; index++)
         bio: bios.split(`,`)[index],
         image: images.split(`,`)[index],
         links: linkData,
-        linkNames: linkNamesData
+        linkNames: linkNamesData,
+        ageGated,
     });
 
     // Add to the table
@@ -299,6 +302,11 @@ $(`#editModal`).on(`show.bs.modal`, function (event)
     modal.find(`.modal-body #modal-linkNames`).val(linkNames);
     modal.find(`.modal-body #modal-links`).attr(`rows`, jsonLinks.length + 2);
     modal.find(`.modal-body #modal-linkNames`).attr(`rows`, jsonLinkNames.length + 2);
+    // find adultContent and set checked if true
+    if (users[index].ageGated === `checked`)
+        modal.find(`.modal-body #modal-ageGated`).prop(`checked`, true);
+    else
+        modal.find(`.modal-body #modal-ageGated`).prop(`checked`, false);
 });
 
 $(`#editShadowModal`).on(`show.bs.modal`, function (event)
@@ -416,7 +424,8 @@ function prepareUserEdit()
     const image = document.querySelector(`#modal-image`).value;
     const links = document.querySelector(`#modal-links`).value;
     const linkNames = document.querySelector(`#modal-linkNames`).value;
-    sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, links, linkNames);
+    const ageGated = document.querySelector(`#modal-ageGated`).checked;
+    sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, links, linkNames, ageGated);
 }
 
 /**
@@ -442,8 +451,9 @@ function shadowUserEdit(username)
  * @param {string} image The image of the user
  * @param {Array} links The links of the user
  * @param {Array} linkNames The link names of the user
+ * @param {boolean} ageGated Whether the user is age gated or not
  */
-function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, links, linkNames)
+function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, links, linkNames, ageGated)
 {
     const index = users.findIndex((user) => user.username === oldUsername);
     const user = users[index];
@@ -481,6 +491,9 @@ function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, 
 
     if (newUsername !== user.username)
         dataToSend += `&newUsername=${ newUsername }`;
+
+    if (ageGated !== user.ageGated)
+        dataToSend += `&ageGated=${ ageGated }`;
 
     window.location.href = `/staff/editUser${ dataToSend }`;
 }

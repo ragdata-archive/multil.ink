@@ -504,6 +504,8 @@ async function run()
         const images = [];
         const links = [];
         const linkNames = [];
+        const ageGated = [];
+
         for (const [index, allUser] of allUsers.entries())
         {
             usernames.push(allUser.username);
@@ -523,6 +525,7 @@ async function run()
             let linkNameData = JSON.stringify(allUser.linkNames);
             linkNameData = Buffer.from(linkNameData).toString(`base64`);
             linkNames.push(linkNameData);
+            ageGated.push(allUser.ageGated);
         }
         const numberOfUsers = userCount;
 
@@ -539,6 +542,7 @@ async function run()
             images,
             links,
             linkNames,
+            ageGated,
             userCountTotal,
             verifiedCount,
             paidCount,
@@ -616,6 +620,14 @@ async function run()
                         const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
                         if (!emailExists)
                             sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userToEdit);
+                    }
+
+                    if (key === `ageGated`)
+                    {
+                        if (value === `true`)
+                            sql.prepare(`UPDATE users SET ageGated = ? WHERE username = ?`).run(`1`, userToEdit);
+                        else if (value === `false`)
+                            sql.prepare(`UPDATE users SET ageGated = ? WHERE username = ?`).run(`0`, userToEdit);
                     }
 
                     else
