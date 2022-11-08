@@ -823,7 +823,7 @@ async function run()
                 themeContent = `<link rel="stylesheet" href="css/theme-${ theme.toLowerCase() }.css">`;
 
             response.render(`profile.ejs`, {
-                username, displayName, bio, image, links, linkNames, paid, verified, ourImage, themeContent, ageGated
+                username, displayName, bio, image, links, linkNames, paid, verified, ourImage, themeContent, ageGated, projectName
             });
         }
         else
