@@ -172,6 +172,7 @@ async function run()
                 `css`,
                 `js`,
                 `img`,
+                `fonts`,
                 `tos`,
                 `privacy`
             ];
@@ -784,7 +785,8 @@ async function run()
         const allowed = [
             `css`,
             `js`,
-            `img`
+            `img`,
+            `fonts`
         ];
         if (allowed.includes(request.url))
         {
