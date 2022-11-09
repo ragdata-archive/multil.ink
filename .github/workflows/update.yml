@@ -1,0 +1,22 @@
+---
+name: "🔨 Update Production Site"
+
+on:
+  push:
+    branches: [master, main]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    if: ${{ (!contains(github.event.workflow_run.head_commit.message, '[skip update]'))}}
+
+    steps:
+      - uses: garygrossgarten/github-action-ssh@release
+        with:
+          command: ${{ secrets.SSH_CMD }}
+          host: ${{ secrets.HOST }}
+          port: ${{ secrets.PORT }}
+          username: ${{ secrets.SSH_USER }}
+          privateKey: ${{ secrets.PRIVATE_KEY }}
+        env:
+          CI: true
