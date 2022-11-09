@@ -26,6 +26,11 @@ npm ci
 
 ## Documentation
 
+### Adding Font Awesome Icons
+1. Find the icon you want to use on [Font Awesome](https://fontawesome.com/v5/cheatsheet/free/brands).
+2. Add the class in `./src/public/js/profile.js` to `faBrandsList`.
+3. Add the domain you want it to match to in `./src/public/js/profile.js` to `faBrandDomainList`.
+
 ### Adding Fonts
 1. Find the font you want to use on [google-webfonts-helper](https://google-webfonts-helper.herokuapp.com/).
 2. Change the `Customize folder prefix` to `../webfonts/`.
@@ -34,8 +39,3 @@ npm ci
 
 ### Changing Custom Theme CSS
 1. Look in `./src/public/js/edit.js` for the `updateCSS` function.
-
-### Adding Font Awesome Icons
-1. Find the icon you want to use on [Font Awesome](https://fontawesome.com/v5/cheatsheet/free/brands).
-2. Add the class in `./src/public/js/profile.js` to `faBrandsList`.
-3. Add the domain you want it to match to in `./src/public/js/profile.js` to `faBrandDomainList`.
