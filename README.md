@@ -21,8 +21,8 @@
 git clone https://github.com/chxseh/linktree-clone-idea.git
 cd linktree-clone-idea
 npm ci
+node .
 ```
-> For the initial setup, use `npm start`. After initial setup is completed you can use `pm2 start npm --name "linktree-clone-idea" -- start` to keep the bot running.
 
 ## Documentation
 
