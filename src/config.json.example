@@ -6,8 +6,8 @@
         "example.com",
         "example.org"
     ],
-    "projectName": "projectName",
-    "projectDescription": "projectDescription",
+    "projectName": "multil.ink",
+    "projectDescription": "the simple and free to use social media landing page.",
     "dev": true,
     "hcaptchaSiteKey": "",
     "hcaptchaSecret": ""

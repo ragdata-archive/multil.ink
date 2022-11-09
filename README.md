@@ -1,11 +1,11 @@
 <div align="center">
-<h1>linktree-clone-idea<br>
-<a href="https://github.com/chxseh/linktree-clone-idea/actions/workflows/linter.yml"><img alt="GitHub Actions Status" src="https://github.com/chxseh/linktree-clone-idea/actions/workflows/linter.yml/badge.svg"></a>
-<a href="https://github.com/chxseh/linktree-clone-idea/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/chxseh/linktree-clone-idea"></a>
-<a href="https://github.com/chxseh/linktree-clone-idea/issues"><img alt="Issues" src="https://img.shields.io/github/issues/chxseh/linktree-clone-idea"></a>
-<a href="https://github.com/chxseh/linktree-clone-idea/pulls"><img alt="Pull Requests" src="https://img.shields.io/github/issues-pr/chxseh/linktree-clone-idea"></a>
-<a href="https://github.com/chxseh/linktree-clone-idea/network"><img alt="Forks" src="https://img.shields.io/github/forks/chxseh/linktree-clone-idea"></a>
-<a href="https://github.com/chxseh/linktree-clone-idea/blob/main/LICENSE.md"><img alt="License" src="https://img.shields.io/github/license/chxseh/linktree-clone-idea"></a>
+<h1><a href="https://multil.ink">multil.ink</a><br>
+<a href="https://github.com/chxseh/multil.ink/actions/workflows/linter.yml"><img alt="GitHub Actions Status" src="https://github.com/chxseh/multil.ink/actions/workflows/linter.yml/badge.svg"></a>
+<a href="https://github.com/chxseh/multil.ink/stargazers"><img alt="GitHub stars" src="https://badges.chse.dev:/github/stars/chxseh/multil.ink"></a>
+<a href="https://github.com/chxseh/multil.ink/issues"><img alt="GitHub issues" src="https://badges.chse.dev:/github/issues/chxseh/multil.ink"></a>
+<a href="https://github.com/chxseh/multil.ink/pulls"><img alt="GitHub Pull Requests" src="https://badges.chse.dev:/github/issues-pr/chxseh/multil.ink"></a>
+<a href="https://github.com/chxseh/multil.ink/network"><img alt="GitHub forks" src="https://badges.chse.dev:/github/forks/chxseh/multil.ink"></a>
+<a href="https://github.com/chxseh/multil.ink/blob/main/LICENSE.md"><img alt="GitHub license" src="https://badges.chse.dev:/github/license/chxseh/multil.ink"></a>
 </h1></div>
 
 ## Installation
@@ -18,8 +18,8 @@
 #### Installation
 
 ```bash
-git clone https://github.com/chxseh/linktree-clone-idea.git
-cd linktree-clone-idea
+git clone https://github.com/chxseh/multil.ink.git
+cd multil.ink
 npm ci
 node .
 ```
