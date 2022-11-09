@@ -35,6 +35,3 @@
 - name: "wontfix"
   color: "ffffff"
   description: "This will not be worked on"
-- name: "needs final name picked out"
-  color: "ffffff"
-  description: "This issue needs a final name picked out"
