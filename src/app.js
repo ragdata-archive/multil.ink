@@ -146,6 +146,9 @@ async function run()
 
     app.get(`/register`, checkNotAuthenticated, (request, response) =>
     {
+        if (request.get(`host`) === `multil.ink`)
+            return response.redirect(`/login?message=Registration is currently disabled.&type=error`);
+
         const image = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         response.render(`register.ejs`, {
             projectName, projectDescription, image, hcaptchaSiteKey
@@ -154,6 +157,9 @@ async function run()
 
     app.post(`/register`, checkNotAuthenticated, async (request, response) =>
     {
+        if (request.get(`host`) === `multil.ink`)
+            return response.redirect(`/login?message=Registration is currently disabled.&type=error`);
+
         try
         {
             const captchaToken = request.body[`h-captcha-response`];
