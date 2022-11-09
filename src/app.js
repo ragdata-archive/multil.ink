@@ -176,7 +176,11 @@ async function run()
                 `img`,
                 `webfonts`,
                 `tos`,
-                `privacy`
+                `privacy`,
+                `autoconfig`,
+                `autodiscover`,
+                `mta-sts`,
+                `www`
             ];
             if (bannedUsernames.includes(username))
                 return response.redirect(`/register?message=That username is not available.&type=error`);
