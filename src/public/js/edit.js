@@ -26,6 +26,37 @@ if (type === `error`) type = `danger`;
 if (message && type)
     alert(message, type);
 
+// every time the screen size changes:
+window.addEventListener(`resize`, () =>
+{
+    fixDropdown();
+});
+
+/**
+ * @name fixDropdown
+ * @description Fixes the dropdown menu for mobile
+ */
+function fixDropdown()
+{
+    const dropdown = document.querySelector(`#navbar-list-4`);
+    // if mobile
+    if (window.innerWidth <= 580)
+    {
+        dropdown.classList.remove(`dropstart`);
+        dropdown.classList.add(`dropdown`);
+        // since its now a dropdown, the margin doesn't make any sense as we want it to be centered
+        dropdown.style = `flex-grow: 0`;
+    }
+    else
+    {
+        dropdown.classList.add(`dropstart`);
+        dropdown.classList.remove(`dropdown`);
+        dropdown.style = `flex-grow:0; margin-right: 15px;`;
+    }
+}
+
+fixDropdown();
+
 /**
  * @name darkMode
  * @description Adds the dark mode class to the dropdown menu
