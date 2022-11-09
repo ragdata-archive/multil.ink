@@ -271,6 +271,7 @@ async function run()
             textColor,
             borderColor,
             ageGated,
+            projectName
         });
     });
 
