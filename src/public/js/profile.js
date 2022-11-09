@@ -25,11 +25,50 @@ if (!paid)
 }
 
 const linksDiv = document.querySelector(`.links`);
+const faBrandsList = [
+    `<i class="fa-brands fa-instagram"></i> `,
+    `<i class="fa-brands fa-instagram"></i> `,
+    `<i class="fa-brands fa-twitter"></i> `,
+    `<i class="fa-brands fa-youtube"></i> `,
+    `<i class="fa-brands fa-twitch"></i> `,
+    `<i class="fa-brands fa-discord"></i> `,
+    `<i class="fa-brands fa-snapchat"></i> `,
+    `<i class="fa-brands fa-reddit"></i> `,
+    `<i class="fa-brands fa-pinterest"></i> `,
+    `<i class="fa-brands fa-facebook"></i> `,
+    `<i class="fa-brands fa-linkedin"></i> `,
+    `<i class="fa-brands fa-github"></i> `,
+    `<i class="fa-brands fa-steam"></i> `,
+    `<i class="fa-brands fa-tiktok"></i> `
+];
+const faBrandDomainList = [
+    `instagram.com`,
+    `instagr.am`,
+    `twitter.com`,
+    `youtube.com`,
+    `twitch.tv`,
+    `discord.com`,
+    `snapchat.com`,
+    `reddit.com`,
+    `pinterest.com`,
+    `facebook.com`,
+    `linkedin.com`,
+    `github.com`,
+    `steamcommunity.com`,
+    `tiktok.com`
+];
 for (const link of linksArray)
 {
     const index = linksArray.indexOf(link);
     const linkDiv = document.createElement(`div`);
-    linkDiv.innerHTML = `<button type="button" onclick="window.open('${ link }', '_blank');">${ linksNamesArray[index] }</button>`;
+    let iconTemplate = ``;
+    // if link contains something from faBrandDomainList, add the corresponding icon
+    if (faBrandDomainList.some((v) => link.includes(v)))
+    {
+        const faBrandIndex = faBrandDomainList.findIndex((v) => link.includes(v));
+        iconTemplate = faBrandsList[faBrandIndex];
+    }
+    linkDiv.innerHTML = `<button type="button" onclick="window.open('${ link }', '_blank');">${ iconTemplate }${ linksNamesArray[index] }</button>`;
     if (link !== ``)
         linksDiv.append(linkDiv);
 }

@@ -107,6 +107,8 @@ async function run()
     app.use(`/js`, express.static(path.join(projectRoot, `node_modules/jquery/dist`)));
     app.use(`/js`, express.static(path.join(projectRoot, `node_modules/uppy/dist`)));
     app.use(`/css`, express.static(path.join(projectRoot, `node_modules/uppy/dist`)));
+    app.use(`/css`, express.static(path.join(projectRoot, `node_modules/@fortawesome/fontawesome-free/css`)));
+    app.use(`/webfonts`, express.static(path.join(projectRoot, `node_modules/@fortawesome/fontawesome-free/webfonts`)));
     app.set(`views`, `./src/views`);
     app.set(`view engine`, `ejs`);
 
@@ -172,7 +174,7 @@ async function run()
                 `css`,
                 `js`,
                 `img`,
-                `fonts`,
+                `webfonts`,
                 `tos`,
                 `privacy`
             ];
@@ -786,7 +788,7 @@ async function run()
             `css`,
             `js`,
             `img`,
-            `fonts`
+            `webfonts`
         ];
         if (allowed.includes(request.url))
         {

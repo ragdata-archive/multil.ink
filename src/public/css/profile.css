@@ -57,10 +57,11 @@ div.links>div>button:hover {
     /* text-decoration: underline; */
 }
 
-div.links button {
+div.links>div>button {
     overflow-wrap: break-word;
     word-break: break-word;
     hyphens: auto;
+    /* font-size: 24px; */
 }
 
 @media screen and (max-width: 600px) {
