@@ -116,9 +116,12 @@ button.close {
     margin-right: 10px;
 }
 
-#drag-drop-area {
+#drag-drop-area,
+.uppy-Root,
+.uppy-Dashboard {
     /* center everything */
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 100%;
 }
