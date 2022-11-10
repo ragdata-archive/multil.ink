@@ -21,5 +21,6 @@
     "stripePublishableKey": "",
     "stripeProductID": "",
     "stripeCustomerPortalURL": "",
-    "stripeWebhookSigningSecret": ""
+    "stripeWebhookSigningSecret": "",
+    "discordWebhookURL": ""
 }

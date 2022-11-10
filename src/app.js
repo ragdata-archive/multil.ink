@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from "node:fs";
 import { verify } from 'hcaptcha';
+import fetch from 'node-fetch';
 
 // eslint-disable-next-line no-underscore-dangle
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,7 +25,8 @@ async function run()
     const {
         port, secret, linkWhitelist, freeLinks, projectName, projectDescription, dev,
         emailSMTPHost, emailSMTPPort, emailSMTPSecure, emailSMTPUser, emailSMTPPass, emailFromDisplayName,
-        stripeSecretKey, stripeProductID, stripeCustomerPortalURL, stripeWebhookSigningSecret
+        stripeSecretKey, stripeProductID, stripeCustomerPortalURL, stripeWebhookSigningSecret,
+        discordWebhookURL
     } = require(`./config.json`);
 
     let {
@@ -397,6 +399,23 @@ async function run()
                     // add a year to the current date
                     const timeNextYear = new Date(timeNow.setFullYear(timeNow.getFullYear() + 1));
                     sql.prepare(`UPDATE users SET paid = ?, subExpires = ? WHERE username = ?`).run(1, `${ timeNextYear.toISOString().slice(0, 10) }`, userData.username);
+
+                    // send a message to the discord webhook
+                    if (discordWebhookURL)
+                    {
+                        let paidCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE paid = 1`).get()[`COUNT(*)`];
+                        const staffCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = 2`).get()[`COUNT(*)`];
+                        paidCount -= staffCount;
+                        fetch(discordWebhookURL, {
+                            method: `POST`,
+                            headers: {
+                                'Content-Type': `application/json`
+                            },
+                            body: JSON.stringify({
+                                content: `**${ userData.username }** has upgraded their account.\nWe now have **${ paidCount }** paid users.`
+                            })
+                        });
+                    }
                 }
             }
 
