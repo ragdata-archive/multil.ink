@@ -40,7 +40,8 @@
                             <img src="<%=image%>" width="40" height="40" class="rounded-circle">
                         </a>
                         <div class="dropdown-menu" id="profileDropdown" aria-labelledby="navbarDropdownMenuLink">
-                            <a class="dropdown-item" href="./<%=username%>" target="_blank">View my Profile</a>
+                            <a class="dropdown-item" id="viewMyProfileButton" href="./<%=username%>"
+                                target="_blank">View my Profile</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="#" data-bs-toggle="modal"
                                 data-bs-target="#changeImageModal">Change Profile Picture</a>
@@ -81,6 +82,17 @@
         </div>
 
         <div id="liveAlertPlaceholder"></div>
+        <div id="bugUserToVerify" style="display: none;">
+            <div class="alert alert-warning" role="alert">
+                <strong>Warning!</strong> You have not verified your email address. Your profile will not be visible
+                until you verify your account.
+                Please check your email for a
+                verification
+                link. If you did not receive an email, please check your spam folder or <a
+                    href="../resendactivationemail">click
+                    here</a> to resend the verification email.
+            </div>
+        </div>
 
         <form action="/edit" method="POST">
             <div>

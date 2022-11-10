@@ -135,9 +135,15 @@ if (verified === `2`)
 }
 else if (verified === `1`)
     document.querySelector(`#verified`).innerHTML += `Verified`;
-
 else
     document.querySelector(`#verified`).style.display = `none`;
+
+if (verified === `-3`)
+{
+    document.querySelector(`#bugUserToVerify`).style.display = `block`;
+    document.querySelector(`#paymentThings`).style.display = `none`;
+    document.querySelector(`#viewMyProfileButton`).classList.add(`disabled`);
+}
 
 /**
  * @name addLink

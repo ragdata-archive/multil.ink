@@ -10,5 +10,11 @@
     "projectDescription": "the simple and free to use social media landing page.",
     "dev": true,
     "hcaptchaSiteKey": "",
-    "hcaptchaSecret": ""
+    "hcaptchaSecret": "",
+    "emailSMTPHost": "",
+    "emailSMTPPort": 465,
+    "emailSMTPSecure": true,
+    "emailSMTPUser": "",
+    "emailSMTPPass": "",
+    "emailFromDisplayName": "multil.ink"
 }

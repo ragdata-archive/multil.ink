@@ -59,6 +59,8 @@ for (let index = 0; index < numberOfUsers; index++)
         verifiedCell.innerHTML = `Suspended`;
     else if (users[index].verified === `-2`)
         verifiedCell.innerHTML = `Shadow Profile`;
+    else if (users[index].verified === `-3`)
+        verifiedCell.innerHTML = `Awaiting Email Verification`;
 
     if (users[index].paid === `1`)
         paidCell.innerHTML = `Yes`;
@@ -149,7 +151,7 @@ for (let index = 0; index < numberOfUsers; index++)
         actions.append(unsuspendButton);
     }
 
-    if (users[index].verified !== `-1` && users[index].verified !== `2` && users[index].verified !== `-2`)
+    if (users[index].verified !== `-1` && users[index].verified !== `2` && users[index].verified !== `-2` && users[index].verified !== `-3`)
     {
         const suspendButton = document.createElement(`button`);
         suspendButton.setAttribute(`class`, `btn btn-danger`);
@@ -162,7 +164,7 @@ for (let index = 0; index < numberOfUsers; index++)
         actions.append(suspendButton);
     }
 
-    if (users[index].verified === `-1` || users[index].verified === `-2`)
+    if (users[index].verified === `-1` || users[index].verified === `-2` || users[index].verified === `-3`)
     {
         const deleteButton = document.createElement(`button`);
         deleteButton.setAttribute(`class`, `btn btn-danger`);
@@ -175,7 +177,7 @@ for (let index = 0; index < numberOfUsers; index++)
         actions.append(deleteButton);
     }
 
-    if (users[index].verified !== `2` && users[index].verified !== `-1` && users[index].verified !== `-2`)
+    if (users[index].verified !== `2` && users[index].verified !== `-1` && users[index].verified !== `-2` && users[index].verified !== `-3`)
     {
         let extendClass = `btn btn-primary dropdown-toggle`;
         if (users[index].username === myUsername || users[index].subExpires.startsWith(`9999`))

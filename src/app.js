@@ -22,7 +22,8 @@ async function run()
     await initSetup();
 
     const {
-        port, secret, linkWhitelist, freeLinks, projectName, projectDescription, dev
+        port, secret, linkWhitelist, freeLinks, projectName, projectDescription, dev,
+        emailSMTPHost, emailSMTPPort, emailSMTPSecure, emailSMTPUser, emailSMTPPass, emailFromDisplayName
     } = require(`./config.json`);
 
     let {
@@ -49,6 +50,8 @@ async function run()
 
     sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT, theme TEXT, advancedTheme TEXT, ageGated TEXT)`).run();
     sql.prepare(`CREATE TABLE IF NOT EXISTS userAuth (uid INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT)`).run();
+    sql.prepare(`CREATE TABLE IF NOT EXISTS emailActivations (email TEXT PRIMARY KEY, username TEXT, token TEXT, expires TEXT)`).run();
+    sql.prepare(`CREATE TABLE IF NOT EXISTS passwordResets (email TEXT PRIMARY KEY, username TEXT, token TEXT, expires TEXT)`).run();
 
     const app = express();
 
@@ -65,6 +68,21 @@ async function run()
     const flash = require(`express-flash`);
     const session = require(`express-session`);
     const methodOverride = require(`method-override`);
+    const nodemailer = require(`nodemailer`);
+
+    let transporter = ``;
+    if (emailSMTPHost && emailSMTPPort && emailSMTPUser && emailSMTPPass && emailFromDisplayName)
+    {
+        transporter = nodemailer.createTransport({
+            host: emailSMTPHost,
+            port: emailSMTPPort,
+            secure: emailSMTPSecure, // true for 465, false for other ports
+            auth: {
+                user: emailSMTPUser,
+                pass: emailSMTPPass
+            }
+        });
+    }
 
     const multer = require(`multer`);
     const storage = multer.diskStorage(
@@ -186,7 +204,11 @@ async function run()
                 `autoconfig`,
                 `autodiscover`,
                 `mta-sts`,
-                `www`
+                `www`,
+                `verifyemail`,
+                `resendactivationemail`,
+                `forgotpassword`,
+                `resetpassword`,
             ];
             if (bannedUsernames.includes(username))
                 return response.redirect(`/register?message=That username is not available.&type=error`);
@@ -207,12 +229,40 @@ async function run()
             if (user || emailExists) // Prevent duplicate usernames/emails
                 return response.redirect(`/register?message=That username/email is already in use.&type=error`);
             const hashedPassword = await bcrypt.hash(request.body.password.trim().slice(0, 1024), 10);
+
+            const availableChars = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`;
+            let token = ``;
+            for (let index = 0; index < 32; index++)
+                token += availableChars.charAt(Math.floor(Math.random() * availableChars.length));
+            // check if token exists already
+            const tokenExists = sql.prepare(`SELECT * FROM emailActivations WHERE token = ?`).get(token);
+            if (tokenExists) // too lazy to gen them another one so just force them to do it again
+                return response.redirect(`/register?message=An error occurred. Please try again.&type=error`);
+            sql.prepare(`INSERT INTO emailActivations (email, username, token, expires) VALUES (?, ?, ?, ?)`).run(email, username, `${ token }`, `${ new Date(Date.now() + (86_400_000 * 2)).toISOString().slice(0, 10) }`);
+
             sql.prepare(`INSERT INTO userAuth (username, email, password) VALUES (?, ?, ?)`).run(username, email, hashedPassword);
-            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, 0, 0, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`, `light`, ``, `0`);
+            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, `-3`, `0`, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`, `Light`, ``, `0`);
+
             // If this is the first user, make them staff.
             const userCount = sql.prepare(`SELECT COUNT(*) FROM userAuth`).get();
             if (userCount[`COUNT(*)`] === 1)
                 sql.prepare(`UPDATE users SET paid = ?, subExpires = ?, verified = ? WHERE username = ?`).run(1, `9999-01-01`, `2`, username);
+
+            else
+            {
+                if (emailSMTPHost && emailSMTPPort && emailSMTPUser && emailSMTPPass && emailFromDisplayName)
+                {
+                    await transporter.sendMail({
+                        from: `"${ emailFromDisplayName }" <${ emailSMTPUser }>`,
+                        to: `${ email }`,
+                        subject: `Please verify your email`,
+                        text: `Please verify your email by clicking the link below:\n\n${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\n${ emailFromDisplayName }`,
+                        html: `<p>Please verify your email by clicking the link below:</p><p><a href="${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }">${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }</a></p><p>If you did not sign up for an account, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
+                    });
+                }
+                // domain.tld/verifyemail?token=token
+                return response.redirect(`/login?message=Account created. Please verify your email address, if you do not verify within 24 hours we will delete your account.&type=success`);
+            }
 
             response.redirect(`/edit`);
         }
@@ -220,6 +270,167 @@ async function run()
         {
             response.redirect(`/register?message=An error occurred.&type=error`);
         }
+    });
+
+    app.get(`/verifyemail`, (request, response) =>
+    {
+        const queries = request.query;
+        if (!queries.token)
+            return response.redirect(`/edit?message=Invalid token.&type=error`);
+        const token = queries.token.trim().slice(0, 32);
+        const tokenData = sql.prepare(`SELECT * FROM emailActivations WHERE token = ?`).get(token);
+        if (!tokenData)
+            return response.redirect(`/edit?message=Invalid token.&type=error`);
+        const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(tokenData.username);
+        if (!user)
+            return response.redirect(`/edit?message=An error occurred.&type=error`);
+        if (tokenData.expires < new Date(Date.now()).toISOString().slice(0, 10))
+        {
+            sql.prepare(`DELETE FROM emailActivations WHERE token = ?`).run(token);
+            return response.redirect(`/edit?message=Token expired.&type=error`);
+        }
+        sql.prepare(`DELETE FROM emailActivations WHERE token = ?`).run(token);
+        if (user.verified === -3)
+            sql.prepare(`UPDATE users SET verified = ? WHERE username = ?`).run(`0`, tokenData.username);
+        return response.redirect(`/login?message=Email verified.&type=success`);
+    });
+
+    app.get(`/resendactivationemail`, checkAuthenticated, async (request, response, next) =>
+    {
+        const userEmail = request.user;
+        const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail);
+        if (!userData)
+        {
+            logoutUser(request, response, next);
+            return response.redirect(`/login`);
+        }
+        const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userData.username);
+        if (user.verified !== -3)
+            return response.redirect(`/edit?message=Email already verified.&type=error`);
+        const availableChars = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`;
+        let token = ``;
+        for (let index = 0; index < 32; index++)
+            token += availableChars.charAt(Math.floor(Math.random() * availableChars.length));
+        // delete any existing tokens the user may have
+        sql.prepare(`DELETE FROM emailActivations WHERE email = ?`).run(userEmail);
+        // check if token exists already
+        const tokenExists = sql.prepare(`SELECT * FROM emailActivations WHERE token = ?`).get(token);
+        if (tokenExists) // too lazy to gen them another one so just force them to do it again
+            return response.redirect(`/edit?message=An error occurred. Please try again.&type=error`);
+        sql.prepare(`INSERT INTO emailActivations (email, username, token, expires) VALUES (?, ?, ?, ?)`).run(userEmail, userData.username, `${ token }`, `${ new Date(Date.now() + (86_400_000 * 2)).toISOString().slice(0, 10) }`);
+        if (emailSMTPHost && emailSMTPPort && emailSMTPUser && emailSMTPPass && emailFromDisplayName)
+        {
+            await transporter.sendMail({
+                from: `"${ emailFromDisplayName }" <${ emailSMTPUser }>`,
+                to: `${ userEmail }`,
+                subject: `Please verify your email`,
+                text: `Please verify your email by clicking the link below:\n\n${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\n${ emailFromDisplayName }`,
+                html: `<p>Please verify your email by clicking the link below:</p><p><a href="${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }">${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }</a></p><p>If you did not sign up for an account, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
+            });
+        }
+        // domain.tld/verifyemail?token=token
+        return response.redirect(`/edit?message=Email resent.&type=success`);
+    });
+
+    app.get(`/forgotpassword`, (request, response) =>
+    {
+        const image = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
+        response.render(`forgotpassword.ejs`, {
+            projectName, projectDescription, image, hcaptchaSiteKey
+        });
+    });
+
+    app.post(`/forgotpassword`, async (request, response) =>
+    {
+        const captchaToken = request.body[`h-captcha-response`];
+        const verifyResults = await verify(hcaptchaSecret, captchaToken);
+        if (!verifyResults.success)
+        {
+            request.flash(`error`, `Please fill out the captcha.`);
+            return response.redirect(`/login?message=Please fill out the captcha.&type=error`);
+        }
+        const email = request.body.email;
+        if (!email)
+            return response.redirect(`/forgotpassword?message=Please enter an email.&type=error`);
+        const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(email);
+        if (!userData)
+            return response.redirect(`/forgotpassword?message=An error occurred.&type=error`);
+
+        const availableChars = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`;
+        let token = ``;
+        for (let index = 0; index < 32; index++)
+            token += availableChars.charAt(Math.floor(Math.random() * availableChars.length));
+        // delete any existing tokens the user may have
+        sql.prepare(`DELETE FROM passwordResets WHERE email = ?`).run(email);
+        // check if token exists already
+        const tokenExists = sql.prepare(`SELECT * FROM passwordResets WHERE token = ?`).get(token);
+        if (tokenExists) // too lazy to gen them another one so just force them to do it again
+            return response.redirect(`/forgotpassword?message=An error occurred. Please try again.&type=error`);
+        sql.prepare(`INSERT INTO passwordResets (email, username, token, expires) VALUES (?, ?, ?, ?)`).run(email, userData.username, `${ token }`, `${ new Date(Date.now() + (86_400_000 * 2)).toISOString().slice(0, 10) }`);
+        if (emailSMTPHost && emailSMTPPort && emailSMTPUser && emailSMTPPass && emailFromDisplayName)
+        {
+            await transporter.sendMail({
+                from: `"${ emailFromDisplayName }" <${ emailSMTPUser }>`,
+                to: `${ email }`,
+                subject: `Password Reset`,
+                text: `Please reset your password by clicking the link below:\n\n${ request.protocol }://${ request.get(`host`) }/resetpassword?token=${ token }\n\nIf you did not request a password reset, please ignore this email.\n\nThanks,\n${ emailFromDisplayName }`,
+                html: `<p>Please reset your password by clicking the link below:</p><p><a href="${ request.protocol }://${ request.get(`host`) }/resetpassword?token=${ token }">${ request.protocol }://${ request.get(`host`) }/resetpassword?token=${ token }</a></p><p>If you did not request a password reset, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
+            });
+        }
+        // domain.tld/resetpassword?token=token
+        return response.redirect(`/forgotpassword?message=Password reset email sent.&type=success`);
+    });
+
+    app.get(`/resetpassword`, (request, response) =>
+    {
+        const queries = request.query;
+        if (!queries.token)
+            return response.redirect(`/forgotpassword?message=Invalid token.&type=error`);
+        const token = queries.token.trim().slice(0, 32);
+        const tokenData = sql.prepare(`SELECT * FROM passwordResets WHERE token = ?`).get(token);
+        if (!tokenData)
+            return response.redirect(`/forgotpassword?message=Invalid token.&type=error`);
+        if (tokenData.expires < new Date(Date.now()).toISOString())
+        {
+            sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token);
+            return response.redirect(`/forgotpassword?message=Token expired.&type=error`);
+        }
+        const image = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
+        response.render(`resetpassword.ejs`, {
+            projectName, projectDescription, image, hcaptchaSiteKey, token
+        });
+    });
+
+    app.post(`/resetpassword`, async (request, response) =>
+    {
+        const captchaToken = request.body[`h-captcha-response`];
+        const verifyResults = await verify(hcaptchaSecret, captchaToken);
+        if (!verifyResults.success)
+        {
+            request.flash(`error`, `Please fill out the captcha.`);
+            return response.redirect(`/login?message=Please fill out the captcha.&type=error`);
+        }
+        const token = request.body.token;
+        if (!token)
+            return response.redirect(`/forgotpassword?message=Invalid token.&type=error`);
+        const tokenData = sql.prepare(`SELECT * FROM passwordResets WHERE token = ?`).get(token);
+        if (!tokenData)
+            return response.redirect(`/forgotpassword?message=Invalid token.&type=error`);
+        if (tokenData.expires < new Date(Date.now()).toISOString())
+        {
+            sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token);
+            return response.redirect(`/forgotpassword?message=Token expired.&type=error`);
+        }
+        const password = request.body.password;
+        if (!password)
+            return response.redirect(`/resetpassword?token=${ token }&message=Please enter a password.&type=error`);
+        const confirmPassword = request.body.password2;
+        if (password !== confirmPassword)
+            return response.redirect(`/resetpassword?token=${ token }&message=Passwords do not match.&type=error`);
+        const hash = await bcrypt.hash(password.slice(0, 128), 10);
+        sql.prepare(`UPDATE userAuth SET password = ? WHERE email = ?`).run(hash, tokenData.email);
+        sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token);
+        return response.redirect(`/login?message=Password reset.&type=success`);
     });
 
     app.get(`/edit`, checkAuthenticated, (request, response, next) =>
@@ -300,8 +511,9 @@ async function run()
             const isPaidUser = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).paid);
             const isStaffMember = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === 2);
             const isSuspended = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === -1);
+            const isNotEmailVerified = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === -3);
 
-            if (isSuspended)
+            if (isSuspended || isNotEmailVerified)
                 return response.redirect(`/`);
 
             let ageGated = request.body.adultContent;
@@ -489,6 +701,7 @@ async function run()
         const suspendedCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = -1`).get()[`COUNT(*)`];
         const staffCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = 2`).get()[`COUNT(*)`];
         const shadowUserCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = -2`).get()[`COUNT(*)`];
+        const awaitingEmailUserCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = -3`).get()[`COUNT(*)`];
 
         let freeCount = userCountTotal - paidCount - staffCount - shadowUserCount;
         if (freeCount < 0)
@@ -564,6 +777,7 @@ async function run()
             staffCount,
             freeCount,
             shadowUserCount,
+            awaitingEmailUserCount,
             projectName,
             ourImage
         });
@@ -688,6 +902,8 @@ async function run()
             case `deleteUser`: {
                 sql.prepare(`DELETE FROM users WHERE username = ?`).run(usernameToTakeActionOn);
                 sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(usernameToTakeActionOn);
+                sql.prepare(`DELETE FROM emailActivations WHERE username = ?`).run(usernameToTakeActionOn);
+                sql.prepare(`DELETE FROM passwordResets WHERE username = ?`).run(usernameToTakeActionOn);
                 response.redirect(`/staff`);
                 break;
             }
@@ -760,6 +976,8 @@ async function run()
         {
             sql.prepare(`DELETE FROM users WHERE username = ?`).run(username);
             sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(username);
+            sql.prepare(`DELETE FROM emailActivations WHERE username = ?`).run(username);
+            sql.prepare(`DELETE FROM passwordResets WHERE username = ?`).run(username);
             logoutUser(request, response, next);
         }
 
@@ -830,7 +1048,7 @@ async function run()
             const advancedTheme = user.advancedTheme;
             const ageGated = user.ageGated;
 
-            if (verified === -1)
+            if (verified === -1 || verified === -3)
             {
                 response.status(404);
                 return response.redirect(`/`);
@@ -884,12 +1102,14 @@ async function run()
         console.log(`Server now ready: http://localhost:${ port }/`);
         checkExpiredSubscriptions();
         cleanUGC();
+        deleteExpiredTokens();
     });
 
     setInterval(() =>
     {
         checkExpiredSubscriptions();
         cleanUGC();
+        deleteExpiredTokens();
     }, 14_400_000); // every 4~ hours
 }
 
@@ -1054,5 +1274,36 @@ function cleanUGC()
         }
         if (!userImages.includes(file))
             fs.unlinkSync(`./src/public/img/ugc/${ file }`);
+    }
+}
+
+/**
+ * @name deleteExpiredTokens
+ * @description Deletes expired email activation/password reset tokens.
+ */
+function deleteExpiredTokens()
+{
+    const emailTokens = sql.prepare(`SELECT * FROM emailActivations`).all();
+    for (const token of emailTokens)
+    {
+        const now = new Date();
+        const tokenExpires = new Date(token.expires);
+        if (now > tokenExpires)
+        {
+            sql.prepare(`DELETE FROM emailActivations WHERE token = ?`).run(token.token);
+            // delete their account
+            sql.prepare(`DELETE FROM users WHERE username = ?`).run(token.username);
+            sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(token.username);
+            sql.prepare(`DELETE FROM passwordResets WHERE username = ?`).run(token.username);
+        }
+    }
+
+    const passwordTokens = sql.prepare(`SELECT * FROM passwordResets`).all();
+    for (const token of passwordTokens)
+    {
+        const now = new Date();
+        const tokenExpires = new Date(token.expires);
+        if (now > tokenExpires)
+            sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token.token);
     }
 }

@@ -212,6 +212,7 @@ input[type=password]:placeholder {
     input[type=password]:focus {
         background-color: #1e1e1e;
         border-bottom: 2px solid #5fbae9;
+        color: #cccccc;
     }
 
     input[type=text]:placeholder,
