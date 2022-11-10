@@ -1,11 +1,11 @@
 <div align="center">
 <h1><a href="https://multil.ink">multil.ink</a><br>
-<a href="https://github.com/chxseh/multil.ink/actions/workflows/linter.yml"><img alt="GitHub Actions Status" src="https://github.com/chxseh/multil.ink/actions/workflows/linter.yml/badge.svg"></a>
-<a href="https://github.com/chxseh/multil.ink/stargazers"><img alt="GitHub stars" src="https://badges.chse.dev:/github/stars/chxseh/multil.ink"></a>
-<a href="https://github.com/chxseh/multil.ink/issues"><img alt="GitHub issues" src="https://badges.chse.dev:/github/issues/chxseh/multil.ink"></a>
-<a href="https://github.com/chxseh/multil.ink/pulls"><img alt="GitHub Pull Requests" src="https://badges.chse.dev:/github/issues-pr/chxseh/multil.ink"></a>
-<a href="https://github.com/chxseh/multil.ink/network"><img alt="GitHub forks" src="https://badges.chse.dev:/github/forks/chxseh/multil.ink"></a>
-<a href="https://github.com/chxseh/multil.ink/blob/main/LICENSE.md"><img alt="GitHub license" src="https://badges.chse.dev:/github/license/chxseh/multil.ink"></a>
+<a href="https://github.com/multilinkhq/multil.ink/actions/workflows/linter.yml"><img alt="GitHub Actions Status" src="https://github.com/multilinkhq/multil.ink/actions/workflows/linter.yml/badge.svg"></a>
+<a href="https://github.com/multilinkhq/multil.ink/stargazers"><img alt="GitHub stars" src="https://badges.chse.dev:/github/stars/multilinkhq/multil.ink"></a>
+<a href="https://github.com/multilinkhq/multil.ink/issues"><img alt="GitHub issues" src="https://badges.chse.dev:/github/issues/multilinkhq/multil.ink"></a>
+<a href="https://github.com/multilinkhq/multil.ink/pulls"><img alt="GitHub Pull Requests" src="https://badges.chse.dev:/github/issues-pr/multilinkhq/multil.ink"></a>
+<a href="https://github.com/multilinkhq/multil.ink/network"><img alt="GitHub forks" src="https://badges.chse.dev:/github/forks/multilinkhq/multil.ink"></a>
+<a href="https://github.com/multilinkhq/multil.ink/blob/main/LICENSE.md"><img alt="GitHub license" src="https://badges.chse.dev:/github/license/multilinkhq/multil.ink"></a>
 </h1></div>
 
 ## Installation
@@ -18,7 +18,7 @@
 #### Installation
 
 ```bash
-git clone https://github.com/chxseh/multil.ink.git
+git clone https://github.com/multilinkhq/multil.ink.git
 cd multil.ink
 npm ci
 node .

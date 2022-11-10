@@ -13,7 +13,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/chxseh/multil.ink.git"
+        "url": "git+https://github.com/multilinkhq/multil.ink.git"
     },
     "keywords": [],
     "author": "Chase <c@chse.dev> (https://chse.dev)",
@@ -22,9 +22,9 @@
     ],
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/chxseh/multil.ink/issues"
+        "url": "https://github.com/multilinkhq/multil.ink/issues"
     },
-    "homepage": "https://github.com/chxseh/multil.ink#readme",
+    "homepage": "https://github.com/multilinkhq/multil.ink#readme",
     "dependencies": {
         "@fortawesome/fontawesome-free": "6.2.0",
         "@popperjs/core": "2.11.6",
@@ -43,7 +43,7 @@
         "method-override": "3.0.0",
         "multer": "1.4.5-lts.1",
         "node-fetch": "3.2.10",
-        "nodemailer": "^6.8.0",
+        "nodemailer": "6.8.0",
         "passport": "0.6.0",
         "passport-local": "1.0.0",
         "stripe": "10.17.0",
