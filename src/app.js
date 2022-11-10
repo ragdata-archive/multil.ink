@@ -406,13 +406,17 @@ async function run()
                         let paidCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE paid = 1`).get()[`COUNT(*)`];
                         const staffCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = 2`).get()[`COUNT(*)`];
                         paidCount -= staffCount;
+                        let content = ``;
+                        if (dev)
+                            content = `**[TEST]**\n`;
+                        content += `**${ userData.username }** has upgraded their account!\nWe now have **${ paidCount }** paid users.`;
                         fetch(discordWebhookURL, {
                             method: `POST`,
                             headers: {
                                 'Content-Type': `application/json`
                             },
                             body: JSON.stringify({
-                                content: `**${ userData.username }** has upgraded their account.\nWe now have **${ paidCount }** paid users.`
+                                content
                             })
                         });
                     }
