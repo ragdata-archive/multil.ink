@@ -92,7 +92,7 @@ for (let index = 0; index < numberOfUsers; index++)
 
     actions.append(editButton);
 
-    if (users[index].verified === `0`)
+    if (users[index].verified === `0` || users[index].verified === `-3`)
     {
         const verifyButton = document.createElement(`button`);
         verifyButton.setAttribute(`class`, `btn btn-primary`);

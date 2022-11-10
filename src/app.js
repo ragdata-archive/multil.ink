@@ -866,7 +866,14 @@ async function run()
                 break;
             }
             case `verifyUser`: {
-                sql.prepare(`UPDATE users SET verified = 1 WHERE username = ?`).run(usernameToTakeActionOn);
+                const verifiedLevel = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn).verified;
+                if (verifiedLevel === 0)
+                    sql.prepare(`UPDATE users SET verified = 1 WHERE username = ?`).run(usernameToTakeActionOn);
+                else if (verifiedLevel === -3)
+                {
+                    sql.prepare(`DELETE FROM emailActivations WHERE username = ?`).run(usernameToTakeActionOn);
+                    sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                }
                 response.redirect(`/staff`);
                 break;
             }
