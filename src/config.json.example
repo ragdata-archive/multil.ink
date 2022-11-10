@@ -16,5 +16,10 @@
     "emailSMTPSecure": true,
     "emailSMTPUser": "",
     "emailSMTPPass": "",
-    "emailFromDisplayName": "multil.ink"
+    "emailFromDisplayName": "multil.ink",
+    "stripeSecretKey": "",
+    "stripePublishableKey": "",
+    "stripeProductID": "",
+    "stripeCustomerPortalURL": "",
+    "stripeWebhookSigningSecret": ""
 }

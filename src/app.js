@@ -23,7 +23,8 @@ async function run()
 
     const {
         port, secret, linkWhitelist, freeLinks, projectName, projectDescription, dev,
-        emailSMTPHost, emailSMTPPort, emailSMTPSecure, emailSMTPUser, emailSMTPPass, emailFromDisplayName
+        emailSMTPHost, emailSMTPPort, emailSMTPSecure, emailSMTPUser, emailSMTPPass, emailFromDisplayName,
+        stripeSecretKey, stripeProductID, stripeCustomerPortalURL, stripeWebhookSigningSecret
     } = require(`./config.json`);
 
     let {
@@ -49,7 +50,7 @@ async function run()
     }
 
     sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT, theme TEXT, advancedTheme TEXT, ageGated TEXT)`).run();
-    sql.prepare(`CREATE TABLE IF NOT EXISTS userAuth (uid INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT)`).run();
+    sql.prepare(`CREATE TABLE IF NOT EXISTS userAuth (uid INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT, stripeCID TEXT)`).run();
     sql.prepare(`CREATE TABLE IF NOT EXISTS emailActivations (email TEXT PRIMARY KEY, username TEXT, token TEXT, expires TEXT)`).run();
     sql.prepare(`CREATE TABLE IF NOT EXISTS passwordResets (email TEXT PRIMARY KEY, username TEXT, token TEXT, expires TEXT)`).run();
 
@@ -69,6 +70,11 @@ async function run()
     const session = require(`express-session`);
     const methodOverride = require(`method-override`);
     const nodemailer = require(`nodemailer`);
+    const stripe = require(`stripe`);
+
+    const Stripe = stripe(stripeSecretKey, {
+        apiVersion: `2022-08-01`
+    });
 
     let transporter = ``;
     if (emailSMTPHost && emailSMTPPort && emailSMTPUser && emailSMTPPass && emailFromDisplayName)
@@ -105,8 +111,9 @@ async function run()
         (id) => sql.prepare(`SELECT * FROM userAuth WHERE uid = ?`).get(id)
     );
 
+    app.use(`/webhook`, bodyParser.raw({ type: `application/json` }));
     app.use(bodyParser.json());
-    app.use(express.urlencoded({ extended: false }));
+    app.use(express.urlencoded({ extended: true }));
     app.use(flash());
     app.use(session({
         secret,
@@ -209,6 +216,9 @@ async function run()
                 `resendactivationemail`,
                 `forgotpassword`,
                 `resetpassword`,
+                `upgrade`,
+                `downgrade`,
+                `webhook`
             ];
             if (bannedUsernames.includes(username))
                 return response.redirect(`/register?message=That username is not available.&type=error`);
@@ -219,7 +229,7 @@ async function run()
                 return response.redirect(`/register?message=That username is not available.&type=error`);
 
             // If email is not valid, bail.
-            const email = request.body.email.toLowerCase().trim().slice(0, 1024);
+            const email = request.body.email.toLowerCase().trim().slice(0, 512);
             const regexEmail = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
             if (!regexEmail.test(email))
                 return response.redirect(`/register?message=That email is not valid.&type=error`);
@@ -240,7 +250,12 @@ async function run()
                 return response.redirect(`/register?message=An error occurred. Please try again.&type=error`);
             sql.prepare(`INSERT INTO emailActivations (email, username, token, expires) VALUES (?, ?, ?, ?)`).run(email, username, `${ token }`, `${ new Date(Date.now() + (86_400_000 * 2)).toISOString().slice(0, 10) }`);
 
-            sql.prepare(`INSERT INTO userAuth (username, email, password) VALUES (?, ?, ?)`).run(username, email, hashedPassword);
+            const customer = await Stripe.customers.create({
+                email,
+                description: `New Customer`
+            });
+            const stripeCID = customer.id;
+            sql.prepare(`INSERT INTO userAuth (username, email, password, stripeCID) VALUES (?, ?, ?, ?)`).run(username, email, hashedPassword, stripeCID);
             sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, `-3`, `0`, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`, `Light`, ``, `0`);
 
             // If this is the first user, make them staff.
@@ -270,6 +285,106 @@ async function run()
         {
             response.redirect(`/register?message=An error occurred.&type=error`);
         }
+    });
+
+    app.get(`/upgrade`, checkAuthenticated, async (request, response, next) =>
+    {
+        const userEmail = request.user;
+        const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail);
+        if (!userData)
+        {
+            logoutUser(request, response, next);
+            return response.redirect(`/login`);
+        }
+
+        // if we have a query string, it's a stripe redirect
+        if (request.query && request.query.session_id)
+        {
+            // verify the session
+            const session = await Stripe.checkout.sessions.retrieve(request.query.session_id);
+            if (session.customer !== userData.stripeCID)
+                return response.redirect(`/edit?message=An error occurred.&type=error`);
+
+            if (session.payment_status === `paid`)
+            {
+                // We handle the actual subscription update in the webhook.
+                return response.redirect(`/edit?message=You have successfully upgraded your account.&type=success`);
+            }
+        }
+        else
+        {
+            const stripeCID = userData.stripeCID;
+
+            const customer = await Stripe.customers.retrieve(stripeCID);
+            // send them to stripe
+            /* eslint-disable camelcase */
+            const session = await Stripe.checkout.sessions.create({
+                mode: `subscription`,
+                payment_method_types: [`card`],
+                customer: customer.id,
+                line_items: [
+                    {
+                        price: stripeProductID,
+                        quantity: 1
+                    },
+                ],
+                success_url: `${ request.protocol }://${ request.get(`host`) }/upgrade?session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${ request.protocol }://${ request.get(`host`) }/edit`
+            });
+            /* eslint-enable camelcase */
+            return response.redirect(session.url);
+        }
+    });
+
+    app.get(`/downgrade`, checkAuthenticated, async (request, response, next) =>
+    {
+        const userEmail = request.user;
+        const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail);
+        if (!userData)
+        {
+            logoutUser(request, response, next);
+            return response.redirect(`/login`);
+        }
+
+        return response.redirect(`${ stripeCustomerPortalURL }`);
+    });
+
+    app.post(`/webhook`, async (request, response) =>
+    {
+        let event;
+
+        try
+        {
+            event = Stripe.webhooks.constructEvent(request.body, request.headers[`stripe-signature`], stripeWebhookSigningSecret);
+        }
+        catch
+        {
+            return response.sendStatus(400);
+        }
+
+        const data = event.data.object;
+        if (event.type === `invoice.paid`)
+        {
+            // check if the subscription is active
+            const subscription = await Stripe.subscriptions.retrieve(data.subscription);
+            if (subscription.status === `active`)
+            {
+                // get the user
+                const userAuthData = sql.prepare(`SELECT * FROM userAuth WHERE stripeCID = ?`).get(data.customer);
+                if (!userAuthData)
+                    return response.sendStatus(400);
+                const userData = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userAuthData.username);
+                if (!userData)
+                    return response.sendStatus(400);
+                // set to paid and add a year to the subExpires date
+                const timeNow = new Date(Date.now());
+                // add a year to the current date
+                const timeNextYear = new Date(timeNow.setFullYear(timeNow.getFullYear() + 1));
+                sql.prepare(`UPDATE users SET paid = ?, subExpires = ? WHERE username = ?`).run(1, `${ timeNextYear.toISOString().slice(0, 10) }`, userData.username);
+            }
+        }
+
+        response.sendStatus(200);
     });
 
     app.get(`/verifyemail`, (request, response) =>
@@ -605,7 +720,7 @@ async function run()
                 const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
                 const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
 
-                if ((oldEmailInput === usersCurrentEmail) && isCorrectPassword && newEmail && newEmail.length > 0 && newEmail.length < 1024)
+                if ((oldEmailInput === usersCurrentEmail) && isCorrectPassword && newEmail && newEmail.length > 0 && newEmail.length <= 512)
                 {
                     const regexEmail = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
                     if (regexEmail.test(newEmail))
@@ -613,7 +728,17 @@ async function run()
                         // ensure new email is not already taken
                         const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
                         if (!emailExists)
+                        {
+                            const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).stripeCID;
+                            await Stripe.customers.update(
+                                stripeCID,
+                                {
+                                    email: newEmail,
+                                }
+                            );
+
                             sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userUsername);
+                        }
                     }
                 }
 
@@ -783,7 +908,7 @@ async function run()
         });
     });
 
-    app.get(`/staff/*`, checkAuthenticatedStaff, (request, response, next) =>
+    app.get(`/staff/*`, checkAuthenticatedStaff, async (request, response, next) =>
     {
         const staffEmail = request.user;
         let staffUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(staffEmail);
@@ -847,7 +972,16 @@ async function run()
                         // ensure new email is not already taken
                         const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
                         if (!emailExists)
+                        {
+                            const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userToEdit).stripeCID;
+                            await Stripe.customers.update(
+                                stripeCID,
+                                {
+                                    email: newEmail,
+                                }
+                            );
                             sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userToEdit);
+                        }
                     }
 
                     if (key === `ageGated`)
@@ -907,6 +1041,8 @@ async function run()
                 break;
             }
             case `deleteUser`: {
+                const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(usernameToTakeActionOn).stripeCID;
+                await Stripe.customers.del(stripeCID);
                 sql.prepare(`DELETE FROM users WHERE username = ?`).run(usernameToTakeActionOn);
                 sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(usernameToTakeActionOn);
                 sql.prepare(`DELETE FROM emailActivations WHERE username = ?`).run(usernameToTakeActionOn);
@@ -947,7 +1083,7 @@ async function run()
                     return response.redirect(`/staff`);
 
                 sql.prepare(`INSERT INTO users (username, displayName, bio, image, links, linkNames, verified, paid, subExpires, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, redirectTo, ``, ``, `[]`, `[]`, `-2`, `0`, ``, ``, ``, `0`);
-                sql.prepare(`INSERT INTO userAuth (username, password, email) VALUES (?, ?, ?)`).run(username, ``, ``);
+                sql.prepare(`INSERT INTO userAuth (username, password, email, stripeCID) VALUES (?, ?, ?)`).run(username, ``, ``, ``);
 
                 response.redirect(`/staff`);
                 break;
@@ -981,6 +1117,8 @@ async function run()
         const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
         if (isCorrectPassword)
         {
+            const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(username).stripeCID;
+            await Stripe.customers.del(stripeCID);
             sql.prepare(`DELETE FROM users WHERE username = ?`).run(username);
             sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(username);
             sql.prepare(`DELETE FROM emailActivations WHERE username = ?`).run(username);
@@ -1109,14 +1247,14 @@ async function run()
         console.log(`Server now ready: http://localhost:${ port }/`);
         checkExpiredSubscriptions();
         cleanUGC();
-        deleteExpiredTokens();
+        deleteExpiredTokens(Stripe);
     });
 
     setInterval(() =>
     {
         checkExpiredSubscriptions();
         cleanUGC();
-        deleteExpiredTokens();
+        deleteExpiredTokens(Stripe);
     }, 14_400_000); // every 4~ hours
 }
 
@@ -1287,8 +1425,9 @@ function cleanUGC()
 /**
  * @name deleteExpiredTokens
  * @description Deletes expired email activation/password reset tokens.
+ * @param {Stripe} Stripe Stripe API
  */
-function deleteExpiredTokens()
+async function deleteExpiredTokens(Stripe)
 {
     const emailTokens = sql.prepare(`SELECT * FROM emailActivations`).all();
     for (const token of emailTokens)
@@ -1297,6 +1436,8 @@ function deleteExpiredTokens()
         const tokenExpires = new Date(token.expires);
         if (now > tokenExpires)
         {
+            const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(token.username).stripeCID;
+            await Stripe.customers.del(stripeCID);
             sql.prepare(`DELETE FROM emailActivations WHERE token = ?`).run(token.token);
             // delete their account
             sql.prepare(`DELETE FROM users WHERE username = ?`).run(token.username);
