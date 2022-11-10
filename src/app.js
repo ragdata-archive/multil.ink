@@ -15,6 +15,32 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const sql = new SQLite(`./src/db.sqlite`);
 
+const bannedUsernames = new Set([
+    `login`,
+    `register`,
+    `edit`,
+    `delete`,
+    `staff`,
+    `logout`,
+    `css`,
+    `js`,
+    `img`,
+    `webfonts`,
+    `tos`,
+    `privacy`,
+    `autoconfig`,
+    `autodiscover`,
+    `mta-sts`,
+    `www`,
+    `verifyemail`,
+    `resendactivationemail`,
+    `forgotpassword`,
+    `resetpassword`,
+    `upgrade`,
+    `downgrade`,
+    `webhook`
+]);
+
 /**
  * initial setup process and token validation
  */
@@ -63,6 +89,7 @@ async function run()
             crossOriginEmbedderPolicy: false,
             crossOriginResourcePolicy: false,
             contentSecurityPolicy: false,
+            accessControlAllowOrigin: false,
         }
     ));
 
@@ -117,9 +144,49 @@ async function run()
         (id) => sql.prepare(`SELECT * FROM userAuth WHERE uid = ?`).get(id)
     );
 
+    const subdomainCheck = function (request, response, next)
+    {
+        response.header(`Access-Control-Allow-Origin`, `*`);
+        response.header(`Access-Control-Allow-Headers`, `Origin, X-Requested-With, Content-Type, Accept`);
+
+        const fullUrl = `${ request.protocol }://${ request.get(`host`) }${ request.originalUrl }`;
+        if (fullUrl.includes(`localhost`))
+        {
+            if (fullUrl.startsWith(`http://localhost:`)) // let localhost work normally
+                return next();
+            return response.redirect(`http://localhost:${ port }${ request.originalUrl }`); // strip subdomain (use /etc/hosts to fake one for testing)
+        }
+
+        const subdomain = request.subdomains[0];
+        if (subdomain === undefined)
+            return next();
+
+        // console.log(`Subdomain detected: ${ subdomain }`);
+
+        let baseUrl = fullUrl.split(subdomain)[1].slice(1);
+        const path = request.path;
+        baseUrl = baseUrl.split(path)[0];
+        // console.log(`Base URL: ${ baseUrl }`);
+        // console.log(`Path: ${ path }`);
+
+        // if subdomain is in bannedUsernames, redirect to homepage
+        if (bannedUsernames.has(subdomain))
+            return response.redirect(`${ request.protocol }://${ baseUrl }`);
+        // if it has a path:
+        if (path.length > 1)
+            return response.redirect(`${ request.protocol }://${ baseUrl }${ path }`);
+
+        const ourImage = `${ request.protocol }://${ baseUrl }/img/logo.png`;
+        const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(subdomain);
+        if (user)
+            return renderUser(request, response, user, baseUrl, ourImage, projectName);
+        return response.redirect(`${ request.protocol }://${ baseUrl }/${ path }`);
+    };
+
     app.use(`/webhook`, bodyParser.raw({ type: `application/json` }));
     app.use(bodyParser.json());
     app.use(express.urlencoded({ extended: true }));
+    app.use(subdomainCheck);
     app.use(flash());
     app.use(session({
         secret,
@@ -201,32 +268,7 @@ async function run()
                 return response.redirect(`/register?message=Please fill out the captcha.&type=error`);
             }
             const username = request.body.username.toLowerCase().trim().slice(0, 60);
-            const bannedUsernames = [
-                `login`,
-                `register`,
-                `edit`,
-                `delete`,
-                `staff`,
-                `logout`,
-                `css`,
-                `js`,
-                `img`,
-                `webfonts`,
-                `tos`,
-                `privacy`,
-                `autoconfig`,
-                `autodiscover`,
-                `mta-sts`,
-                `www`,
-                `verifyemail`,
-                `resendactivationemail`,
-                `forgotpassword`,
-                `resetpassword`,
-                `upgrade`,
-                `downgrade`,
-                `webhook`
-            ];
-            if (bannedUsernames.includes(username))
+            if (bannedUsernames.has(username))
                 return response.redirect(`/register?message=That username is not available.&type=error`);
 
             // if username is not A-Z, a-z, 0-9, bail.
@@ -1235,40 +1277,8 @@ async function run()
         const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(potentialUser);
         if (user)
         {
-            const username = user.username;
-            const displayName = user.displayName;
-            const bio = user.bio;
-            const image = user.image;
-            const links = JSON.parse(user.links);
-            const linkNames = JSON.parse(user.linkNames);
-            const paid = Boolean(user.paid);
-            const verified = user.verified;
-            const theme = user.theme;
-            const advancedTheme = user.advancedTheme;
-            const ageGated = user.ageGated;
-
-            if (verified === -1 || verified === -3)
-            {
-                response.status(404);
-                return response.redirect(`/`);
-            }
-            if (verified === -2)
-            {
-                response.status(302);
-                return response.redirect(`/${ displayName }`);
-            }
-
-            let themeContent = ``;
-            if (paid && advancedTheme.includes(`style`)) // If paid user & has custom CSS, use that.
-                themeContent = advancedTheme;
-            else if (!paid && advancedTheme.includes(`style`)) // If not paid user & has custom CSS, use default theme. (Sub expired)
-                themeContent = `<link rel="stylesheet" href="css/theme-light.css">`;
-            else // Everyone else gets the theme they chose.
-                themeContent = `<link rel="stylesheet" href="css/theme-${ theme.toLowerCase() }.css">`;
-
-            response.render(`profile.ejs`, {
-                username, displayName, bio, image, links, linkNames, paid, verified, ourImage, themeContent, ageGated, projectName
-            });
+            const baseUrl = `${ request.protocol }://${ request.get(`host`) }`;
+            renderUser(request, response, user, baseUrl, ourImage, projectName);
         }
         else
         { // user doesn't exist, bail
@@ -1279,6 +1289,11 @@ async function run()
 
     app.get(`*`, (request, response) =>
     {
+        if (request.subdomains.length > 0)
+        {
+            const subdomain = request.subdomains[0];
+            return response.redirect(`/${ subdomain }`);
+        }
         response.status(404);
         return response.redirect(`/`);
     });
@@ -1511,4 +1526,53 @@ async function deleteExpiredTokens(Stripe)
         if (now > tokenExpires)
             sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token.token);
     }
+}
+
+/**
+ * @name renderUser
+ * @description Renders a user's profile page
+ * @param {*} request Express request object
+ * @param {*} response Express response object
+ * @param {*} user User Object to render
+ * @param {string} baseUrl Base URL
+ * @param {string} ourImage logo image
+ * @param {string} projectName Project Name
+ * @returns {void}
+ */
+function renderUser(request, response, user, baseUrl, ourImage, projectName)
+{
+    const username = user.username;
+    const displayName = user.displayName;
+    const bio = user.bio;
+    const image = user.image;
+    const links = JSON.parse(user.links);
+    const linkNames = JSON.parse(user.linkNames);
+    const paid = Boolean(user.paid);
+    const verified = user.verified;
+    const theme = user.theme;
+    const advancedTheme = user.advancedTheme;
+    const ageGated = user.ageGated;
+
+    if (verified === -1 || verified === -3)
+    {
+        response.status(404);
+        return response.redirect(`${ request.protocol }://${ baseUrl }`);
+    }
+    if (verified === -2)
+    {
+        response.status(302);
+        return response.redirect(`${ request.protocol }://${ baseUrl }/${ displayName }`);
+    }
+
+    let themeContent = ``;
+    if (paid && advancedTheme.includes(`style`)) // If paid user & has custom CSS, use that.
+        themeContent = advancedTheme;
+    else if (!paid && advancedTheme.includes(`style`)) // If not paid user & has custom CSS, use default theme. (Sub expired)
+        themeContent = `<link rel="stylesheet" href="css/theme-light.css">`;
+    else // Everyone else gets the theme they chose.
+        themeContent = `<link rel="stylesheet" href="css/theme-${ theme.toLowerCase() }.css">`;
+
+    response.render(`profile.ejs`, {
+        username, displayName, bio, image, links, linkNames, paid, verified, ourImage, themeContent, ageGated, projectName
+    });
 }
