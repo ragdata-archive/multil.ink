@@ -47,7 +47,7 @@
         "passport": "0.6.0",
         "passport-local": "1.0.0",
         "stripe": "10.17.0",
-        "uppy": "3.2.2"
+        "uppy": "3.3.0"
     },
     "devDependencies": {
         "eslint": "8.27.0",
