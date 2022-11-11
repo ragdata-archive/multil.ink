@@ -22,5 +22,6 @@
     "stripeProductID": "",
     "stripeCustomerPortalURL": "",
     "stripeWebhookSigningSecret": "",
-    "discordWebhookURL": ""
+    "discordWebhookURL": "",
+    "reportEmail": ""
 }

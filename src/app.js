@@ -35,7 +35,7 @@ async function run()
         port, secret, linkWhitelist, freeLinks, projectName, projectDescription, dev,
         emailSMTPHost, emailSMTPPort, emailSMTPSecure, emailSMTPUser, emailSMTPPass, emailFromDisplayName,
         stripeSecretKey, stripeProductID, stripeCustomerPortalURL, stripeWebhookSigningSecret,
-        discordWebhookURL
+        discordWebhookURL, reportEmail
     } = require(`./config.json`);
 
     let {
@@ -586,6 +586,41 @@ async function run()
         sql.prepare(`UPDATE userAuth SET password = ? WHERE email = ?`).run(hash, tokenData.email);
         sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token);
         return response.redirect(`/login?message=Password reset.&type=success`);
+    });
+
+    app.get(`/report`, (request, response) =>
+    {
+        response.render(`report.ejs`, {
+            projectName, projectDescription, image: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
+        });
+    });
+
+    app.post(`/report`, async (request, response) =>
+    {
+        const verifyResults = await verify(hcaptchaSecret, request.body[`h-captcha-response`]);
+        if (!verifyResults.success)
+        {
+            request.flash(`error`, `Please fill out the captcha.`);
+            return response.redirect(`/report?message=Please fill out the captcha.&type=error`);
+        }
+        const email = request.body.email;
+        const fullName = request.body.fullName;
+        const message = request.body.message;
+        if (!email || !fullName || !message)
+            return response.redirect(`/report?message=Please complete the form.&type=error`);
+
+        if (emailSMTPHost && emailSMTPPort && emailSMTPUser && emailSMTPPass && emailFromDisplayName && reportEmail)
+        {
+            await transporter.sendMail({
+                from: `"${ emailFromDisplayName }" <${ emailSMTPUser }>`,
+                to: `${ reportEmail }`,
+                subject: `New Report Form Submission`,
+                text: `New report form submission:\n\nEmail: ${ email }\nFull Name: ${ fullName }\nMessage: ${ message }`,
+                html: `<p>New report form submission:</p><p>Email: ${ email }</p><p>Full Name: ${ fullName }</p><p>Message: ${ message }</p>`
+            });
+            return response.redirect(`/report?message=Your report has been received.&type=success`);
+        }
+        return response.redirect(`/report?message=An error occurred.&type=error`);
     });
 
     app.get(`/edit`, checkAuthenticated, (request, response, next) =>

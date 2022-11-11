@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>
+        Report Abuse - <%=projectName%>
+    </title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="<%=projectDescription%>" />
+    <meta name="theme-color" content="#000000">
+    <meta property="og:title" content="Report Abuse - <%=projectName%>" />
+    <meta property="og:description" content="<%=projectDescription%>" />
+    <meta property="og:image" content="<%=image%>" />
+    <meta property="og:type" content="website" />
+
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    <script src="../js/jquery.slim.min.js"></script>
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <script src="../js/bootstrap.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="icon" type="image/png" href="<%=image%>">
+</head>
+
+<body>
+    <noscript>
+        JavaScript is required to use this app.
+    </noscript>
+    <main id="main" style="display: none;">
+        <div class="wrapper">
+            <div id="liveAlertPlaceholder"></div>
+
+            <div id="formContent">
+                <div id="formHeader">
+                    <h2>Report Abuse</h2>
+                </div>
+                <div id="formHeaderPadding"></div>
+                <form action="" method="POST">
+                    <input type="text" id="fullName" class="" name="fullName" required maxlength="512"
+                        placeholder="Full Name">
+                    <input type="email" id="email" class="" name="email" required maxlength="512" placeholder="Email">
+                    <textarea id="message" class="contactUsMessage" name="message" required maxlength="2048"
+                        placeholder="Your Message (Please include any infringing URLs or profiles.)"></textarea>
+                    <div id="formSubmitPadding"></div>
+                    <label for="dmca">By submitting this report you agree that information given is accurate and/or that
+                        the you are authorized to submit a DMCA Notice for this copyrighted work and that copyright is
+                        being used without permission and against the law.</label>
+                    </input>
+                    <input type="checkbox" id="dmca" name="dmca" required>
+                    <div id="formSubmitPadding"></div>
+                    <div class="h-captcha" data-sitekey="<%=hcaptchaSiteKey%>">
+                    </div>
+                    <div id="formSubmitPadding"></div>
+                    <input type="submit" class="" value="Submit">
+                </form>
+            </div>
+    </main>
+    <script src="js/auth.js"></script>
+</body>
+
+</html>
