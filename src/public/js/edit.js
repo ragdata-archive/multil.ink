@@ -183,20 +183,18 @@ function addLink(index, link, linkName)
     // linkDiv.innerHTML += `<label for="linkName${ index }">Link Name ${ index + 1 }</label>`;
     linkDiv.innerHTML += linkName !== `` ? `<input type="text" id="linkName${ index }" name="linkName${ index }" value="${ linksNamesArray[index] }" placeholder="Link Name" required>` : `<input type="text" id="linkName${ index }" name="linkName${ index }" placeholder="Link Name" required>`;
 
-    // breaks on mobile
-    // const brForLinkName = document.createElement(`br`);
-    // brForLinkName.id = `pageBreakForButtons`;
-    // brForLinkName.style = `line-height: 5px;`;
-    // linkDiv.append(brForLinkName);
+    const brForLinkName = document.createElement(`br`);
+    brForLinkName.id = `pageBreakForButtons`;
+    brForLinkName.style = `line-height: 5px;`;
+    linkDiv.append(brForLinkName);
 
     // linkDiv.innerHTML += `<label for="link${ index }">Link ${ index + 1 }</label>`;
     linkDiv.innerHTML += `<input type="text" id="link${ index }" name="link${ index }" value="${ link }" placeholder="Link" required>`;
 
-    // breaks on mobile
-    // const brForButtons = document.createElement(`br`);
-    // brForButtons.id = `pageBreakForButtons`;
-    // brForButtons.style = `line-height: 5px;`;
-    // linkDiv.append(brForButtons);
+    const brForButtons = document.createElement(`br`);
+    brForButtons.id = `pageBreakForButtons`;
+    brForButtons.style = `line-height: 5px;`;
+    linkDiv.append(brForButtons);
 
     const deleteButton = document.createElement(`button`);
     deleteButton.classList.add(`btn`, `btn-danger`);

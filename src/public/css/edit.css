@@ -60,6 +60,10 @@ input[type=password],
         width: 40%;
         padding: 10px;
     }
+
+    .links input {
+        width: 80%;
+    }
 }
 
 select {
