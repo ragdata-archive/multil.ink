@@ -206,22 +206,18 @@ async function run()
             }
             const username = request.body.username.toLowerCase().trim().slice(0, 60);
             const bannedUsernames = [
-                `login`,
-                `register`,
-                `edit`,
-                `delete`,
-                `staff`,
-                `logout`,
                 `css`,
                 `js`,
                 `img`,
                 `webfonts`,
+                `login`,
+                `register`,
+                `logout`,
+                `edit`,
+                `delete`,
+                `staff`,
                 `tos`,
                 `privacy`,
-                `autoconfig`,
-                `autodiscover`,
-                `mta-sts`,
-                `www`,
                 `verifyemail`,
                 `resendactivationemail`,
                 `forgotpassword`,
@@ -229,7 +225,10 @@ async function run()
                 `upgrade`,
                 `downgrade`,
                 `webhook`,
-                `report`
+                `report`,
+                `jane`, // used in example screenshots
+                `john`, // used in example screenshots
+                `jason`, // used in example screenshots
             ];
             if (bannedUsernames.includes(username))
                 return response.redirect(`/register?message=That username is not available.&type=error`);
