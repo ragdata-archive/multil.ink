@@ -154,24 +154,21 @@ async function run()
 
     app.get(`/`, (request, response) =>
     {
-        const image = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         response.render(`index.ejs`, {
-            projectName, projectDescription, image
+            projectName, projectDescription, image: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`
         });
     });
 
     app.get(`/login`, checkNotAuthenticated, (request, response) =>
     {
-        const image = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         response.render(`login.ejs`, {
-            projectName, projectDescription, image, hcaptchaSiteKey
+            projectName, projectDescription, image: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
         });
     });
 
     app.post(`/login`, checkNotAuthenticated, async (request, response, next) =>
     {
-        const captchaToken = request.body[`h-captcha-response`];
-        const verifyResults = await verify(hcaptchaSecret, captchaToken);
+        const verifyResults = await verify(hcaptchaSecret, request.body[`h-captcha-response`]);
         if (!verifyResults.success)
         {
             request.flash(`error`, `Please fill out the captcha.`);
@@ -189,9 +186,8 @@ async function run()
         if (request.get(`host`) === `multil.ink`)
             return response.redirect(`/login?message=Registration is currently disabled.&type=error`);
 
-        const image = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         response.render(`register.ejs`, {
-            projectName, projectDescription, image, hcaptchaSiteKey
+            projectName, projectDescription, image: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
         });
     });
 
@@ -202,8 +198,7 @@ async function run()
 
         try
         {
-            const captchaToken = request.body[`h-captcha-response`];
-            const verifyResults = await verify(hcaptchaSecret, captchaToken);
+            const verifyResults = await verify(hcaptchaSecret, request.body[`h-captcha-response`]);
             if (!verifyResults.success)
             {
                 request.flash(`error`, `Please fill out the captcha.`);
@@ -308,8 +303,7 @@ async function run()
 
     app.get(`/upgrade`, checkAuthenticated, async (request, response, next) =>
     {
-        const userEmail = request.user;
-        const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail);
+        const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(request.user);
         if (!userData)
         {
             logoutUser(request, response, next);
@@ -361,8 +355,7 @@ async function run()
 
     app.get(`/downgrade`, checkAuthenticated, async (request, response, next) =>
     {
-        const userEmail = request.user;
-        const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail);
+        const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(request.user);
         if (!userData)
         {
             logoutUser(request, response, next);
@@ -500,16 +493,14 @@ async function run()
 
     app.get(`/forgotpassword`, (request, response) =>
     {
-        const image = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         response.render(`forgotpassword.ejs`, {
-            projectName, projectDescription, image, hcaptchaSiteKey
+            projectName, projectDescription, image: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
         });
     });
 
     app.post(`/forgotpassword`, async (request, response) =>
     {
-        const captchaToken = request.body[`h-captcha-response`];
-        const verifyResults = await verify(hcaptchaSecret, captchaToken);
+        const verifyResults = await verify(hcaptchaSecret, request.body[`h-captcha-response`]);
         if (!verifyResults.success)
         {
             request.flash(`error`, `Please fill out the captcha.`);
@@ -561,16 +552,14 @@ async function run()
             sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token);
             return response.redirect(`/forgotpassword?message=Token expired.&type=error`);
         }
-        const image = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         response.render(`resetpassword.ejs`, {
-            projectName, projectDescription, image, hcaptchaSiteKey, token
+            projectName, projectDescription, image: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey, token
         });
     });
 
     app.post(`/resetpassword`, async (request, response) =>
     {
-        const captchaToken = request.body[`h-captcha-response`];
-        const verifyResults = await verify(hcaptchaSecret, captchaToken);
+        const verifyResults = await verify(hcaptchaSecret, request.body[`h-captcha-response`]);
         if (!verifyResults.success)
         {
             request.flash(`error`, `Please fill out the captcha.`);
@@ -1189,17 +1178,15 @@ async function run()
 
     app.get(`/tos`, (request, response) =>
     {
-        const ourImage = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         response.render(`tos.ejs`, {
-            projectName, projectDescription, ourImage
+            projectName, projectDescription, ourImage: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`
         });
     });
 
     app.get(`/privacy`, (request, response) =>
     {
-        const ourImage = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         response.render(`privacy.ejs`, {
-            projectName, projectDescription, ourImage
+            projectName, projectDescription, ourImage: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`
         });
     });
 
@@ -1213,7 +1200,6 @@ async function run()
     // for every other route, get the URL and check if user exists
     app.get(`/*`, (request, response) =>
     {
-        const ourImage = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
         const potentialUser = request.url.replaceAll(`/`, ``).replaceAll(`@`, ``).replaceAll(`~`, ``);
         // If the URL is static content, serve it.
         const allowed = [
@@ -1271,7 +1257,7 @@ async function run()
                 themeContent = `<link rel="stylesheet" href="css/theme-${ theme.toLowerCase() }.css">`;
 
             response.render(`profile.ejs`, {
-                username, displayName, bio, image, links, linkNames, paid, verified, ourImage, themeContent, ageGated, projectName
+                username, displayName, bio, image, links, linkNames, paid, verified, ourImage: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`, themeContent, ageGated, projectName
             });
         }
         else
