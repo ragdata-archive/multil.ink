@@ -58,7 +58,14 @@ input[type=password],
     input[type=password],
     .form-select {
         width: 40%;
+        padding: 10px;
     }
+}
+
+select {
+    text-align: center;
+    text-align-last: center;
+    -moz-text-align-last: center;
 }
 
 .modalInput {
