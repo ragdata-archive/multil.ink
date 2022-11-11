@@ -409,7 +409,7 @@ function updateCSS()
  */
 function showHideColorPickers()
 {
-    if (document.querySelector(`#themePicker`).value === `Custom`)
+    if (document.querySelector(`#themeOptions`).value === `Custom`)
         document.querySelector(`#advancedThemes`).style.display = `block`;
     else
         document.querySelector(`#advancedThemes`).style.display = `none`;
@@ -421,7 +421,7 @@ document.querySelector(`#textColor`).addEventListener(`change`, updateCSS);
 document.querySelector(`#borderColor`).addEventListener(`change`, updateCSS);
 
 // when themeOptions is set to `Custom` then show advancedThemes class
-document.querySelector(`#themePicker`).addEventListener(`change`, showHideColorPickers);
+document.querySelector(`#themeOptions`).addEventListener(`change`, showHideColorPickers);
 
 updateCSS(); // just on page load also update the finalCSS.
 showHideColorPickers(); // same as above

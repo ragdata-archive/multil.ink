@@ -45,7 +45,8 @@ div.links>div>label {
 
 input[type=text],
 input[type=email],
-input[type=password] {
+input[type=password],
+.form-select {
     padding: 15px 24px;
     width: 25%;
 }
@@ -54,7 +55,8 @@ input[type=password] {
 
     input[type=text],
     input[type=email],
-    input[type=password] {
+    input[type=password],
+    .form-select {
         width: 40%;
     }
 }

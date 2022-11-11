@@ -102,10 +102,8 @@
                     value="<%=ageGated%>" <%=ageGated%>>
             </div>
             <div>
-                <label for="themePicker" class="form-label">Page Theme</label>
-                <input type="text" class="" list="themeOptions" id="themePicker" name="theme"
-                    placeholder="Type to search..." value="<%=theme%>" required>
-                <datalist id="themeOptions"></datalist>
+                <label for="themeOptions" class="form-label">Page Theme</label>
+                <select class="form-select" id="themeOptions" name="theme" required></select>
             </div>
             <div id="advancedThemes">
                 <label for="backgroundColor" class="">Background Color</label>
@@ -292,6 +290,8 @@
         const linksNames = "<%=linkNames%>";
         let paid = "<%=paid%>";
         const verified = Number.parseInt("<%=verified%>", 10);
+        const userTheme = `<%=theme%>`;
+        const advancedTheme = `<%-advancedTheme%>`;
 
         let themes = `<%=themes%>`;
         themes = themes.split(",");
@@ -302,8 +302,7 @@
         if (paid === `1` || paid === `true`)
             document.getElementById("themeOptions").innerHTML += `<option value="Custom">Custom</option>`;
 
-        const userTheme = `<%=theme%>`;
-        const advancedTheme = `<%-advancedTheme%>`;
+        document.getElementById("themeOptions").value = userTheme;
     </script>
     <script src="js/edit.js"></script>
     <script type="module">
