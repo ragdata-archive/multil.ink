@@ -118,31 +118,39 @@ else
     document.querySelector(`#free`).style.display = `block`;
 }
 
-if (verified === `2`)
+switch (verified)
 {
-    document.querySelector(`#verified`).innerHTML += `Staff Member`;
-    document.querySelector(`#paymentThings`).style.display = `none`;
+    case VER_STATUS.STAFF_MEMBER: {
+        document.querySelector(`#verified`).innerHTML += `Staff Member`;
+        document.querySelector(`#paymentThings`).style.display = `none`;
 
-    // add menu option to staff portal in #profileDropdown
-    const hr = document.createElement(`hr`);
-    hr.classList.add(`dropdown-divider`);
-    document.querySelector(`#profileDropdown`).prepend(hr);
-    const staffPortal = document.createElement(`a`);
-    staffPortal.classList.add(`dropdown-item`);
-    staffPortal.href = `/staff`;
-    staffPortal.innerHTML = `Staff Portal`;
-    document.querySelector(`#profileDropdown`).prepend(staffPortal);
-}
-else if (verified === `1`)
-    document.querySelector(`#verified`).innerHTML += `Verified`;
-else
-    document.querySelector(`#verified`).style.display = `none`;
+        // add menu option to staff portal in #profileDropdown
+        const hr = document.createElement(`hr`);
+        hr.classList.add(`dropdown-divider`);
+        document.querySelector(`#profileDropdown`).prepend(hr);
+        const staffPortal = document.createElement(`a`);
+        staffPortal.classList.add(`dropdown-item`);
+        staffPortal.href = `/staff`;
+        staffPortal.innerHTML = `Staff Portal`;
+        document.querySelector(`#profileDropdown`).prepend(staffPortal);
 
-if (verified === `-3`)
-{
-    document.querySelector(`#bugUserToVerify`).style.display = `block`;
-    document.querySelector(`#paymentThings`).style.display = `none`;
-    document.querySelector(`#viewMyProfileButton`).classList.add(`disabled`);
+        break;
+    }
+    case VER_STATUS.VERIFIED_MEMBER: {
+        document.querySelector(`#verified`).innerHTML += `Verified`;
+        break;
+    }
+    case VER_STATUS.AWAITING_VERIFICATION: {
+        document.querySelector(`#bugUserToVerify`).style.display = `block`;
+        document.querySelector(`#paymentThings`).style.display = `none`;
+        document.querySelector(`#viewMyProfileButton`).classList.add(`disabled`);
+
+        break;
+    }
+    default: {
+        document.querySelector(`#verified`).style.display = `none`;
+        break;
+    }
 }
 
 /**

@@ -15,6 +15,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const sql = new SQLite(`./src/db.sqlite`);
 
+const VER_STATUS = {
+    STAFF_MEMBER: 2,
+    VERIFIED_MEMBER: 1,
+    MEMBER: 0,
+    SUSPENDED: -1,
+    SHADOW_USER: -2,
+    AWAITING_VERIFICATION: -3
+};
+
 /**
  * initial setup process and token validation
  */
@@ -447,7 +456,7 @@ async function run()
             return response.redirect(`/edit?message=Token expired.&type=error`);
         }
         sql.prepare(`DELETE FROM emailActivations WHERE token = ?`).run(token);
-        if (user.verified === -3)
+        if (user.verified === VER_STATUS.AWAITING_VERIFICATION)
             sql.prepare(`UPDATE users SET verified = ? WHERE username = ?`).run(`0`, tokenData.username);
         return response.redirect(`/login?message=Email verified.&type=success`);
     });
@@ -592,38 +601,25 @@ async function run()
 
     app.get(`/edit`, checkAuthenticated, (request, response, next) =>
     {
-        const ourImage = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
-        const userEmail = request.user;
-        let username = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail);
-        if (!username)
+        const userAuth = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(request.user);
+        if (!userAuth)
         {
             logoutUser(request, response, next);
             return response.redirect(`/login?message=An error occurred.&type=error`);
         }
-        username = username.username;
-        const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
-        const displayName = user.displayName;
-        const bio = user.bio;
-        const image = user.image;
-        const links = JSON.parse(user.links);
-        const linkNames = JSON.parse(user.linkNames);
-        const paid = Boolean(user.paid);
-        const subExpires = user.subExpires;
-        const verified = user.verified;
-        const theme = user.theme;
-        const advancedTheme = user.advancedTheme;
-        let ageGated = user.ageGated;
-        ageGated = ageGated === `1` ? `checked` : ``;
 
-        if (verified === -1)
+        const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userAuth.username);
+        if (user.verified === VER_STATUS.SUSPENDED)
         {
             logoutUser(request, response, next);
             return response.redirect(`/login?message=Your account has been suspended. Please contact support.&type=error`);
         }
 
+        const advancedTheme = user.advancedTheme;
+
         let backgroundColor = `#ffffff`;
         let textColor = `#000000`;
-        let borderColor = `#fffff`;
+        let borderColor = `#ffffff`;
         if (advancedTheme.includes(`style`))
         {
             backgroundColor = advancedTheme.split(`--background-color: `)[1].split(`;`)[0];
@@ -632,23 +628,23 @@ async function run()
         }
 
         response.render(`edit.ejs`, {
-            username,
-            displayName,
-            bio,
-            image,
-            links,
-            linkNames,
-            paid,
-            subExpires,
-            verified,
-            ourImage,
-            theme,
+            username: user.username,
+            displayName: user.displayName,
+            bio: user.bio,
+            image: user.image,
+            links: JSON.parse(user.links),
+            linkNames: JSON.parse(user.linkNames),
+            paid: Boolean(user.paid),
+            subExpires: user.subExpires,
+            verified: user.verified,
+            ourImage: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`,
+            theme: user.theme,
             advancedTheme,
             themes,
             backgroundColor,
             textColor,
             borderColor,
-            ageGated,
+            ageGated: (user.ageGated === `1` ? `checked` : ``),
             projectName
         });
     });
@@ -666,9 +662,9 @@ async function run()
             }
             username = username.username;
             const isPaidUser = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).paid);
-            const isStaffMember = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === 2);
-            const isSuspended = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === -1);
-            const isNotEmailVerified = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === -3);
+            const isStaffMember = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === VER_STATUS.STAFF_MEMBER);
+            const isSuspended = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === VER_STATUS.SUSPENDED);
+            const isNotEmailVerified = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === VER_STATUS.AWAITING_VERIFICATION);
 
             if (isSuspended || isNotEmailVerified)
                 return response.redirect(`/`);
@@ -1107,7 +1103,7 @@ async function run()
                 const subExpires = user.subExpires;
                 if (subExpires.startsWith(`9999`))
                     return response.redirect(`/staff`);
-                if (timeToExtendInMonths === `-1`)
+                if (timeToExtendInMonths === `-1`) // unlimited paid subscription
                     sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(`9999-01-01`, usernameToTakeActionOn);
                 else
                 {
@@ -1247,12 +1243,12 @@ async function run()
             const advancedTheme = user.advancedTheme;
             const ageGated = user.ageGated;
 
-            if (verified === -1 || verified === -3)
+            if (verified === VER_STATUS.SUSPENDED || verified === VER_STATUS.AWAITING_VERIFICATION)
             {
                 response.status(404);
                 return response.redirect(`/`);
             }
-            if (verified === -2)
+            if (verified === VER_STATUS.SHADOW_USER)
             {
                 response.status(302);
                 return response.redirect(`/${ displayName }`);
@@ -1388,7 +1384,7 @@ function checkAuthenticatedStaff(request, response, next)
         }
         username = username.username;
         const userProfile = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
-        if (request.isAuthenticated() && userProfile.verified === 2)
+        if (request.isAuthenticated() && userProfile.verified === VER_STATUS.STAFF_MEMBER)
             return next();
         response.redirect(`/login`);
     }

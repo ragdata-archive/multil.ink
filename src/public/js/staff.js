@@ -26,7 +26,7 @@ for (let index = 0; index < numberOfUsers; index++)
     users.push({
         username: usernames.split(`,`)[index],
         email: emails.split(`,`)[index],
-        verified: verified.split(`,`)[index],
+        verified: Number.parseInt(verified.split(`,`)[index], 10),
         paid: paid.split(`,`)[index],
         subExpires: subExpires.split(`,`)[index],
         displayName: displayNames.split(`,`)[index],
@@ -49,25 +49,25 @@ for (let index = 0; index < numberOfUsers; index++)
     email.innerHTML = users[index].email;
     email.classList.add(`email`);
 
-    if (users[index].verified === `1`)
+    if (users[index].verified === VER_STATUS.VERIFIED_MEMBER)
         verifiedCell.innerHTML = `Yes`;
-    else if (users[index].verified === `2`)
+    else if (users[index].verified === VER_STATUS.STAFF_MEMBER)
         verifiedCell.innerHTML = `Staff Member`;
-    else if (users[index].verified === `0`)
+    else if (users[index].verified === VER_STATUS.MEMBER)
         verifiedCell.innerHTML = `No`;
-    else if (users[index].verified === `-1`)
+    else if (users[index].verified === VER_STATUS.SUSPENDED)
         verifiedCell.innerHTML = `Suspended`;
-    else if (users[index].verified === `-2`)
+    else if (users[index].verified === VER_STATUS.SHADOW_USER)
         verifiedCell.innerHTML = `Shadow Profile`;
-    else if (users[index].verified === `-3`)
+    else if (users[index].verified === VER_STATUS.AWAITING_VERIFICATION)
         verifiedCell.innerHTML = `Awaiting Email Verification`;
 
     if (users[index].paid === `1`)
         paidCell.innerHTML = `Yes`;
-    else if (users[index].paid === `0` && users[index].verified !== `-2`)
+    else if (users[index].paid === `0` && users[index].verified !== VER_STATUS.SHADOW_USER)
         paidCell.innerHTML = `No`;
 
-    if (users[index].verified !== `-2`)
+    if (users[index].verified !== VER_STATUS.SHADOW_USER)
         subExpiresCell.innerHTML = users[index].subExpires;
 
     username.setAttribute(`scope`, `row`);
@@ -87,12 +87,12 @@ for (let index = 0; index < numberOfUsers; index++)
         editButton.removeAttribute(`data-bs-toggle`);
         editButton.setAttribute(`onclick`, `window.location.href = '../edit'`);
     }
-    if (users[index].verified === `-2`)
+    if (users[index].verified === VER_STATUS.SHADOW_USER)
         editButton.setAttribute(`data-bs-target`, `#editShadowModal`);
 
     actions.append(editButton);
 
-    if (users[index].verified === `0` || users[index].verified === `-3`)
+    if (users[index].verified === VER_STATUS.MEMBER || users[index].verified === VER_STATUS.AWAITING_VERIFICATION)
     {
         const verifyButton = document.createElement(`button`);
         verifyButton.setAttribute(`class`, `btn btn-primary`);
@@ -104,7 +104,7 @@ for (let index = 0; index < numberOfUsers; index++)
 
         actions.append(verifyButton);
     }
-    else if (users[index].verified === `1`)
+    else if (users[index].verified === VER_STATUS.VERIFIED_MEMBER)
     {
         const unverifyButton = document.createElement(`button`);
         unverifyButton.setAttribute(`class`, `btn btn-secondary`);
@@ -126,7 +126,7 @@ for (let index = 0; index < numberOfUsers; index++)
 
         actions.append(promoteButton);
     }
-    else if (users[index].verified === `2`)
+    else if (users[index].verified === VER_STATUS.STAFF_MEMBER)
     {
         const demoteButton = document.createElement(`button`);
         demoteButton.setAttribute(`class`, `btn btn-warning`);
@@ -138,7 +138,7 @@ for (let index = 0; index < numberOfUsers; index++)
 
         actions.append(demoteButton);
     }
-    else if (users[index].verified === `-1`)
+    else if (users[index].verified === VER_STATUS.SUSPENDED)
     {
         const unsuspendButton = document.createElement(`button`);
         unsuspendButton.setAttribute(`class`, `btn btn-success`);
@@ -151,7 +151,8 @@ for (let index = 0; index < numberOfUsers; index++)
         actions.append(unsuspendButton);
     }
 
-    if (users[index].verified !== `-1` && users[index].verified !== `2` && users[index].verified !== `-2` && users[index].verified !== `-3`)
+    if (users[index].verified !== VER_STATUS.SUSPENDED && users[index].verified !== VER_STATUS.STAFF_MEMBER
+        && users[index].verified !== VER_STATUS.SHADOW_USER && users[index].verified !== VER_STATUS.AWAITING_VERIFICATION)
     {
         const suspendButton = document.createElement(`button`);
         suspendButton.setAttribute(`class`, `btn btn-danger`);
@@ -164,7 +165,8 @@ for (let index = 0; index < numberOfUsers; index++)
         actions.append(suspendButton);
     }
 
-    if (users[index].verified === `-1` || users[index].verified === `-2` || users[index].verified === `-3`)
+    if (users[index].verified === VER_STATUS.SUSPENDED || users[index].verified === VER_STATUS.SHADOW_USER
+        || users[index].verified === VER_STATUS.AWAITING_VERIFICATION)
     {
         const deleteButton = document.createElement(`button`);
         deleteButton.setAttribute(`class`, `btn btn-danger`);
@@ -177,7 +179,8 @@ for (let index = 0; index < numberOfUsers; index++)
         actions.append(deleteButton);
     }
 
-    if (users[index].verified !== `2` && users[index].verified !== `-1` && users[index].verified !== `-2` && users[index].verified !== `-3`)
+    if (users[index].verified !== VER_STATUS.STAFF_MEMBER && users[index].verified !== VER_STATUS.SUSPENDED
+        && users[index].verified !== VER_STATUS.SHADOW_USER && users[index].verified !== VER_STATUS.AWAITING_VERIFICATION)
     {
         let extendClass = `btn btn-primary dropdown-toggle`;
         if (users[index].username === myUsername || users[index].subExpires.startsWith(`9999`))

@@ -11,9 +11,9 @@ paid = (paid === `true`);
 if (!paid)
     document.querySelector(`.ad`).style.display = `block`;
 
-if (verified === `2`)
+if (verified === VER_STATUS.STAFF_MEMBER)
     document.querySelector(`#verifiedBadgeStaff`).style.display = `block`;
-else if (verified === `1`)
+else if (verified === VER_STATUS.VERIFIED_MEMBER)
     document.querySelector(`#verifiedBadge`).style.display = `block`;
 
 let linksArray = links.split(`,`);

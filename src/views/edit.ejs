@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <script src="../js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="../css/uppy.min.css">
+    <script src="js/common.js"></script>
 
     <link rel="stylesheet" href="css/edit.css">
     <link rel="icon" type="image/png" href="<%=ourImage%>">
@@ -290,7 +291,7 @@
         const links = "<%=links%>";
         const linksNames = "<%=linkNames%>";
         let paid = "<%=paid%>";
-        const verified = `<%=verified%>`;
+        const verified = Number.parseInt("<%=verified%>", 10);
 
         let themes = `<%=themes%>`;
         themes = themes.split(",");
