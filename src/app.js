@@ -770,12 +770,15 @@ async function run()
                             if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
                             {
                                 const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).stripeCID;
-                                await Stripe.customers.update(
-                                    stripeCID,
-                                    {
-                                        email: newEmail,
-                                    }
-                                );
+                                if (stripeCID)
+                                {
+                                    await Stripe.customers.update(
+                                        stripeCID,
+                                        {
+                                            email: newEmail,
+                                        }
+                                    );
+                                }
                             }
 
                             sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userUsername);
@@ -1017,12 +1020,15 @@ async function run()
                             if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
                             {
                                 const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userToEdit).stripeCID;
-                                await Stripe.customers.update(
-                                    stripeCID,
-                                    {
-                                        email: newEmail,
-                                    }
-                                );
+                                if (stripeCID)
+                                {
+                                    await Stripe.customers.update(
+                                        stripeCID,
+                                        {
+                                            email: newEmail,
+                                        }
+                                    );
+                                }
                             }
                             sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userToEdit);
                         }
@@ -1088,7 +1094,8 @@ async function run()
                 if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
                 {
                     const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(usernameToTakeActionOn).stripeCID;
-                    await Stripe.customers.del(stripeCID);
+                    if (stripeCID)
+                        await Stripe.customers.del(stripeCID);
                 }
                 sql.prepare(`DELETE FROM users WHERE username = ?`).run(usernameToTakeActionOn);
                 sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(usernameToTakeActionOn);
@@ -1167,7 +1174,8 @@ async function run()
             if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
             {
                 const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(username).stripeCID;
-                await Stripe.customers.del(stripeCID);
+                if (stripeCID)
+                    await Stripe.customers.del(stripeCID);
             }
             sql.prepare(`DELETE FROM users WHERE username = ?`).run(username);
             sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(username);
@@ -1489,7 +1497,8 @@ async function deleteExpiredTokens(Stripe)
             if (Stripe)
             {
                 const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(token.username).stripeCID;
-                await Stripe.customers.del(stripeCID);
+                if (stripeCID)
+                    await Stripe.customers.del(stripeCID);
             }
             sql.prepare(`DELETE FROM emailActivations WHERE token = ?`).run(token.token);
             // delete their account

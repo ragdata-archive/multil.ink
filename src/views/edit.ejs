@@ -140,7 +140,6 @@
             </div>
         </form>
 
-
         <div class="modal fade" id="changeEmailModal" tabindex="-1" role="dialog"
             aria-labelledby="changeEmailModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
@@ -152,7 +151,8 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form id="changeEmailForm">
+                        <form id="changeEmailForm"
+                            onsubmit="changeEmail(`${document.getElementById('modal-email').value}`, `${document.getElementById('modal-new-email').value}`, `${document.getElementById('modal-password').value}`); return false;">
                             <div class="form-group">
                                 <input type="email" class="form-control modalInput" id="modal-email" maxlength="512"
                                     required placeholder="Old Email">
@@ -165,13 +165,12 @@
                                 <input type="password" class="form-control modalInput" id="modal-password"
                                     maxlength="1024" required placeholder="Password">
                             </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Save
+                                    Changes</button>
+                            </div>
                         </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary"
-                            onclick="changeEmail(`${document.getElementById('modal-email').value}`, `${document.getElementById('modal-new-email').value}`, `${document.getElementById('modal-password').value}`);">Save
-                            Changes</button>
                     </div>
                 </div>
             </div>
@@ -188,7 +187,8 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form id="changePasswordForm">
+                        <form id="changePasswordForm"
+                            onsubmit="changePassword(`${document.getElementById('modal-old-password').value}`, `${document.getElementById('modal-new-password').value}`, `${document.getElementById('modal-new-password2').value}`); return false;">
                             <div class="form-group">
                                 <input type="password" class="form-control modalInput" id="modal-old-password"
                                     maxlength="1024" required placeholder="Old Password">
@@ -201,13 +201,12 @@
                                 <input type="password" class="form-control modalInput" id="modal-new-password2"
                                     maxlength="1024" required placeholder="New Password Again">
                             </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Save
+                                    Changes</button>
+                            </div>
                         </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary"
-                            onclick="changePassword(`${document.getElementById('modal-old-password').value}`, `${document.getElementById('modal-new-password').value}`, `${document.getElementById('modal-new-password2').value}`);">Save
-                            Changes</button>
                     </div>
                 </div>
             </div>
@@ -224,20 +223,20 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form id="deleteAccountForm">
+                        <form id="deleteAccountForm"
+                            onsubmit="deleteAccount(`${document.getElementById('modal-delete-password').value}`); return false;">
                             <div class="form-group">
                                 <input type="password" class="form-control modalInput" id="modal-delete-password"
                                     maxlength="1024" required placeholder="Password">
                             </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-danger">Yes,
+                                    delete
+                                    my
+                                    account</button>
+                            </div>
                         </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-danger"
-                            onclick="deleteAccount(`${document.getElementById('modal-delete-password').value}`);">Yes,
-                            delete
-                            my
-                            account</button>
                     </div>
                 </div>
             </div>
@@ -254,7 +253,8 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form id="changeUsernameForm">
+                        <form id="changeUsernameForm"
+                            onsubmit="changeUsername(`${document.getElementById('modal-change-username').value}`, `${document.getElementById('modal-cu-password').value}`); return false;">
                             <div class="form-group">
                                 <input type="text" class="form-control modalInput" id="modal-change-username"
                                     maxlength="60" required placeholder="New Username">
@@ -263,13 +263,12 @@
                                 <input type="password" class="form-control modalInput" id="modal-cu-password"
                                     maxlength="1024" required placeholder="Password">
                             </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Save
+                                    Changes</button>
+                            </div>
                         </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary"
-                            onclick="changeUsername(`${document.getElementById('modal-change-username').value}`, `${document.getElementById('modal-cu-password').value}`);">Save
-                            Changes</button>
                     </div>
                 </div>
             </div>

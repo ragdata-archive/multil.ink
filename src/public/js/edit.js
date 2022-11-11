@@ -314,7 +314,7 @@ async function deleteAccount(password)
  */
 async function changeEmail(oldEmailGuess, newEmail, password)
 {
-    if ((oldEmailGuess !== oldEmail) || (newEmail === oldEmail) || (newEmail.length > 512))
+    if ((newEmail === oldEmailGuess) || (newEmail.length > 512))
         return;
 
     const regexEmail = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;

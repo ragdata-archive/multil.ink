@@ -134,3 +134,12 @@ button.close {
         width: 100%;
     }
 }
+
+.modal-footer {
+    margin-bottom: 0;
+    margin-top: 20px;
+}
+
+.modal-footer button {
+    margin-top: 10px;
+}
