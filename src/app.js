@@ -1341,7 +1341,7 @@ async function initSetup()
     }
 
     fs.copyFileSync(`./src/config.json.example`, `./src/config.json`);
-    const config = require(`./src/config.json`);
+    const config = require(`./config.json`);
 
     let sessionSecret = ``;
     const possible = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`;
