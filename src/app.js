@@ -1134,7 +1134,7 @@ async function run()
                     return response.redirect(`/staff`);
 
                 sql.prepare(`INSERT INTO users (username, displayName, bio, image, links, linkNames, verified, paid, subExpires, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, redirectTo, ``, ``, `[]`, `[]`, `-2`, `0`, ``, ``, ``, `0`);
-                sql.prepare(`INSERT INTO userAuth (username, password, email, stripeCID) VALUES (?, ?, ?)`).run(username, ``, ``, ``);
+                sql.prepare(`INSERT INTO userAuth (username, password, email, stripeCID) VALUES (?, ?, ?, ?)`).run(username, ``, ``, ``);
 
                 response.redirect(`/staff`);
                 break;
