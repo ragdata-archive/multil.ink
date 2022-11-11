@@ -22,3 +22,10 @@ if (type === `error`) type = `danger`;
 
 if (message && type)
     alert(message, type);
+
+const username = new URLSearchParams(window.location.search).get(`username`);
+if (username)
+{
+    document.querySelector(`#username`).value = username;
+    document.querySelector(`#email`).focus();
+}

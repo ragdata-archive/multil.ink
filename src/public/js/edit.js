@@ -39,19 +39,27 @@ window.addEventListener(`resize`, () =>
 function fixDropdown()
 {
     const dropdown = document.querySelector(`#navbar-list-4`);
+    const navbarBrand = document.querySelector(`#navbar-brand`);
+    const nav = document.querySelector(`nav`);
     // if mobile
-    if (window.innerWidth <= 580)
+    if (window.innerWidth <= 600)
     {
         dropdown.classList.remove(`dropstart`);
         dropdown.classList.add(`dropdown`);
         // since its now a dropdown, the margin doesn't make any sense as we want it to be centered
         dropdown.style = `flex-grow: 0`;
+        navbarBrand.style.display = `none`;
+        nav.classList.add(`justify-content-center`);
+        nav.classList.remove(`justify-content-between`);
     }
     else
     {
         dropdown.classList.add(`dropstart`);
         dropdown.classList.remove(`dropdown`);
         dropdown.style = `flex-grow:0; margin-right: 15px;`;
+        navbarBrand.style.display = `flex`;
+        nav.classList.remove(`justify-content-center`);
+        nav.classList.add(`justify-content-between`);
     }
 }
 

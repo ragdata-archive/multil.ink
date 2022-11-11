@@ -155,7 +155,7 @@ async function run()
     app.get(`/`, (request, response) =>
     {
         response.render(`index.ejs`, {
-            projectName, projectDescription, image: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`
+            projectName, projectDescription, image: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`, isLoggedIn: request.isAuthenticated()
         });
     });
 
@@ -228,7 +228,8 @@ async function run()
                 `resetpassword`,
                 `upgrade`,
                 `downgrade`,
-                `webhook`
+                `webhook`,
+                `report`
             ];
             if (bannedUsernames.includes(username))
                 return response.redirect(`/register?message=That username is not available.&type=error`);
