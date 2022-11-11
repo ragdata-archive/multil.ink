@@ -42,6 +42,32 @@ async function run()
         hcaptchaSiteKey, hcaptchaSecret
     } = require(`./config.json`);
 
+    const bannedUsernames = new Set([
+        `css`,
+        `js`,
+        `img`,
+        `webfonts`,
+        `login`,
+        `register`,
+        `logout`,
+        `edit`,
+        `delete`,
+        `staff`,
+        `tos`,
+        `privacy`,
+        `verifyemail`,
+        `resendactivationemail`,
+        `forgotpassword`,
+        `resetpassword`,
+        `upgrade`,
+        `downgrade`,
+        `webhook`,
+        `report`,
+        `jane`, // used in example screenshots
+        `john`, // used in example screenshots
+        `jason`, // used in example screenshots
+    ]);
+
     const themes = [];
     const files = fs.readdirSync(`./src/public/css/`);
     for (const file of files)
@@ -205,32 +231,7 @@ async function run()
                 return response.redirect(`/register?message=Please fill out the captcha.&type=error`);
             }
             const username = request.body.username.toLowerCase().trim().slice(0, 60);
-            const bannedUsernames = [
-                `css`,
-                `js`,
-                `img`,
-                `webfonts`,
-                `login`,
-                `register`,
-                `logout`,
-                `edit`,
-                `delete`,
-                `staff`,
-                `tos`,
-                `privacy`,
-                `verifyemail`,
-                `resendactivationemail`,
-                `forgotpassword`,
-                `resetpassword`,
-                `upgrade`,
-                `downgrade`,
-                `webhook`,
-                `report`,
-                `jane`, // used in example screenshots
-                `john`, // used in example screenshots
-                `jason`, // used in example screenshots
-            ];
-            if (bannedUsernames.includes(username))
+            if (bannedUsernames.has(username))
                 return response.redirect(`/register?message=That username is not available.&type=error`);
 
             // if username is not A-Z, a-z, 0-9, bail.
@@ -830,7 +831,7 @@ async function run()
             }
             case `changeUsername`: {
                 const urlParameters = new URLSearchParams(request.query);
-                const newUsername = urlParameters.get(`username`).trim();
+                const newUsername = urlParameters.get(`username`).trim().toLowerCase().slice(0, 60);
                 const password = urlParameters.get(`password`).trim();
                 const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
                 const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
@@ -851,7 +852,7 @@ async function run()
                             lastChangeDate = new Date(lastChangeDate);
                             const timeSinceLastChange = Date.now() - lastChangeDate;
                             const currentDate = new Date(Date.now()).toISOString().slice(0, 10);
-                            if (timeSinceLastChange > 7_776_000_000 || isPaidUser) // 3 months
+                            if ((timeSinceLastChange > 7_776_000_000 || isPaidUser) && !bannedUsernames.has(newUsername)) // 3 months
                             {
                                 sql.prepare(`UPDATE userAuth SET username = ? WHERE username = ?`).run(newUsername, userUsername);
                                 sql.prepare(`UPDATE users SET username = ?, lastUsernameChange = ? WHERE username = ?`).run(newUsername, currentDate, userUsername);
@@ -1007,10 +1008,10 @@ async function run()
                     {
                         if (value === ``)
                             continue;
-                        const newUsername = value;
+                        const newUsername = value.trim().toLowerCase().slice(0, 60);
                         // ensure new username is not already taken
                         const usernameExists = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(newUsername);
-                        if (!usernameExists)
+                        if (!usernameExists && !bannedUsernames.has(newUsername))
                         {
                             sql.prepare(`UPDATE users SET username = ? WHERE username = ?`).run(newUsername, userToEdit);
                             sql.prepare(`UPDATE userAuth SET username = ? WHERE username = ?`).run(newUsername, userToEdit);
