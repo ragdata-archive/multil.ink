@@ -5,6 +5,10 @@
     text-transform: lowercase;
 }
 
+body {
+    overflow-x: hidden;
+}
+
 .hero {
     width: 100vw;
     height: 100vh;
