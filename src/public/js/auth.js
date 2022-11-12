@@ -29,3 +29,22 @@ if (username)
     document.querySelector(`#username`).value = username;
     document.querySelector(`#email`).focus();
 }
+
+// on submit of a form, try and disable the submit button to prevent double submits
+for (const form of document.querySelectorAll(`form`))
+{
+    form.addEventListener(`submit`, () =>
+    {
+        for (const button of form.querySelectorAll(`button[type=submit]`))
+        {
+            button.disabled = true;
+            button.classList.add(`disabled`);
+        }
+        // also do this for any input buttons submit
+        for (const button of form.querySelectorAll(`input[type=submit]`))
+        {
+            button.disabled = true;
+            button.classList.add(`disabled`);
+        }
+    });
+}

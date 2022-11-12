@@ -1003,8 +1003,7 @@ async function run()
                 {
                     if (key === `username`)
                         continue;
-
-                    if (key === `newUsername`)
+                    else if (key === `newUsername`)
                     {
                         if (value === ``)
                             continue;
@@ -1017,23 +1016,18 @@ async function run()
                             sql.prepare(`UPDATE userAuth SET username = ? WHERE username = ?`).run(newUsername, userToEdit);
                         }
                     }
-
-                    if (key === `bio` && value === ``)
+                    else if (key === `bio` && value === ``)
                         sql.prepare(`UPDATE users SET bio = ? WHERE username = ?`).run(`No bio yet.`, userToEdit);
-
-                    if (key === `image` && value === ``)
+                    else if (key === `image` && value === ``)
                         sql.prepare(`UPDATE users SET image = ? WHERE username = ?`).run(`${ request.protocol }://${ request.get(`host`) }/img/person.png`, userToEdit);
-
-                    if (key === `displayName` && value === ``)
+                    else if (key === `displayName` && value === ``)
                         continue;
-
-                    if ((key === `links` && value === ``) || (key === `linkNames` && value === ``))
+                    else if ((key === `links` && value === ``) || (key === `linkNames` && value === ``))
                     {
                         sql.prepare(`UPDATE users SET links = ? WHERE username = ?`).run(`[]`, userToEdit);
                         sql.prepare(`UPDATE users SET linkNames = ? WHERE username = ?`).run(`[]`, userToEdit);
                     }
-
-                    if (key === `email`)
+                    else if (key === `email`)
                     {
                         if (value === ``)
                             continue;
@@ -1058,15 +1052,13 @@ async function run()
                             sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userToEdit);
                         }
                     }
-
-                    if (key === `ageGated`)
+                    else if (key === `ageGated`)
                     {
                         if (value === `true`)
                             sql.prepare(`UPDATE users SET ageGated = ? WHERE username = ?`).run(`1`, userToEdit);
                         else if (value === `false`)
                             sql.prepare(`UPDATE users SET ageGated = ? WHERE username = ?`).run(`0`, userToEdit);
                     }
-
                     else
                         sql.prepare(`UPDATE users SET ${ key } = ? WHERE username = ?`).run(value, userToEdit);
                 }

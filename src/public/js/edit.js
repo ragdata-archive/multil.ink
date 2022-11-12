@@ -433,3 +433,22 @@ document.querySelector(`#themeOptions`).addEventListener(`change`, showHideColor
 
 updateCSS(); // just on page load also update the finalCSS.
 showHideColorPickers(); // same as above
+
+// on submit of a form, try and disable the submit button to prevent double submits
+for (const form of document.querySelectorAll(`form`))
+{
+    form.addEventListener(`submit`, () =>
+    {
+        for (const button of form.querySelectorAll(`button[type=submit]`))
+        {
+            button.disabled = true;
+            button.classList.add(`disabled`);
+        }
+        // also do this for any input buttons submit
+        for (const button of form.querySelectorAll(`input[type=submit]`))
+        {
+            button.disabled = true;
+            button.classList.add(`disabled`);
+        }
+    });
+}

@@ -434,18 +434,6 @@ function prepareUserEdit()
 }
 
 /**
- * @name shadowUserEdit
- * @description Change redirect URL
- * @param {string} username The shadow profile to update
- */
-function shadowUserEdit(username)
-{
-    const newRedirect = document.querySelector(`#modal-edit-shadow-displayName`).value;
-    const dataToSend = `?username=${ username }&displayName=${ newRedirect }`;
-    window.location.href = `/staff/editUser${ dataToSend }`;
-}
-
-/**
  * @name sendUserEdit
  * @description Sends the user edit data to the server.
  * @param {string} oldUsername The old username of the user
@@ -484,7 +472,7 @@ function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, 
     links = links.replace(/ /g, ``);
     links = links.replace(/\r/g, ``);
     links = links.replace(/\n/g, ``);
-    linkNames = linkNames.replace(/ /g, ``);
+    linkNames = linkNames.replace(/ {2}/g, ``);
     linkNames = linkNames.replace(/\r/g, ``);
     linkNames = linkNames.replace(/\n/g, ``);
 
@@ -494,12 +482,25 @@ function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, 
     if (linkNames !== user.linkNames)
         dataToSend += `&linkNames=${ linkNames }`;
 
-    if (newUsername !== user.username)
-        dataToSend += `&newUsername=${ newUsername }`;
-
     if (ageGated !== user.ageGated)
         dataToSend += `&ageGated=${ ageGated }`;
 
+    // ! This should always be the last thing we check.
+    if (newUsername !== user.username)
+        dataToSend += `&newUsername=${ newUsername }`;
+
+    window.location.href = `/staff/editUser${ dataToSend }`;
+}
+
+/**
+ * @name shadowUserEdit
+ * @description Change redirect URL
+ * @param {string} username The shadow profile to update
+ */
+function shadowUserEdit(username)
+{
+    const newRedirect = document.querySelector(`#modal-edit-shadow-displayName`).value;
+    const dataToSend = `?username=${ username }&displayName=${ newRedirect }`;
     window.location.href = `/staff/editUser${ dataToSend }`;
 }
 
@@ -559,4 +560,23 @@ function prepareShadowCreation()
         return;
 
     window.location.href = `/staff/createShadowUser?username=${ userToCreate }&redirect=${ userToRedirectTo }`;
+}
+
+// on submit of a form, try and disable the submit button to prevent double submits
+for (const form of document.querySelectorAll(`form`))
+{
+    form.addEventListener(`submit`, () =>
+    {
+        for (const button of form.querySelectorAll(`button[type=submit]`))
+        {
+            button.disabled = true;
+            button.classList.add(`disabled`);
+        }
+        // also do this for any input buttons submit
+        for (const button of form.querySelectorAll(`input[type=submit]`))
+        {
+            button.disabled = true;
+            button.classList.add(`disabled`);
+        }
+    });
 }

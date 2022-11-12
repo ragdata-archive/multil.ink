@@ -68,7 +68,6 @@
             <div class="tableNav"></div>
             </div>
 
-
             <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
                 aria-hidden="true">
                 <div class="modal-dialog" role="document">
@@ -80,7 +79,7 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                            <form>
+                            <form onsubmit="prepareUserEdit(); return false;">
                                 <div class="form-group">
                                     <label for="modal-username" class="col-form-label">Username:</label>
                                     <input type="text" class="form-control" id="modal-username" maxlength="60" required>
@@ -123,12 +122,13 @@
                                         onclick="document.getElementById('modal-links').value = `[]`; document.getElementById('modal-linkNames').value = `[]`; document.getElementById('modal-links').rows = 2; document.getElementById('modal-linkNames').rows = 2;">Remove
                                         All Links</button>
                                 </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Save
+                                        Changes</button>
+                                </div>
                             </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary" onclick="prepareUserEdit();">Save
-                                Changes</button>
                         </div>
                     </div>
                 </div>
@@ -145,7 +145,7 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                            <form>
+                            <form onsubmit="prepareShadowCreation(); return false;">
                                 <div class="form-group">
                                     <label for="modal-shadow-username" class="col-form-label">Username:</label>
                                     <input type="text" class="form-control" id="modal-shadow-username" maxlength="60"
@@ -156,12 +156,13 @@
                                     <input type="text" class="form-control" id="modal-shadow-redirect" maxlength="60"
                                         required>
                                 </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Save
+                                        Changes</button>
+                                </div>
                             </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary" onclick="prepareShadowCreation();">Save
-                                Changes</button>
                         </div>
                     </div>
                 </div>
@@ -178,20 +179,21 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                            <form>
+                            <form
+                                onsubmit="shadowUserEdit(`${document.getElementById(`editShadowModalLabel`).innerText.split(`: `)[1]}`); return false;">
                                 <div class="form-group">
                                     <label for="modal-edit-shadow-displayName" class="col-form-label">Redirect
                                         To:</label>
                                     <input class="form-control" id="modal-edit-shadow-displayName" required
                                         maxlength="60"></input>
                                 </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Save
+                                        Changes</button>
+                                </div>
                             </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary"
-                                onclick="shadowUserEdit(`${document.getElementById(`editShadowModalLabel`).innerText.split(`: `)[1]}`);">Save
-                                Changes</button>
                         </div>
                     </div>
                 </div>
