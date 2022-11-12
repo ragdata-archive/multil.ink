@@ -26,7 +26,7 @@ node . # or: pm2 start npm --name "multilink" -- start
 
 ## Documentation
 
-### Adding Font Awesome Icons
+### Mapping Font Awesome Icons to URLs
 1. Find the icon you want to use on [Font Awesome](https://fontawesome.com/v5/cheatsheet/free/brands).
 2. Add the class in `./src/public/js/profile.js` to `faBrandsList`.
 3. Add the domain you want it to match to in `./src/public/js/profile.js` to `faBrandDomainList`.
@@ -39,3 +39,8 @@ node . # or: pm2 start npm --name "multilink" -- start
 
 ### Changing Custom Theme CSS
 1. Look in `./src/public/js/edit.js` for the `updateCSS` function.
+
+### Adding Default Themes
+1. Using `theme-dark.css` as a base, create a new CSS file in `./src/public/css/` with the name `theme-yourname.css` (all lowercase).
+
+Note: The theme name will have it's first letter capitalized and the rest of the name will be lowercased. (As an example, if your theme file is called `theme-bloodmoon.css`, the theme name will be `Bloodmoon`.)
