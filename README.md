@@ -21,7 +21,7 @@
 git clone https://github.com/multilinkhq/multil.ink.git
 cd multil.ink
 npm ci
-node .
+node . # or: pm2 start npm --name "multilink" -- start
 ```
 
 ## Documentation
