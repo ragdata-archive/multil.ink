@@ -9,6 +9,7 @@
     "projectName": "multil.ink",
     "projectDescription": "the simple and free to use social media landing page.",
     "dev": true,
+    "https": false,
     "hcaptchaSiteKey": "",
     "hcaptchaSecret": "",
     "emailSMTPHost": "",

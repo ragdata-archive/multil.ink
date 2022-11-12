@@ -39,7 +39,7 @@ async function run()
     } = require(`./config.json`);
 
     let {
-        hcaptchaSiteKey, hcaptchaSecret, discordWebhookURL
+        hcaptchaSiteKey, hcaptchaSecret, discordWebhookURL, https
     } = require(`./config.json`);
 
     if (dev)
@@ -48,7 +48,10 @@ async function run()
         hcaptchaSecret = `0x0000000000000000000000000000000000000000`;
         // ! comment out to allow webhooks to send on dev
         discordWebhookURL = ``;
+        https = false;
     }
+
+    https = https ? `https` : `http`;
 
     const bannedUsernames = new Set([
         `css`,
@@ -183,14 +186,14 @@ async function run()
     app.get(`/`, (request, response) =>
     {
         response.render(`index.ejs`, {
-            projectName, projectDescription, image: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`, isLoggedIn: request.isAuthenticated()
+            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, isLoggedIn: request.isAuthenticated()
         });
     });
 
     app.get(`/login`, checkNotAuthenticated, (request, response) =>
     {
         response.render(`login.ejs`, {
-            projectName, projectDescription, image: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
+            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
         });
     });
 
@@ -212,7 +215,7 @@ async function run()
     app.get(`/register`, checkNotAuthenticated, (request, response) =>
     {
         response.render(`register.ejs`, {
-            projectName, projectDescription, image: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
+            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
         });
     });
 
@@ -265,7 +268,7 @@ async function run()
                 stripeCID = customer.id;
             }
             sql.prepare(`INSERT INTO userAuth (username, email, password, stripeCID) VALUES (?, ?, ?, ?)`).run(username, email, hashedPassword, stripeCID);
-            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, `-3`, `0`, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ request.protocol }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`, `Light`, ``, `0`);
+            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, `-3`, `0`, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ https }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`, `Light`, ``, `0`);
 
             // If this is the first user, make them staff.
             const userCount = sql.prepare(`SELECT COUNT(*) FROM userAuth`).get();
@@ -280,8 +283,8 @@ async function run()
                         from: `"${ emailFromDisplayName }" <${ emailSMTPUser }>`,
                         to: `${ email }`,
                         subject: `Please verify your email`,
-                        text: `Please verify your email by clicking the link below:\n\n${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\n${ emailFromDisplayName }`,
-                        html: `<p>Please verify your email by clicking the link below:</p><p><a href="${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }">${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }</a></p><p>If you did not sign up for an account, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
+                        text: `Please verify your email by clicking the link below:\n\n${ https }://${ request.get(`host`) }/verifyemail?token=${ token }\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\n${ emailFromDisplayName }`,
+                        html: `<p>Please verify your email by clicking the link below:</p><p><a href="${ https }://${ request.get(`host`) }/verifyemail?token=${ token }">${ https }://${ request.get(`host`) }/verifyemail?token=${ token }</a></p><p>If you did not sign up for an account, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
                     });
                 }
 
@@ -337,8 +340,8 @@ async function run()
                             quantity: 1
                         },
                     ],
-                    success_url: `${ request.protocol }://${ request.get(`host`) }/upgrade?session_id={CHECKOUT_SESSION_ID}`,
-                    cancel_url: `${ request.protocol }://${ request.get(`host`) }/edit`
+                    success_url: `${ https }://${ request.get(`host`) }/upgrade?session_id={CHECKOUT_SESSION_ID}`,
+                    cancel_url: `${ https }://${ request.get(`host`) }/edit`
                 });
                 /* eslint-enable camelcase */
                 return response.redirect(session.url);
@@ -471,8 +474,8 @@ async function run()
                 from: `"${ emailFromDisplayName }" <${ emailSMTPUser }>`,
                 to: `${ userEmail }`,
                 subject: `Please verify your email`,
-                text: `Please verify your email by clicking the link below:\n\n${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\n${ emailFromDisplayName }`,
-                html: `<p>Please verify your email by clicking the link below:</p><p><a href="${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }">${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }</a></p><p>If you did not sign up for an account, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
+                text: `Please verify your email by clicking the link below:\n\n${ https }://${ request.get(`host`) }/verifyemail?token=${ token }\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\n${ emailFromDisplayName }`,
+                html: `<p>Please verify your email by clicking the link below:</p><p><a href="${ https }://${ request.get(`host`) }/verifyemail?token=${ token }">${ https }://${ request.get(`host`) }/verifyemail?token=${ token }</a></p><p>If you did not sign up for an account, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
             });
         }
 
@@ -483,7 +486,7 @@ async function run()
     app.get(`/forgotpassword`, (request, response) =>
     {
         response.render(`forgotpassword.ejs`, {
-            projectName, projectDescription, image: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
+            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
         });
     });
 
@@ -517,8 +520,8 @@ async function run()
                 from: `"${ emailFromDisplayName }" <${ emailSMTPUser }>`,
                 to: `${ email }`,
                 subject: `Password Reset`,
-                text: `Please reset your password by clicking the link below:\n\n${ request.protocol }://${ request.get(`host`) }/resetpassword?token=${ token }\n\nIf you did not request a password reset, please ignore this email.\n\nThanks,\n${ emailFromDisplayName }`,
-                html: `<p>Please reset your password by clicking the link below:</p><p><a href="${ request.protocol }://${ request.get(`host`) }/resetpassword?token=${ token }">${ request.protocol }://${ request.get(`host`) }/resetpassword?token=${ token }</a></p><p>If you did not request a password reset, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
+                text: `Please reset your password by clicking the link below:\n\n${ https }://${ request.get(`host`) }/resetpassword?token=${ token }\n\nIf you did not request a password reset, please ignore this email.\n\nThanks,\n${ emailFromDisplayName }`,
+                html: `<p>Please reset your password by clicking the link below:</p><p><a href="${ https }://${ request.get(`host`) }/resetpassword?token=${ token }">${ https }://${ request.get(`host`) }/resetpassword?token=${ token }</a></p><p>If you did not request a password reset, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
             });
         }
 
@@ -541,7 +544,7 @@ async function run()
             return response.redirect(`/forgotpassword?message=Token expired.&type=error`);
         }
         response.render(`resetpassword.ejs`, {
-            projectName, projectDescription, image: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey, token
+            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey, token
         });
     });
 
@@ -580,7 +583,7 @@ async function run()
     app.get(`/report`, (request, response) =>
     {
         response.render(`report.ejs`, {
-            projectName, projectDescription, image: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
+            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
         });
     });
 
@@ -651,7 +654,7 @@ async function run()
             paid: Boolean(user.paid),
             subExpires: user.subExpires,
             verified: user.verified,
-            ourImage: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`,
+            ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`,
             theme: user.theme,
             advancedTheme,
             themes,
@@ -901,7 +904,7 @@ async function run()
 
     app.get(`/staff`, checkAuthenticatedStaff, (request, response, next) =>
     {
-        const ourImage = `${ request.protocol }://${ request.get(`host`) }/img/logo.png`;
+        const ourImage = `${ https }://${ request.get(`host`) }/img/logo.png`;
         let myUsername = request.user;
         myUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(myUsername);
         if (!myUsername)
@@ -1047,7 +1050,7 @@ async function run()
                     else if (key === `bio` && value === ``)
                         sql.prepare(`UPDATE users SET bio = ? WHERE username = ?`).run(`No bio yet.`, userToEdit);
                     else if (key === `image` && value === ``)
-                        sql.prepare(`UPDATE users SET image = ? WHERE username = ?`).run(`${ request.protocol }://${ request.get(`host`) }/img/person.png`, userToEdit);
+                        sql.prepare(`UPDATE users SET image = ? WHERE username = ?`).run(`${ https }://${ request.get(`host`) }/img/person.png`, userToEdit);
                     else if (key === `displayName` && value === ``)
                         continue;
                     else if ((key === `links` && value === ``) || (key === `linkNames` && value === ``))
@@ -1267,21 +1270,21 @@ async function run()
     app.get(`/tos`, (request, response) =>
     {
         response.render(`tos.ejs`, {
-            projectName, projectDescription, ourImage: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`
+            projectName, projectDescription, ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`
         });
     });
 
     app.get(`/privacy`, (request, response) =>
     {
         response.render(`privacy.ejs`, {
-            projectName, projectDescription, ourImage: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`
+            projectName, projectDescription, ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`
         });
     });
 
     app.post(`/img`, uploadImage, checkAuthenticated, (request, response) =>
     {
         if (request.file)
-            return response.json({ url: `${ request.protocol }://${ request.get(`host`) }/img/ugc/${ request.file.filename }` });
+            return response.json({ url: `${ https }://${ request.get(`host`) }/img/ugc/${ request.file.filename }` });
         return response.send(`Image upload failed.`);
     });
 
@@ -1345,7 +1348,7 @@ async function run()
                 themeContent = `<link rel="stylesheet" href="css/theme-${ theme.toLowerCase() }.css">`;
 
             response.render(`profile.ejs`, {
-                username, displayName, bio, image, links, linkNames, paid, verified, ourImage: `${ request.protocol }://${ request.get(`host`) }/img/logo.png`, themeContent, ageGated, projectName
+                username, displayName, bio, image, links, linkNames, paid, verified, ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`, themeContent, ageGated, projectName
             });
         }
         else
