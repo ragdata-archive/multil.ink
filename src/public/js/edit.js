@@ -69,14 +69,10 @@ fixDropdown();
 function darkMode(dark)
 {
     if (dark === `dark`)
-
         document.querySelector(`.dropdown-menu`).classList.add(`dropdown-menu-dark`);
-    // document.querySelector(`.modal-content`).classList.add(`modal-content-dark`);
 
     else
-
         document.querySelector(`.dropdown-menu`).classList.remove(`dropdown-menu-dark`);
-    // document.querySelector(`.modal-content`).classList.remove(`modal-content-dark`);
 }
 
 window.matchMedia(`(prefers-color-scheme: dark)`).addEventListener(`change`, (event) =>
@@ -160,10 +156,10 @@ switch (verified)
  */
 function addLink(index, link, linkName)
 {
-    const linkDiv = document.createElement(`div`);
     if (index >= 50)
         return; // only can add 50 links
 
+    const linkDiv = document.createElement(`div`);
     if (index === 0)
     {
         const hrForMobile = document.createElement(`hr`);
@@ -300,7 +296,6 @@ async function deleteAccount(password)
             password,
         }),
     });
-    // logout();
     window.location.reload();
 }
 
@@ -435,11 +430,10 @@ function showHideColorPickers()
 document.querySelector(`#backgroundColor`).addEventListener(`change`, updateCSS);
 document.querySelector(`#textColor`).addEventListener(`change`, updateCSS);
 document.querySelector(`#borderColor`).addEventListener(`change`, updateCSS);
-
 document.querySelector(`#themeOptions`).addEventListener(`change`, showHideColorPickers);
 
-updateCSS(); // just on page load also update the finalCSS.
-showHideColorPickers(); // same as above
+updateCSS();
+showHideColorPickers();
 
 for (const form of document.querySelectorAll(`form`))
 {
