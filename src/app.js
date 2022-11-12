@@ -35,12 +35,20 @@ async function run()
         port, secret, linkWhitelist, freeLinks, projectName, projectDescription, dev,
         emailSMTPHost, emailSMTPPort, emailSMTPSecure, emailSMTPUser, emailSMTPPass, emailFromDisplayName,
         stripeSecretKey, stripeProductID, stripeCustomerPortalURL, stripeWebhookSigningSecret,
-        discordWebhookURL, reportEmail
+        reportEmail
     } = require(`./config.json`);
 
     let {
-        hcaptchaSiteKey, hcaptchaSecret
+        hcaptchaSiteKey, hcaptchaSecret, discordWebhookURL
     } = require(`./config.json`);
+
+    if (dev)
+    {
+        hcaptchaSiteKey = `10000000-ffff-ffff-ffff-000000000001`;
+        hcaptchaSecret = `0x0000000000000000000000000000000000000000`;
+        // ! comment out to allow webhooks to send on dev
+        discordWebhookURL = ``;
+    }
 
     const bannedUsernames = new Set([
         `css`,
@@ -78,12 +86,6 @@ async function run()
             themeName = themeName.charAt(0).toUpperCase() + themeName.slice(1);
             themes.push(themeName);
         }
-    }
-
-    if (dev)
-    {
-        hcaptchaSiteKey = `10000000-ffff-ffff-ffff-000000000001`;
-        hcaptchaSecret = `0x0000000000000000000000000000000000000000`;
     }
 
     sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT, theme TEXT, advancedTheme TEXT, ageGated TEXT)`).run();
@@ -290,7 +292,8 @@ async function run()
                         html: `<p>Please verify your email by clicking the link below:</p><p><a href="${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }">${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }</a></p><p>If you did not sign up for an account, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
                     });
                 }
-                // domain.tld/verifyemail?token=token
+
+                sendAuditLog(`|| ${ username } // ${ email } || registered for an account.`, discordWebhookURL);
                 return response.redirect(`/login?message=Account created. Please verify your email address, if you do not verify within 24 hours we will delete your account.&type=success`);
             }
 
@@ -410,20 +413,19 @@ async function run()
                         const staffCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = 2`).get()[`COUNT(*)`];
                         paidCount -= staffCount;
                         let content = ``;
-                        if (dev)
-                            content = `**[TEST]**\n`;
-                        content += `**${ userData.username }** has upgraded their account!\nWe now have **${ paidCount }** paid users.`;
-                        fetch(discordWebhookURL, {
-                            method: `POST`,
-                            headers: {
-                                'Content-Type': `application/json`
-                            },
-                            body: JSON.stringify({
-                                content
-                            })
-                        });
+                        content += `|| ${ userData.username } // ${ userData.email } || has upgraded their account!\nWe now have **${ paidCount }** paid users.`;
+                        await sendAuditLog(content, discordWebhookURL);
                     }
                 }
+            }
+            else if (event.type === `customer.subscription.updated`)
+            {
+                const userAuthData = sql.prepare(`SELECT * FROM userAuth WHERE stripeCID = ?`).get(data.customer);
+                if (data.cancel_at_period_end === true)
+                    sendAuditLog(`|| ${ userAuthData.username } // ${ userAuthData.email } || has cancelled their subscription.\nThey will lose pro perks on/around <t:${ data.current_period_end }>`, discordWebhookURL);
+
+                else if (data.status === `unpaid`)
+                    sendAuditLog(`|| ${ userAuthData.username } // ${ userAuthData.email } || has failed to pay their subscription.`, discordWebhookURL);
             }
 
             response.sendStatus(200);
@@ -452,6 +454,7 @@ async function run()
         sql.prepare(`DELETE FROM emailActivations WHERE token = ?`).run(token);
         if (user.verified === VER_STATUS.AWAITING_VERIFICATION)
             sql.prepare(`UPDATE users SET verified = ? WHERE username = ?`).run(`0`, tokenData.username);
+        sendAuditLog(`|| ${ user.username } // ${ tokenData.email } || activated their account.`, discordWebhookURL);
         return response.redirect(`/login?message=Email verified.&type=success`);
     });
 
@@ -488,7 +491,8 @@ async function run()
                 html: `<p>Please verify your email by clicking the link below:</p><p><a href="${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }">${ request.protocol }://${ request.get(`host`) }/verifyemail?token=${ token }</a></p><p>If you did not sign up for an account, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
             });
         }
-        // domain.tld/verifyemail?token=token
+
+        sendAuditLog(`|| ${ userData.username } // ${ userEmail } || requested a new email activation.`, discordWebhookURL);
         return response.redirect(`/edit?message=Email resent.&type=success`);
     });
 
@@ -535,7 +539,8 @@ async function run()
                 html: `<p>Please reset your password by clicking the link below:</p><p><a href="${ request.protocol }://${ request.get(`host`) }/resetpassword?token=${ token }">${ request.protocol }://${ request.get(`host`) }/resetpassword?token=${ token }</a></p><p>If you did not request a password reset, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
             });
         }
-        // domain.tld/resetpassword?token=token
+
+        sendAuditLog(`|| ${ userData.username } // ${ email } || requested a password reset.`, discordWebhookURL);
         return response.redirect(`/forgotpassword?message=Password reset email sent.&type=success`);
     });
 
@@ -586,6 +591,7 @@ async function run()
         const hash = await bcrypt.hash(password.slice(0, 128), 10);
         sql.prepare(`UPDATE userAuth SET password = ? WHERE email = ?`).run(hash, tokenData.email);
         sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token);
+        sendAuditLog(`|| ${ tokenData.username } // ${ tokenData.email } || reset their password.`, discordWebhookURL);
         return response.redirect(`/login?message=Password reset.&type=success`);
     });
 
@@ -619,6 +625,7 @@ async function run()
                 text: `New report form submission:\n\nEmail: ${ email }\nFull Name: ${ fullName }\nMessage: ${ message }`,
                 html: `<p>New report form submission:</p><p>Email: ${ email }</p><p>Full Name: ${ fullName }</p><p>Message: ${ message }</p>`
             });
+            sendAuditLog(`New report form submission. Please have the report administrator check their email.`, discordWebhookURL);
             return response.redirect(`/report?message=Your report has been received.&type=success`);
         }
         return response.redirect(`/report?message=An error occurred.&type=error`);
@@ -751,7 +758,54 @@ async function run()
             }
             updatedLinks = JSON.stringify(updatedLinks);
             updatedLinkNames = JSON.stringify(updatedLinkNames);
+            const currentUserInfo = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
             sql.prepare(`UPDATE users SET displayName = ?, bio = ?, image = ?, links = ?, linkNames = ?, theme = ?, advancedTheme = ?, ageGated = ? WHERE username = ?`).run(updatedDisplayName, updatedBio, updatedImage, updatedLinks, updatedLinkNames, theme, advancedTheme, ageGated, username);
+            let newProfileInfo = request.body;
+
+            // remove finalCSS from profileInfo
+            delete newProfileInfo.finalCSS;
+            // if theme isn't "Custom"
+            if (newProfileInfo.theme !== `Custom`)
+            {
+                delete newProfileInfo.backgroundColor;
+                delete newProfileInfo.textColor;
+                delete newProfileInfo.borderColor;
+            }
+
+            // compare newProfileInfo to currentUserInfo
+            if (newProfileInfo.theme === currentUserInfo.theme)
+                delete newProfileInfo.theme;
+            if (newProfileInfo.displayName === currentUserInfo.displayName)
+                delete newProfileInfo.displayName;
+            if (newProfileInfo.bio === currentUserInfo.bio)
+                delete newProfileInfo.bio;
+            if (newProfileInfo.image === currentUserInfo.image)
+                delete newProfileInfo.image;
+            if (updatedLinks !== currentUserInfo.links)
+                newProfileInfo.links = JSON.parse(updatedLinks);
+            if (updatedLinkNames !== currentUserInfo.linkNames)
+                newProfileInfo.linkNames = JSON.parse(updatedLinkNames);
+            // delete link${ index } and linkName${ index } from newProfileInfo
+            for (let index = 0; index < 50; index++)
+            {
+                if (newProfileInfo[`link${ index }`])
+                    delete newProfileInfo[`link${ index }`];
+                if (newProfileInfo[`linkName${ index }`])
+                    delete newProfileInfo[`linkName${ index }`];
+            }
+            newProfileInfo.ageGated = ageGated;
+            if (newProfileInfo.ageGated === `1` && currentUserInfo.ageGated === `1`)
+                delete newProfileInfo.ageGated;
+            if (newProfileInfo.ageGated === `0` && currentUserInfo.ageGated === `0`)
+                delete newProfileInfo.ageGated;
+            delete newProfileInfo.adultContent;
+
+            // if newProfileInfo is empty, redirect to profile
+            if (Object.keys(newProfileInfo).length > 0)
+            {
+                newProfileInfo = JSON.stringify(newProfileInfo, undefined, 4);
+                sendAuditLog(`|| ${ username } // ${ userEmail } || updated their profile with: \`\`\`json\n${ newProfileInfo }\n\`\`\``, discordWebhookURL);
+            }
 
             response.redirect(`/edit`);
         }
@@ -807,6 +861,7 @@ async function run()
                             }
 
                             sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userUsername);
+                            sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their email to || ${ newEmail } ||.`, discordWebhookURL);
                         }
                     }
                 }
@@ -825,6 +880,7 @@ async function run()
                 {
                     const hashedPassword = await bcrypt.hash(newPassword, 10);
                     sql.prepare(`UPDATE userAuth SET password = ? WHERE username = ?`).run(hashedPassword, userUsername);
+                    sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their password.`, discordWebhookURL);
                 }
                 response.redirect(`/edit`);
                 break;
@@ -856,6 +912,7 @@ async function run()
                             {
                                 sql.prepare(`UPDATE userAuth SET username = ? WHERE username = ?`).run(newUsername, userUsername);
                                 sql.prepare(`UPDATE users SET username = ?, lastUsernameChange = ? WHERE username = ?`).run(newUsername, currentDate, userUsername);
+                                sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their username to || ${ newUsername } ||.`, discordWebhookURL);
                             }
                         }
                     }
@@ -1062,6 +1119,7 @@ async function run()
                     else
                         sql.prepare(`UPDATE users SET ${ key } = ? WHERE username = ?`).run(value, userToEdit);
                 }
+                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || modified user || ${ userToEdit } || with: || ${ urlParameters } ||.`, discordWebhookURL);
 
                 response.redirect(`/staff`);
                 break;
@@ -1069,17 +1127,22 @@ async function run()
             case `verifyUser`: {
                 const verifiedLevel = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn).verified;
                 if (verifiedLevel === 0)
+                {
                     sql.prepare(`UPDATE users SET verified = 1 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || verified || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
+                }
                 else if (verifiedLevel === -3)
                 {
                     sql.prepare(`DELETE FROM emailActivations WHERE username = ?`).run(usernameToTakeActionOn);
                     sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || skipped email activation for || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
                 }
                 response.redirect(`/staff`);
                 break;
             }
             case `unverifyUser`: {
                 sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || unverified || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
                 response.redirect(`/staff`);
                 break;
             }
@@ -1087,6 +1150,7 @@ async function run()
                 sql.prepare(`UPDATE users SET verified = 2 WHERE username = ?`).run(usernameToTakeActionOn);
                 sql.prepare(`UPDATE users SET paid = 1 WHERE username = ?`).run(usernameToTakeActionOn);
                 sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(`9999-01-01`, usernameToTakeActionOn);
+                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || promoted || ${ usernameToTakeActionOn } || to Staff.`, discordWebhookURL);
                 response.redirect(`/staff`);
                 break;
             }
@@ -1094,16 +1158,19 @@ async function run()
                 sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
                 sql.prepare(`UPDATE users SET paid = 0 WHERE username = ?`).run(usernameToTakeActionOn);
                 sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(``, usernameToTakeActionOn);
+                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || demoted || ${ usernameToTakeActionOn } || from Staff.`, discordWebhookURL);
                 response.redirect(`/staff`);
                 break;
             }
             case `suspendUser`: {
                 sql.prepare(`UPDATE users SET verified = -1 WHERE username = ?`).run(usernameToTakeActionOn);
+                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || suspended || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
                 response.redirect(`/staff`);
                 break;
             }
             case `unsuspendUser`: {
                 sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || unsuspended || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
                 response.redirect(`/staff`);
                 break;
             }
@@ -1118,6 +1185,7 @@ async function run()
                 sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(usernameToTakeActionOn);
                 sql.prepare(`DELETE FROM emailActivations WHERE username = ?`).run(usernameToTakeActionOn);
                 sql.prepare(`DELETE FROM passwordResets WHERE username = ?`).run(usernameToTakeActionOn);
+                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || deleted || ${ usernameToTakeActionOn } ||'s account.`, discordWebhookURL);
                 response.redirect(`/staff`);
                 break;
             }
@@ -1127,17 +1195,21 @@ async function run()
                 const subExpires = user.subExpires;
                 if (subExpires.startsWith(`9999`))
                     return response.redirect(`/staff`);
+                let newSubExpires;
                 if (timeToExtendInMonths === `-1`) // unlimited paid subscription
-                    sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(`9999-01-01`, usernameToTakeActionOn);
+                {
+                    newSubExpires = `9999-01-01`;
+                    sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(newSubExpires, usernameToTakeActionOn);
+                }
                 else
                 {
-                    let newSubExpires;
                     newSubExpires = subExpires === `` ? new Date() : new Date(subExpires);
                     newSubExpires.setMonth(newSubExpires.getMonth() + Number.parseInt(timeToExtendInMonths, 10));
                     newSubExpires = newSubExpires.toISOString().split(`T`)[0];
                     sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(newSubExpires, usernameToTakeActionOn);
                 }
                 sql.prepare(`UPDATE users SET paid = 1 WHERE username = ?`).run(usernameToTakeActionOn);
+                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || extended || ${ usernameToTakeActionOn } ||'s subscription to ${ newSubExpires }.`, discordWebhookURL);
                 response.redirect(`/staff`);
                 break;
             }
@@ -1155,6 +1227,7 @@ async function run()
 
                 sql.prepare(`INSERT INTO users (username, displayName, bio, image, links, linkNames, verified, paid, subExpires, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, redirectTo, ``, ``, `[]`, `[]`, `-2`, `0`, ``, ``, ``, `0`);
                 sql.prepare(`INSERT INTO userAuth (username, password, email, stripeCID) VALUES (?, ?, ?, ?)`).run(username, ``, ``, ``);
+                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || created a new shadow user || ${ username } || which redirects to || ${ redirectTo } ||.`, discordWebhookURL);
 
                 response.redirect(`/staff`);
                 break;
@@ -1198,6 +1271,7 @@ async function run()
             sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(username);
             sql.prepare(`DELETE FROM emailActivations WHERE username = ?`).run(username);
             sql.prepare(`DELETE FROM passwordResets WHERE username = ?`).run(username);
+            sendAuditLog(`|| ${ username } // ${ userEmail } || deleted their account.`, discordWebhookURL);
             logoutUser(request, response, next);
         }
 
@@ -1328,6 +1402,19 @@ async function run()
         cleanUGC();
         deleteExpiredTokens(Stripe);
     }, 14_400_000); // every 4~ hours
+
+    if (!dev)
+    {
+        process.on(`unhandledRejection`, (error) =>
+        {
+            console.error(`[${ new Date(Date.now()) }] Unhandled Rejection: ${ error }`);
+        });
+
+        process.on(`uncaughtException`, (error) =>
+        {
+            console.error(`[${ new Date(Date.now()) }] Uncaught Exception: ${ error }`);
+        });
+    }
 }
 
 await run();
@@ -1529,5 +1616,27 @@ async function deleteExpiredTokens(Stripe)
         const tokenExpires = new Date(token.expires);
         if (now > tokenExpires)
             sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token.token);
+    }
+}
+
+/**
+ * @name sendAuditLog
+ * @description Sends an audit log to the staff channel
+ * @param {string} message Message to send
+ * @param {string} discordWebhookURL Discord webhook URL
+ */
+async function sendAuditLog(message, discordWebhookURL)
+{
+    if (discordWebhookURL)
+    {
+        await fetch(discordWebhookURL, {
+            method: `POST`,
+            headers: {
+                'Content-Type': `application/json`
+            },
+            body: JSON.stringify({
+                content: message
+            })
+        });
     }
 }
