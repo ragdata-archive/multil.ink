@@ -1098,8 +1098,10 @@ async function run()
                 if (auditEntry.ageGated === false && currentUserInfo.ageGated === `0`)
                     delete auditEntry.ageGated;
 
-                auditEntry.links = JSON.parse(auditEntry.links);
-                auditEntry.linkNames = JSON.parse(auditEntry.linkNames);
+                if (auditEntry.links)
+                    auditEntry.links = JSON.parse(auditEntry.links);
+                if (auditEntry.linkNames)
+                    auditEntry.linkNames = JSON.parse(auditEntry.linkNames);
 
                 if (Object.keys(auditEntry).length > 0)
                 {
