@@ -1106,7 +1106,7 @@ async function run()
                 if (Object.keys(auditEntry).length > 0)
                 {
                     auditEntry = JSON.stringify(auditEntry, undefined, 4);
-                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || modified user || ${ userToEdit } || with: || \`\`\`json\n${ auditEntry }\n\`\`\` ||.`, discordWebhookURL);
+                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || modified user || ${ userToEdit } || with: \`\`\`json\n${ auditEntry }\n\`\`\``, discordWebhookURL);
                 }
 
                 response.redirect(`/staff`);
