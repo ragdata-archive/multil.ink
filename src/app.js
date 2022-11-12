@@ -807,10 +807,9 @@ async function run()
         switch (actionToTake)
         {
             case `changeEmail`: {
-                const urlParameters = new URLSearchParams(request.query);
-                const oldEmailInput = urlParameters.get(`oldEmail`).toLowerCase().trim();
-                const newEmail = urlParameters.get(`newEmail`).toLowerCase().trim();
-                const password = urlParameters.get(`password`).trim();
+                const oldEmailInput = request.body.oldEmail.toLowerCase().trim();
+                const newEmail = request.body.newEmail.toLowerCase().trim();
+                const password = request.body.password.trim();
                 const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
                 const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
 
@@ -846,9 +845,8 @@ async function run()
                 break;
             }
             case `changePassword`: {
-                const urlParameters = new URLSearchParams(request.query);
-                const oldPassword = urlParameters.get(`oldPassword`).trim();
-                const newPassword = urlParameters.get(`newPassword`).trim();
+                const oldPassword = request.body.oldPassword.trim();
+                const newPassword = request.body.newPassword.trim();
                 const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
                 const isCorrectPassword = await bcrypt.compare(oldPassword, usersHashedPassword);
 
@@ -862,9 +860,8 @@ async function run()
                 break;
             }
             case `changeUsername`: {
-                const urlParameters = new URLSearchParams(request.query);
-                const newUsername = urlParameters.get(`username`).trim().toLowerCase().slice(0, 60);
-                const password = urlParameters.get(`password`).trim();
+                const newUsername = request.body.username.trim().toLowerCase().slice(0, 60);
+                const password = request.body.password.trim();
                 const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
                 const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
 
@@ -1228,8 +1225,7 @@ async function run()
             return response.redirect(`/login`);
         username = username.username;
 
-        const urlParameters = new URLSearchParams(request.query);
-        const password = urlParameters.get(`password`).trim();
+        const password = request.body.password.trim();
         const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(username).password;
         const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
         if (isCorrectPassword)

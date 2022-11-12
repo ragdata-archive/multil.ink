@@ -293,8 +293,12 @@ async function deleteAccount(password)
         return;
     const protocol = window.location.protocol;
     const domain = window.location.href.split(`/`)[2];
-    await $.ajax(`${ protocol }//${ domain }/delete?password=${ password }`, {
+    await $.ajax(`${ protocol }//${ domain }/delete`, {
         type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            password,
+        }),
     });
     // logout();
     window.location.reload();
@@ -318,8 +322,14 @@ async function changeEmail(oldEmailGuess, newEmail, password)
 
     const protocol = window.location.protocol;
     const domain = window.location.href.split(`/`)[2];
-    await $.ajax(`${ protocol }//${ domain }/edit/changeEmail?oldEmail=${ oldEmailGuess }&newEmail=${ newEmail }&password=${ password }`, {
+    await $.ajax(`${ protocol }//${ domain }/edit/changeEmail`, {
         type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            oldEmail: oldEmailGuess,
+            newEmail,
+            password,
+        }),
     });
     window.location.reload();
 }
@@ -338,8 +348,14 @@ async function changePassword(oldPasswordGuess, newPassword, newPasswordRepeat)
 
     const protocol = window.location.protocol;
     const domain = window.location.href.split(`/`)[2];
-    await $.ajax(`${ protocol }//${ domain }/edit/changePassword?oldPassword=${ oldPasswordGuess }&newPassword=${ newPassword }`, {
+
+    await $.ajax(`${ protocol }//${ domain }/edit/changePassword`, {
         type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            oldPassword: oldPasswordGuess,
+            newPassword,
+        }),
     });
     logout();
 }
@@ -357,8 +373,13 @@ async function changeUsername(username, password)
 
     const protocol = window.location.protocol;
     const domain = window.location.href.split(`/`)[2];
-    await $.ajax(`${ protocol }//${ domain }/edit/changeUsername?username=${ username }&password=${ password }`, {
+    await $.ajax(`${ protocol }//${ domain }/edit/changeUsername`, {
         type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            username,
+            password,
+        }),
     });
     window.location.reload();
 }
