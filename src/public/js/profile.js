@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 
 document.querySelector(`#main`).style.display = `block`;
 if (ageGated === `1`)
@@ -62,7 +63,6 @@ for (const link of linksArray)
     const index = linksArray.indexOf(link);
     const linkDiv = document.createElement(`div`);
     let iconTemplate = ``;
-    // if link contains something from faBrandDomainList, add the corresponding icon
     if (faBrandDomainList.some((v) => link.includes(v)))
     {
         const faBrandIndex = faBrandDomainList.findIndex((v) => link.includes(v));

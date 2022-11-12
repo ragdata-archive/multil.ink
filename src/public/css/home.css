@@ -86,10 +86,7 @@ input[type=text]:focus {
     flex-direction: row;
     float: left;
     width: 25%;
-    /* rounded corners */
     border-radius: 10px;
-
-    /* border */
     border: 3px solid #ccc;
     margin: 10px;
 }

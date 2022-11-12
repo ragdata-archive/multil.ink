@@ -18,7 +18,6 @@ const alert = (message, type) =>
     alertPlaceholder.append(wrapper);
 };
 
-// grab message from query string
 const message = new URLSearchParams(window.location.search).get(`message`);
 let type = new URLSearchParams(window.location.search).get(`type`);
 if (type === `error`) type = `danger`;
@@ -26,7 +25,6 @@ if (type === `error`) type = `danger`;
 if (message && type)
     alert(message, type);
 
-// every time the screen size changes:
 window.addEventListener(`resize`, () =>
 {
     fixDropdown();
@@ -41,12 +39,10 @@ function fixDropdown()
     const dropdown = document.querySelector(`#navbar-list-4`);
     const navbarBrand = document.querySelector(`#navbar-brand`);
     const nav = document.querySelector(`nav`);
-    // if mobile
     if (window.innerWidth <= 600)
     {
         dropdown.classList.remove(`dropstart`);
         dropdown.classList.add(`dropdown`);
-        // since its now a dropdown, the margin doesn't make any sense as we want it to be centered
         dropdown.style = `flex-grow: 0`;
         navbarBrand.style.display = `none`;
         nav.classList.add(`justify-content-center`);
@@ -73,19 +69,14 @@ fixDropdown();
 function darkMode(dark)
 {
     if (dark === `dark`)
-    {
-        // dropdown-menu-dark
+
         document.querySelector(`.dropdown-menu`).classList.add(`dropdown-menu-dark`);
-        // add dark modal class
-        // document.querySelector(`.modal-content`).classList.add(`modal-content-dark`);
-    }
+    // document.querySelector(`.modal-content`).classList.add(`modal-content-dark`);
+
     else
-    {
-        // remove dropdown-menu-dark
+
         document.querySelector(`.dropdown-menu`).classList.remove(`dropdown-menu-dark`);
-        // remove dark modal class
-        // document.querySelector(`.modal-content`).classList.remove(`modal-content-dark`);
-    }
+    // document.querySelector(`.modal-content`).classList.remove(`modal-content-dark`);
 }
 
 window.matchMedia(`(prefers-color-scheme: dark)`).addEventListener(`change`, (event) =>
@@ -132,7 +123,6 @@ switch (verified)
         document.querySelector(`#verified`).innerHTML += `Staff Member`;
         document.querySelector(`#paymentThings`).style.display = `none`;
 
-        // add menu option to staff portal in #profileDropdown
         const hr = document.createElement(`hr`);
         hr.classList.add(`dropdown-divider`);
         document.querySelector(`#profileDropdown`).prepend(hr);
@@ -180,15 +170,12 @@ function addLink(index, link, linkName)
         hrForMobile.id = `hrForMobile`;
         linkDiv.append(hrForMobile);
     }
-    // linkDiv.innerHTML += `<label for="linkName${ index }">Link Name ${ index + 1 }</label>`;
     linkDiv.innerHTML += linkName !== `` ? `<input type="text" id="linkName${ index }" name="linkName${ index }" value="${ linksNamesArray[index] }" placeholder="Link Name" required>` : `<input type="text" id="linkName${ index }" name="linkName${ index }" placeholder="Link Name" required>`;
 
     const brForLinkName = document.createElement(`br`);
     brForLinkName.id = `pageBreakForButtons`;
     brForLinkName.style = `line-height: 5px;`;
     linkDiv.append(brForLinkName);
-
-    // linkDiv.innerHTML += `<label for="link${ index }">Link ${ index + 1 }</label>`;
     linkDiv.innerHTML += `<input type="text" id="link${ index }" name="link${ index }" value="${ link }" placeholder="Link" required>`;
 
     const brForButtons = document.createElement(`br`);
@@ -413,7 +400,8 @@ function updateCSS()
 }
 
 /**
- *
+ * @name showHideColorPickers
+ * @description Shows or hides the color pickers if the user wants to use the Custom theme
  */
 function showHideColorPickers()
 {
@@ -423,18 +411,15 @@ function showHideColorPickers()
         document.querySelector(`#advancedThemes`).style.display = `none`;
 }
 
-// when any color picker changes, update the CSS
 document.querySelector(`#backgroundColor`).addEventListener(`change`, updateCSS);
 document.querySelector(`#textColor`).addEventListener(`change`, updateCSS);
 document.querySelector(`#borderColor`).addEventListener(`change`, updateCSS);
 
-// when themeOptions is set to `Custom` then show advancedThemes class
 document.querySelector(`#themeOptions`).addEventListener(`change`, showHideColorPickers);
 
 updateCSS(); // just on page load also update the finalCSS.
 showHideColorPickers(); // same as above
 
-// on submit of a form, try and disable the submit button to prevent double submits
 for (const form of document.querySelectorAll(`form`))
 {
     form.addEventListener(`submit`, () =>
@@ -444,7 +429,6 @@ for (const form of document.querySelectorAll(`form`))
             button.disabled = true;
             button.classList.add(`disabled`);
         }
-        // also do this for any input buttons submit
         for (const button of form.querySelectorAll(`input[type=submit]`))
         {
             button.disabled = true;

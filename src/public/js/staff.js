@@ -5,7 +5,6 @@ document.querySelector(`#main`).style.display = `block`;
 document.body.classList.add(`bg-dark`);
 document.documentElement.classList.add(`bg-dark`);
 
-// Make an array of objects
 const users = [];
 for (let index = 0; index < numberOfUsers; index++)
 {
@@ -37,7 +36,6 @@ for (let index = 0; index < numberOfUsers; index++)
         ageGated,
     });
 
-    // Add to the table
     const table = document.querySelector(`#usersBody`);
     const row = table.insertRow();
     const username = row.insertCell(0);
@@ -284,9 +282,9 @@ for (const [index, element] of tableNavigation.entries())
 
 $(`#editModal`).on(`show.bs.modal`, function (event)
 {
-    var button = $(event.relatedTarget); // Button that triggered the modal
-    var username = button.data(`username`); // Extract info from data-* attributes
-    var index = button.data(`index`); // Extract info from data-* attributes
+    var button = $(event.relatedTarget);
+    var username = button.data(`username`);
+    var index = button.data(`index`);
     var modal = $(this);
     modal.find(`.modal-title`).text(`Edit User: ${ username }`);
     modal.find(`.modal-body #modal-username`).val(username);
@@ -307,7 +305,6 @@ $(`#editModal`).on(`show.bs.modal`, function (event)
     modal.find(`.modal-body #modal-linkNames`).val(linkNames);
     modal.find(`.modal-body #modal-links`).attr(`rows`, jsonLinks.length + 2);
     modal.find(`.modal-body #modal-linkNames`).attr(`rows`, jsonLinkNames.length + 2);
-    // find adultContent and set checked if true
     if (users[index].ageGated === `checked`)
         modal.find(`.modal-body #modal-ageGated`).prop(`checked`, true);
     else
@@ -316,9 +313,9 @@ $(`#editModal`).on(`show.bs.modal`, function (event)
 
 $(`#editShadowModal`).on(`show.bs.modal`, function (event)
 {
-    var button = $(event.relatedTarget); // Button that triggered the modal
-    var username = button.data(`username`); // Extract info from data-* attributes
-    var index = button.data(`index`); // Extract info from data-* attributes
+    var button = $(event.relatedTarget);
+    var username = button.data(`username`);
+    var index = button.data(`index`);
     var modal = $(this);
     modal.find(`.modal-title`).text(`Edit Shadow User: ${ username }`);
     modal.find(`.modal-body #modal-edit-shadow-displayName`).val(users[index].displayName);
@@ -562,7 +559,6 @@ function prepareShadowCreation()
     window.location.href = `/staff/createShadowUser?username=${ userToCreate }&redirect=${ userToRedirectTo }`;
 }
 
-// on submit of a form, try and disable the submit button to prevent double submits
 for (const form of document.querySelectorAll(`form`))
 {
     form.addEventListener(`submit`, () =>
@@ -572,7 +568,6 @@ for (const form of document.querySelectorAll(`form`))
             button.disabled = true;
             button.classList.add(`disabled`);
         }
-        // also do this for any input buttons submit
         for (const button of form.querySelectorAll(`input[type=submit]`))
         {
             button.disabled = true;

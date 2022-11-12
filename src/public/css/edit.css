@@ -132,7 +132,6 @@ button.close {
 #drag-drop-area,
 .uppy-Root,
 .uppy-Dashboard {
-    /* center everything */
     display: flex;
     justify-content: center;
     align-items: center;

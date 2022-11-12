@@ -168,7 +168,7 @@ async function run()
     app.use(methodOverride(`_method`));
     app.use(express.static(`./src/public`));
     app.use(express.static(`./src/views`));
-    // hotload jquery & bootstrap
+    // hotload jquery, bootstrap, and fontawesome
     const projectRoot = path.join(__dirname, `..`);
     app.use(`/css`, express.static(path.join(projectRoot, `node_modules/bootstrap/dist/css`)));
     app.use(`/js`, express.static(path.join(projectRoot, `node_modules/bootstrap/dist/js`)));
@@ -230,12 +230,10 @@ async function run()
             if (bannedUsernames.has(username))
                 return response.redirect(`/register?message=That username is not available.&type=error`);
 
-            // if username is not A-Z, a-z, 0-9, bail.
             const regex = /^[\dA-Za-z]+$/;
             if (!regex.test(username))
                 return response.redirect(`/register?message=That username is not available.&type=error`);
 
-            // If email is not valid, bail.
             const email = request.body.email.toLowerCase().trim().slice(0, 512);
             const regexEmail = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
             if (!regexEmail.test(email))
@@ -243,7 +241,7 @@ async function run()
 
             const user = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(username);
             const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(email);
-            if (user || emailExists) // Prevent duplicate usernames/emails
+            if (user || emailExists)
                 return response.redirect(`/register?message=That username/email is already in use.&type=error`);
             const hashedPassword = await bcrypt.hash(request.body.password.trim().slice(0, 1024), 10);
 
@@ -251,7 +249,7 @@ async function run()
             let token = ``;
             for (let index = 0; index < 32; index++)
                 token += availableChars.charAt(Math.floor(Math.random() * availableChars.length));
-            // check if token exists already
+
             const tokenExists = sql.prepare(`SELECT * FROM emailActivations WHERE token = ?`).get(token);
             if (tokenExists) // too lazy to gen them another one so just force them to do it again
                 return response.redirect(`/register?message=An error occurred. Please try again.&type=error`);
@@ -327,9 +325,7 @@ async function run()
             else
             {
                 const stripeCID = userData.stripeCID;
-
                 const customer = await Stripe.customers.retrieve(stripeCID);
-                // send them to stripe
                 /* eslint-disable camelcase */
                 const session = await Stripe.checkout.sessions.create({
                     mode: `subscription`,
@@ -383,24 +379,19 @@ async function run()
             const data = event.data.object;
             if (event.type === `invoice.paid`)
             {
-                // check if the subscription is active
                 const subscription = await Stripe.subscriptions.retrieve(data.subscription);
                 if (subscription.status === `active`)
                 {
-                    // get the user
                     const userAuthData = sql.prepare(`SELECT * FROM userAuth WHERE stripeCID = ?`).get(data.customer);
                     if (!userAuthData)
                         return response.sendStatus(400);
                     const userData = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userAuthData.username);
                     if (!userData)
                         return response.sendStatus(400);
-                    // set to paid and add a year to the subExpires date
                     const timeNow = new Date(Date.now());
-                    // add a year to the current date
                     const timeNextYear = new Date(timeNow.setFullYear(timeNow.getFullYear() + 1));
                     sql.prepare(`UPDATE users SET paid = ?, subExpires = ? WHERE username = ?`).run(1, `${ timeNextYear.toISOString().slice(0, 10) }`, userData.username);
 
-                    // send a message to the discord webhook
                     if (discordWebhookURL)
                     {
                         let paidCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE paid = 1`).get()[`COUNT(*)`];
@@ -468,9 +459,8 @@ async function run()
         let token = ``;
         for (let index = 0; index < 32; index++)
             token += availableChars.charAt(Math.floor(Math.random() * availableChars.length));
-        // delete any existing tokens the user may have
         sql.prepare(`DELETE FROM emailActivations WHERE email = ?`).run(userEmail);
-        // check if token exists already
+
         const tokenExists = sql.prepare(`SELECT * FROM emailActivations WHERE token = ?`).get(token);
         if (tokenExists) // too lazy to gen them another one so just force them to do it again
             return response.redirect(`/edit?message=An error occurred. Please try again.&type=error`);
@@ -516,9 +506,7 @@ async function run()
         let token = ``;
         for (let index = 0; index < 32; index++)
             token += availableChars.charAt(Math.floor(Math.random() * availableChars.length));
-        // delete any existing tokens the user may have
         sql.prepare(`DELETE FROM passwordResets WHERE email = ?`).run(email);
-        // check if token exists already
         const tokenExists = sql.prepare(`SELECT * FROM passwordResets WHERE token = ?`).get(token);
         if (tokenExists) // too lazy to gen them another one so just force them to do it again
             return response.redirect(`/forgotpassword?message=An error occurred. Please try again.&type=error`);
@@ -728,7 +716,6 @@ async function run()
                         let allowed = false;
                         if (linkWhitelist)
                         {
-                            // if end of domain in link is in the whitelist freeLinks, then allow it.
                             let domain = link.split(`//`)[1].split(`/`)[0];
                             if (domain.startsWith(`www.`))
                                 domain = domain.slice(4);
@@ -756,9 +743,7 @@ async function run()
             sql.prepare(`UPDATE users SET displayName = ?, bio = ?, image = ?, links = ?, linkNames = ?, theme = ?, advancedTheme = ?, ageGated = ? WHERE username = ?`).run(updatedDisplayName, updatedBio, updatedImage, updatedLinks, updatedLinkNames, theme, advancedTheme, ageGated, username);
             let newProfileInfo = request.body;
 
-            // remove finalCSS from profileInfo
             delete newProfileInfo.finalCSS;
-            // if theme isn't "Custom"
             if (newProfileInfo.theme !== `Custom`)
             {
                 delete newProfileInfo.backgroundColor;
@@ -766,7 +751,6 @@ async function run()
                 delete newProfileInfo.borderColor;
             }
 
-            // compare newProfileInfo to currentUserInfo
             if (newProfileInfo.theme === currentUserInfo.theme)
                 delete newProfileInfo.theme;
             if (newProfileInfo.displayName === currentUserInfo.displayName)
@@ -779,7 +763,7 @@ async function run()
                 newProfileInfo.links = JSON.parse(updatedLinks);
             if (updatedLinkNames !== currentUserInfo.linkNames)
                 newProfileInfo.linkNames = JSON.parse(updatedLinkNames);
-            // delete link${ index } and linkName${ index } from newProfileInfo
+
             for (let index = 0; index < 50; index++)
             {
                 if (newProfileInfo[`link${ index }`])
@@ -794,7 +778,6 @@ async function run()
                 delete newProfileInfo.ageGated;
             delete newProfileInfo.adultContent;
 
-            // if newProfileInfo is empty, redirect to profile
             if (Object.keys(newProfileInfo).length > 0)
             {
                 newProfileInfo = JSON.stringify(newProfileInfo, undefined, 4);
@@ -836,7 +819,6 @@ async function run()
                     const regexEmail = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
                     if (regexEmail.test(newEmail))
                     {
-                        // ensure new email is not already taken
                         const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
                         if (!emailExists)
                         {
@@ -891,7 +873,6 @@ async function run()
                     const regex = /^[\dA-Za-z]+$/;
                     if (regex.test(newUsername))
                     {
-                        // ensure new username is not already taken
                         const usernameExists = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(newUsername);
                         if (!usernameExists)
                         {
@@ -1041,7 +1022,7 @@ async function run()
         const actionToTake = request.params[0];
         const usernameToTakeActionOn = request.query.username;
 
-        if (usernameToTakeActionOn === staffUsername) // If staff member is trying to take action on themselves, redirect.
+        if (usernameToTakeActionOn === staffUsername)
             return response.redirect(`/staff`);
 
         switch (actionToTake)
@@ -1059,7 +1040,6 @@ async function run()
                         if (value === ``)
                             continue;
                         const newUsername = value.trim().toLowerCase().slice(0, 60);
-                        // ensure new username is not already taken
                         const usernameExists = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(newUsername);
                         if (!usernameExists && !bannedUsernames.has(newUsername))
                         {
@@ -1083,7 +1063,6 @@ async function run()
                         if (value === ``)
                             continue;
                         const newEmail = value;
-                        // ensure new email is not already taken
                         const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
                         if (!emailExists)
                         {
@@ -1448,7 +1427,7 @@ async function initSetup()
         sessionSecret += possible.charAt(Math.floor(Math.random() * possible.length));
 
     config.secret = sessionSecret;
-    fs.writeFileSync(`./src/config.json`, JSON.stringify(config, undefined, 4)); // save settings to config
+    fs.writeFileSync(`./src/config.json`, JSON.stringify(config, undefined, 4));
 }
 
 /**
@@ -1556,7 +1535,6 @@ function logoutUser(request, response, next)
  */
 function cleanUGC()
 {
-    // look at ./src/public/img/ugc/ and delete any files not associated with a user.
     const files = fs.readdirSync(`./src/public/img/ugc/`);
     for (const file of files)
     {
@@ -1596,7 +1574,6 @@ async function deleteExpiredTokens(Stripe)
                     await Stripe.customers.del(stripeCID);
             }
             sql.prepare(`DELETE FROM emailActivations WHERE token = ?`).run(token.token);
-            // delete their account
             sql.prepare(`DELETE FROM users WHERE username = ?`).run(token.username);
             sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(token.username);
             sql.prepare(`DELETE FROM passwordResets WHERE username = ?`).run(token.username);

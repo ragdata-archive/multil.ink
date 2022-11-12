@@ -7,13 +7,11 @@ isLoggedIn = (isLoggedIn === `true`);
 
 if (isLoggedIn)
 {
-    // get class isNotLoggedIn and set to display none
     document.querySelector(`#loginHeader`).style.display = `none`;
     document.querySelector(`#registerHeader`).style.display = `none`;
 }
 else
 {
-    // get class isLoggedIn and set to display none
     document.querySelector(`#editProfileHeader`).style.display = `none`;
     document.querySelector(`#logoutHeader`).style.display = `none`;
 }

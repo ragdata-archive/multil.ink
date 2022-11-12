@@ -4,7 +4,8 @@ const bcrypt = require(`bcrypt`);
 const sql = new SQLite(`./src/db.sqlite`);
 
 /**
- *
+ * @name initialize
+ * @description Initialize passport
  * @param {*} passport Passport.js Object
  * @param {string} getUserByEmail Email of the user
  */
