@@ -1,30 +1,6 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 
-document.querySelector(`#main`).style.display = `block`;
-
-const alertPlaceholder = document.querySelector(`#liveAlertPlaceholder`);
-
-const alert = (message, type) =>
-{
-    const wrapper = document.createElement(`div`);
-    wrapper.innerHTML = [
-        `<div class="alert alert-${ type } alert-dismissible" role="alert">`,
-        `   <div>${ message }</div>`,
-        `   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`,
-        `</div>`
-    ].join(``);
-
-    alertPlaceholder.append(wrapper);
-};
-
-const message = new URLSearchParams(window.location.search).get(`message`);
-let type = new URLSearchParams(window.location.search).get(`type`);
-if (type === `error`) type = `danger`;
-
-if (message && type)
-    alert(message, type);
-
 window.addEventListener(`resize`, () =>
 {
     fixDropdown();
@@ -265,20 +241,6 @@ function moveDown(index)
 }
 
 /**
- * @name logout
- * @description Logs the user out
- */
-async function logout()
-{
-    const protocol = window.location.protocol;
-    const domain = window.location.href.split(`/`)[2];
-    await $.ajax(`${ protocol }//${ domain }/logout?_method=DELETE`, {
-        type: `POST`,
-    });
-    window.location.reload();
-}
-
-/**
  * @name deleteAccount
  * @description Deletes the account
  * @param {string} password The password of the account
@@ -434,20 +396,3 @@ document.querySelector(`#themeOptions`).addEventListener(`change`, showHideColor
 
 updateCSS();
 showHideColorPickers();
-
-for (const form of document.querySelectorAll(`form`))
-{
-    form.addEventListener(`submit`, () =>
-    {
-        for (const button of form.querySelectorAll(`button[type=submit]`))
-        {
-            button.disabled = true;
-            button.classList.add(`disabled`);
-        }
-        for (const button of form.querySelectorAll(`input[type=submit]`))
-        {
-            button.disabled = true;
-            button.classList.add(`disabled`);
-        }
-    });
-}

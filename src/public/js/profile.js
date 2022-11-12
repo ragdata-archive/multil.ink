@@ -1,7 +1,6 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 
-document.querySelector(`#main`).style.display = `block`;
 if (ageGated === `1`)
 {
     document.querySelector(`#main`).style.display = `none`;

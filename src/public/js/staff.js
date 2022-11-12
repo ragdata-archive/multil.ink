@@ -1,7 +1,6 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 
-document.querySelector(`#main`).style.display = `block`;
 document.body.classList.add(`bg-dark`);
 document.documentElement.classList.add(`bg-dark`);
 
@@ -686,21 +685,4 @@ function searchUser()
 function resetSearch()
 {
     window.location.href = `/staff?page=1`;
-}
-
-for (const form of document.querySelectorAll(`form`))
-{
-    form.addEventListener(`submit`, () =>
-    {
-        for (const button of form.querySelectorAll(`button[type=submit]`))
-        {
-            button.disabled = true;
-            button.classList.add(`disabled`);
-        }
-        for (const button of form.querySelectorAll(`input[type=submit]`))
-        {
-            button.disabled = true;
-            button.classList.add(`disabled`);
-        }
-    });
 }
