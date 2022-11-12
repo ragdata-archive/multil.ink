@@ -215,7 +215,6 @@
         const links = "<%=links%>";
         const linkNames = "<%=linkNames%>";
         const ageGatedUsers = "<%=ageGated%>";
-
         const userCountTotal = `<%=userCountTotal%>`;
         const verifiedCount = `<%=verifiedCount%>`;
         const paidCount = `<%=paidCount %>`;
@@ -232,16 +231,14 @@
         const percentOfUsersFree = Math.round((freeCount / userCountTotal) * 100);
         const percentOfUsersShadow = Math.round((shadowUserCount / (userCountTotal + shadowUserCount)) * 100);
         const percentOfUsersAwaitingEmail = Math.round((awaitingEmailUserCount / userCountTotal) * 100);
-
-        document.getElementById(`userCountTotal`).innerText = userCountTotal;
-        document.getElementById(`paidCount`).innerText = `${ paidCount } (${ percentOfUsersPaid }%)`;
-        document.getElementById(`verifiedCount`).innerText = `${ verifiedCount } (${ percentOfUsersVerified }%)`;
-        document.getElementById(`suspendedCount`).innerText = `${ suspendedCount } (${ percentOfUsersSuspended }%)`;
-        document.getElementById(`staffCount`).innerText = `${ staffCount } (${ percentOfUsersStaff }%)`;
-        document.getElementById(`freeCount`).innerText = `${ freeCount } (${ percentOfUsersFree }%)`;
-        document.getElementById(`shadowUserCount`).innerText = shadowUserCount;
-        document.getElementById(`awaitingEmailUserCount`).innerText = `${ awaitingEmailUserCount } (${ percentOfUsersAwaitingEmail }%)`;
-
+        document.querySelector(`#userCountTotal`).innerText = userCountTotal;
+        document.querySelector(`#paidCount`).innerText = `${ paidCount } (${ percentOfUsersPaid }%)`;
+        document.querySelector(`#verifiedCount`).innerText = `${ verifiedCount } (${ percentOfUsersVerified }%)`;
+        document.querySelector(`#suspendedCount`).innerText = `${ suspendedCount } (${ percentOfUsersSuspended }%)`;
+        document.querySelector(`#staffCount`).innerText = `${ staffCount } (${ percentOfUsersStaff }%)`;
+        document.querySelector(`#freeCount`).innerText = `${ freeCount } (${ percentOfUsersFree }%)`;
+        document.querySelector(`#shadowUserCount`).innerText = shadowUserCount;
+        document.querySelector(`#awaitingEmailUserCount`).innerText = `${ awaitingEmailUserCount } (${ percentOfUsersAwaitingEmail }%)`;
     </script>
     <script src="js/common.js"></script>
     <script src="js/staff.js"></script>

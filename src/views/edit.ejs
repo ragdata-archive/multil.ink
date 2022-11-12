@@ -279,34 +279,35 @@
     </main>
 
     <script>
-        const links = "<%=links%>";
-        const linksNames = "<%=linkNames%>";
-        let paid = "<%=paid%>";
-        const verified = Number.parseInt("<%=verified%>", 10);
+        const links = `<%=links%>`;
+        const linksNames = `<%=linkNames%>`;
+        let paid = `<%=paid%>`;
+        const verified = Number.parseInt(`<%=verified%>`, 10);
         const userTheme = `<%=theme%>`;
         const advancedTheme = `<%-advancedTheme%>`;
-
         let themes = `<%=themes%>`;
-        themes = themes.split(",");
-        for (let i = 0; i < themes.length; i++)
-        {
-            document.getElementById("themeOptions").innerHTML += `<option value="${ themes[i] }">${ themes[i] }</option>`;
-        }
+        themes = themes.split(`,`);
+        for (let index = 0; index < themes.length; index++)
+            document.querySelector(`#themeOptions`).innerHTML += `<option value="${ themes[index] }">${ themes[index] }</option>`;
         if (paid === `1` || paid === `true`)
-            document.getElementById("themeOptions").innerHTML += `<option value="Custom">Custom</option>`;
-
-        document.getElementById("themeOptions").value = userTheme;
+            document.querySelector(`#themeOptions`).innerHTML += `<option value="Custom">Custom</option>`;
+        document.querySelector(`#themeOptions`).value = userTheme;
     </script>
     <script type="module">
+        import
+        {
+            Uppy, Dashboard, XHRUpload, ImageEditor, Compressor
+        } from "../js/uppy.min.mjs";
+
         const protocol = window.location.protocol;
         const domain = window.location.href.split(`/`)[2];
         const uploadDirectory = `${ protocol }//${ domain }/img`;
-        import { Uppy, Dashboard, XHRUpload, ImageEditor, Compressor } from "../js/uppy.min.mjs"
+
         const uppy = new Uppy({
             autoProceed: false,
             allowMultipleUploadBatches: false,
             restrictions: {
-                maxFileSize: 8388608,
+                maxFileSize: 8_388_608,
                 minFileSize: null,
                 maxNumberOfFiles: 1,
                 allowedFileTypes: [`image/*`],
@@ -316,7 +317,7 @@
             .use(Dashboard, {
                 inline: true,
                 target: `#drag-drop-area`,
-                width: '100%',
+                width: `100%`,
                 proudlyDisplayPoweredByUppy: false,
             })
             .use(ImageEditor, {
@@ -350,7 +351,7 @@
                 formData: true,
             });
 
-        uppy.on('file-added', (file) =>
+        uppy.on(`file-added`, (file) =>
         {
             setTimeout(() =>
             {
@@ -359,7 +360,7 @@
             }, 150);
         });
 
-        uppy.on('file-editor:complete', (updatedFile) =>
+        uppy.on(`file-editor:complete`, (updatedFile) =>
         {
             setTimeout(() =>
             {
@@ -368,16 +369,17 @@
             }, 150);
         });
 
-        uppy.on('complete', (result) =>
+        uppy.on(`complete`, (result) =>
         {
-            document.getElementById(`image`).value = result.successful[0].response.body.url;
-            document.getElementById(`updateProfileSubmitButton`).click();
+            document.querySelector(`#image`).value = result.successful[0].response.body.url;
+            document.querySelector(`#updateProfileSubmitButton`).click();
         });
 
-        uppy.on('error', (error) =>
+        uppy.on(`error`, (error) =>
         {
             window.location.reload();
         });
+
     </script>
     <script src="js/common.js"></script>
     <script src="js/edit.js"></script>
