@@ -322,23 +322,22 @@ $(`#editShadowModal`).on(`show.bs.modal`, function (event)
 });
 
 /**
- * @name editUser
- * @description Edits a user
- * @param {string} username The username to take action on
- */
-function editUser(username)
-{
-    window.location.href = `/staff/editUser?username=${ username }`;
-}
-
-/**
  * @name verifyUser
  * @description Verifies a user
  * @param {string} username The username to take action on
  */
-function verifyUser(username)
+async function verifyUser(username)
 {
-    window.location.href = `/staff/verifyUser?username=${ username }`;
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
+    await $.ajax(`${ protocol }//${ domain }/staff/verifyUser`, {
+        type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            username,
+        }),
+    });
+    window.location.reload();
 }
 
 /**
@@ -346,9 +345,18 @@ function verifyUser(username)
  * @description Unverifies a user
  * @param {string} username The username to take action on
  */
-function unverifyUser(username)
+async function unverifyUser(username)
 {
-    window.location.href = `/staff/unverifyUser?username=${ username }`;
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
+    await $.ajax(`${ protocol }//${ domain }/staff/unverifyUser`, {
+        type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            username,
+        }),
+    });
+    window.location.reload();
 }
 
 /**
@@ -356,9 +364,18 @@ function unverifyUser(username)
  * @description Promotes a user to Staff
  * @param {string} username The username to take action on
  */
-function promoteUser(username)
+async function promoteUser(username)
 {
-    window.location.href = `/staff/promoteUser?username=${ username }`;
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
+    await $.ajax(`${ protocol }//${ domain }/staff/promoteUser`, {
+        type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            username,
+        }),
+    });
+    window.location.reload();
 }
 
 /**
@@ -366,9 +383,18 @@ function promoteUser(username)
  * @description Demotes a user from Staff
  * @param {string} username The username to take action on
  */
-function demoteUser(username)
+async function demoteUser(username)
 {
-    window.location.href = `/staff/demoteUser?username=${ username }`;
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
+    await $.ajax(`${ protocol }//${ domain }/staff/demoteUser`, {
+        type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            username,
+        }),
+    });
+    window.location.reload();
 }
 
 /**
@@ -376,9 +402,18 @@ function demoteUser(username)
  * @description Suspends a user
  * @param {string} username The username to take action on
  */
-function suspendUser(username)
+async function suspendUser(username)
 {
-    window.location.href = `/staff/suspendUser?username=${ username }`;
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
+    await $.ajax(`${ protocol }//${ domain }/staff/suspendUser`, {
+        type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            username,
+        }),
+    });
+    window.location.reload();
 }
 
 /**
@@ -386,9 +421,18 @@ function suspendUser(username)
  * @description Unsuspends a user
  * @param {string} username The username to take action on
  */
-function unsuspendUser(username)
+async function unsuspendUser(username)
 {
-    window.location.href = `/staff/unsuspendUser?username=${ username }`;
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
+    await $.ajax(`${ protocol }//${ domain }/staff/unsuspendUser`, {
+        type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            username,
+        }),
+    });
+    window.location.reload();
 }
 
 /**
@@ -396,9 +440,18 @@ function unsuspendUser(username)
  * @description Deletes a user
  * @param {string} username The username to take action on
  */
-function deleteUser(username)
+async function deleteUser(username)
 {
-    window.location.href = `/staff/deleteUser?username=${ username }`;
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
+    await $.ajax(`${ protocol }//${ domain }/staff/deleteUser`, {
+        type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            username,
+        }),
+    });
+    window.location.reload();
 }
 
 /**
@@ -407,9 +460,19 @@ function deleteUser(username)
  * @param {string} username The username to take action on
  * @param {number} months The number of months to extend the subscription by
  */
-function extendUser(username, months)
+async function extendUser(username, months)
 {
-    window.location.href = `/staff/extendUser?username=${ username }&months=${ months }`;
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
+    await $.ajax(`${ protocol }//${ domain }/staff/promoteUser`, {
+        type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            username,
+            months,
+        }),
+    });
+    window.location.reload();
 }
 
 /**
@@ -443,27 +506,49 @@ function prepareUserEdit()
  * @param {Array} linkNames The link names of the user
  * @param {boolean} ageGated Whether the user is age gated or not
  */
-function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, links, linkNames, ageGated)
+async function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, links, linkNames, ageGated)
 {
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
     const index = users.findIndex((user) => user.username === oldUsername);
     const user = users[index];
 
-    let dataToSend = `?username=${ oldUsername }`;
+    let dataToSend = {
+        username: oldUsername,
+    };
 
     if (displayName !== user.displayName)
-        dataToSend += `&displayName=${ displayName }`;
+    {
+        dataToSend = {
+            ...dataToSend,
+            displayName,
+        };
+    }
 
     if (bio !== user.bio)
     {
         if (bio === ``)
             bio = `No bio yet.`;
-        dataToSend += `&bio=${ bio }`;
+        dataToSend = {
+            ...dataToSend,
+            bio,
+        };
     }
     if (image !== user.image)
-        dataToSend += `&image=${ image }`;
+    {
+        dataToSend = {
+            ...dataToSend,
+            image,
+        };
+    }
 
     if (email !== user.email)
-        dataToSend += `&email=${ email }`;
+    {
+        dataToSend = {
+            ...dataToSend,
+            email,
+        };
+    }
 
     // flatten links and linkNames (no spaces, all one line)
     links = links.replace(/ /g, ``);
@@ -474,19 +559,44 @@ function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, 
     linkNames = linkNames.replace(/\n/g, ``);
 
     if (links !== user.links)
-        dataToSend += `&links=${ links }`;
+    {
+        dataToSend = {
+            ...dataToSend,
+            links,
+        };
+    }
 
     if (linkNames !== user.linkNames)
-        dataToSend += `&linkNames=${ linkNames }`;
+    {
+        dataToSend = {
+            ...dataToSend,
+            linkNames,
+        };
+    }
 
     if (ageGated !== user.ageGated)
-        dataToSend += `&ageGated=${ ageGated }`;
+    {
+        dataToSend = {
+            ...dataToSend,
+            ageGated,
+        };
+    }
 
     // ! This should always be the last thing we check.
     if (newUsername !== user.username)
-        dataToSend += `&newUsername=${ newUsername }`;
+    {
+        dataToSend = {
+            ...dataToSend,
+            newUsername,
+        };
+    }
 
-    window.location.href = `/staff/editUser${ dataToSend }`;
+    await $.ajax(`${ protocol }//${ domain }/staff/editUser`, {
+        type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify(dataToSend),
+    });
+    window.location.reload();
 }
 
 /**
@@ -494,11 +604,45 @@ function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, 
  * @description Change redirect URL
  * @param {string} username The shadow profile to update
  */
-function shadowUserEdit(username)
+async function shadowUserEdit(username)
 {
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
     const newRedirect = document.querySelector(`#modal-edit-shadow-displayName`).value;
-    const dataToSend = `?username=${ username }&displayName=${ newRedirect }`;
-    window.location.href = `/staff/editUser${ dataToSend }`;
+    await $.ajax(`${ protocol }//${ domain }/staff/editUser`, {
+        type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            username,
+            displayName: newRedirect,
+        }),
+    });
+    window.location.reload();
+}
+
+/**
+ * @name prepareShadowCreation
+ * @description Prepares shadow user creation.
+ */
+async function prepareShadowCreation()
+{
+    const protocol = window.location.protocol;
+    const domain = window.location.href.split(`/`)[2];
+    const userToCreate = document.querySelector(`#modal-shadow-username`).value;
+    const userToRedirectTo = document.querySelector(`#modal-shadow-redirect`).value;
+
+    if (userToCreate === `` || userToRedirectTo === `` || userToCreate === userToRedirectTo)
+        return;
+
+    await $.ajax(`${ protocol }//${ domain }/staff/createShadowUser`, {
+        type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            username: userToCreate,
+            redirect: userToRedirectTo,
+        }),
+    });
+    window.location.reload();
 }
 
 /**
@@ -542,21 +686,6 @@ function searchUser()
 function resetSearch()
 {
     window.location.href = `/staff?page=1`;
-}
-
-/**
- * @name prepareShadowCreation
- * @description Prepares shadow user creation.
- */
-function prepareShadowCreation()
-{
-    const userToCreate = document.querySelector(`#modal-shadow-username`).value;
-    const userToRedirectTo = document.querySelector(`#modal-shadow-redirect`).value;
-
-    if (userToCreate === `` || userToRedirectTo === `` || userToCreate === userToRedirectTo)
-        return;
-
-    window.location.href = `/staff/createShadowUser?username=${ userToCreate }&redirect=${ userToRedirectTo }`;
 }
 
 for (const form of document.querySelectorAll(`form`))

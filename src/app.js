@@ -1006,7 +1006,7 @@ async function run()
         });
     });
 
-    app.get(`/staff/*`, checkAuthenticatedStaff, async (request, response, next) =>
+    app.post(`/staff/*`, checkAuthenticatedStaff, async (request, response, next) =>
     {
         const staffEmail = request.user;
         let staffUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(staffEmail);
@@ -1017,7 +1017,7 @@ async function run()
         }
         staffUsername = staffUsername.username;
         const actionToTake = request.params[0];
-        const usernameToTakeActionOn = request.query.username;
+        const usernameToTakeActionOn = request.body.username;
 
         if (usernameToTakeActionOn === staffUsername)
             return response.redirect(`/staff`);
@@ -1025,10 +1025,10 @@ async function run()
         switch (actionToTake)
         {
             case `editUser`: {
-                const urlParameters = new URLSearchParams(request.query);
-                const userToEdit = urlParameters.get(`username`);
+                const userToEdit = request.body.username;
 
-                for (const [key, value] of urlParameters)
+                const currentUserInfo = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn);
+                for (const [key, value] of Object.entries(request.body))
                 {
                     if (key === `username`)
                         continue;
@@ -1081,15 +1081,31 @@ async function run()
                     }
                     else if (key === `ageGated`)
                     {
-                        if (value === `true`)
+                        if (value === true)
                             sql.prepare(`UPDATE users SET ageGated = ? WHERE username = ?`).run(`1`, userToEdit);
-                        else if (value === `false`)
+                        else if (value === false)
                             sql.prepare(`UPDATE users SET ageGated = ? WHERE username = ?`).run(`0`, userToEdit);
                     }
                     else
                         sql.prepare(`UPDATE users SET ${ key } = ? WHERE username = ?`).run(value, userToEdit);
                 }
-                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || modified user || ${ userToEdit } || with: || ${ urlParameters } ||.`, discordWebhookURL);
+                const oldData = request.body;
+                let auditEntry = oldData;
+                delete auditEntry.username;
+
+                if (auditEntry.ageGated === true && currentUserInfo.ageGated === `1`)
+                    delete auditEntry.ageGated;
+                if (auditEntry.ageGated === false && currentUserInfo.ageGated === `0`)
+                    delete auditEntry.ageGated;
+
+                auditEntry.links = JSON.parse(auditEntry.links);
+                auditEntry.linkNames = JSON.parse(auditEntry.linkNames);
+
+                if (Object.keys(auditEntry).length > 0)
+                {
+                    auditEntry = JSON.stringify(auditEntry, undefined, 4);
+                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || modified user || ${ userToEdit } || with: || \`\`\`json\n${ auditEntry }\n\`\`\` ||.`, discordWebhookURL);
+                }
 
                 response.redirect(`/staff`);
                 break;
