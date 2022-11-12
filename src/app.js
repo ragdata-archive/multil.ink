@@ -1178,7 +1178,7 @@ async function run()
                 break;
             }
             case `extendUser`: {
-                const timeToExtendInMonths = request.query.months;
+                const timeToExtendInMonths = request.body.months;
                 const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn);
                 const subExpires = user.subExpires;
                 if (subExpires.startsWith(`9999`))
@@ -1202,9 +1202,8 @@ async function run()
                 break;
             }
             case `createShadowUser`: {
-                const urlParameters = new URLSearchParams(request.query);
-                const username = urlParameters.get(`username`);
-                const redirectTo = urlParameters.get(`redirect`);
+                const username = request.body.username;
+                const redirectTo = request.body.redirect;
 
                 if (!username || !redirectTo)
                     return response.redirect(`/staff`);

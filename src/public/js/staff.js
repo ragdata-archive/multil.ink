@@ -621,10 +621,10 @@ async function shadowUserEdit(username)
 }
 
 /**
- * @name prepareShadowCreation
+ * @name createShadowUser
  * @description Prepares shadow user creation.
  */
-async function prepareShadowCreation()
+async function createShadowUser()
 {
     const protocol = window.location.protocol;
     const domain = window.location.href.split(`/`)[2];
