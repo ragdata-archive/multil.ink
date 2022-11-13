@@ -52,6 +52,11 @@ async function run()
     }
 
     https = https ? `https` : `http`;
+    const usernameRegex = /^[\dA-Za-z]+$/;
+    const emailRegex = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
+    // eslint-disable-next-line no-control-regex
+    const ASCIIRegex = /^[\u0000-\u007F]*$/;
+    const linkRegex = /https?:\/\/(www\.)?[\w#%+.:=@~-]{1,256}\.[\d()A-Za-z]{1,6}\b([\w!#%&()+./:=?@~-]*)/gm;
 
     const bannedUsernames = new Set([
         `css`,
@@ -233,13 +238,11 @@ async function run()
             if (bannedUsernames.has(username))
                 return response.redirect(`/register?message=That username is not available.&type=error`);
 
-            const regex = /^[\dA-Za-z]+$/;
-            if (!regex.test(username))
+            if (!usernameRegex.test(username))
                 return response.redirect(`/register?message=That username is not available.&type=error`);
 
             const email = request.body.email.toLowerCase().trim().slice(0, 512);
-            const regexEmail = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
-            if (!regexEmail.test(email))
+            if (!emailRegex.test(email))
                 return response.redirect(`/register?message=That email is not valid.&type=error`);
 
             const user = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(username);
@@ -702,12 +705,16 @@ async function run()
             if (theme !== `Custom`)
                 advancedTheme = ``;
 
-            // eslint-disable-next-line no-control-regex
-            const regexForASCII = /^[\u0000-\u007F]*$/;
-            if (!regexForASCII.test(updatedDisplayName) || updatedDisplayName.length > 60)
+            if (!advancedTheme.startsWith(`<style>`) || !advancedTheme.endsWith(`</style>`))
+            {
+                advancedTheme = ``; // If the user somehow manages to bypass the client-side check, this will prevent them from injecting shit into <head> of their profile.
+                theme = `Light`;
+            }
+
+            if (!ASCIIRegex.test(updatedDisplayName) || updatedDisplayName.length > 60)
                 updatedDisplayName = username;
 
-            if (!regexForASCII.test(updatedBio) || updatedBio.length > 280)
+            if (!ASCIIRegex.test(updatedBio) || updatedBio.length > 280)
                 updatedBio = `No bio yet.`;
 
             // eslint-disable-next-line no-useless-escape
@@ -726,7 +733,6 @@ async function run()
                     if (!link.startsWith(`http://`) && !link.startsWith(`https://`))
                         link = `https://${ link }`;
 
-                    const linkRegex = /https?:\/\/(www\.)?[\w#%+.:=@~-]{1,256}\.[\d()A-Za-z]{1,6}\b([\w!#%&()+./:=?@~-]*)/gm;
                     if (linkRegex.test(link) && link && linkName && !updatedLinks.includes(link))
                     {
                         let allowed = false;
@@ -829,31 +835,29 @@ async function run()
                 const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
                 const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
 
-                if ((oldEmailInput === usersCurrentEmail) && isCorrectPassword && newEmail && newEmail.length > 0 && newEmail.length <= 512)
+                if ((oldEmailInput === usersCurrentEmail)
+                    && isCorrectPassword && newEmail && newEmail.length > 0 && newEmail.length <= 512
+                    && emailRegex.test(newEmail))
                 {
-                    const regexEmail = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
-                    if (regexEmail.test(newEmail))
+                    const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
+                    if (!emailExists)
                     {
-                        const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
-                        if (!emailExists)
+                        if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
                         {
-                            if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
+                            const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).stripeCID;
+                            if (stripeCID)
                             {
-                                const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).stripeCID;
-                                if (stripeCID)
-                                {
-                                    await Stripe.customers.update(
-                                        stripeCID,
-                                        {
-                                            email: newEmail,
-                                        }
-                                    );
-                                }
+                                await Stripe.customers.update(
+                                    stripeCID,
+                                    {
+                                        email: newEmail,
+                                    }
+                                );
                             }
-
-                            sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userUsername);
-                            sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their email to || ${ newEmail } ||.`, discordWebhookURL);
                         }
+
+                        sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userUsername);
+                        sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their email to || ${ newEmail } ||.`, discordWebhookURL);
                     }
                 }
 
@@ -881,27 +885,25 @@ async function run()
                 const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
                 const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
 
-                if (isCorrectPassword && newUsername && newUsername.length > 0 && newUsername.length < 60)
+                if (isCorrectPassword
+                    && newUsername && newUsername.length > 0 && newUsername.length < 60
+                    && usernameRegex.test(newUsername))
                 {
-                    const regex = /^[\dA-Za-z]+$/;
-                    if (regex.test(newUsername))
+                    const usernameExists = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(newUsername);
+                    if (!usernameExists)
                     {
-                        const usernameExists = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(newUsername);
-                        if (!usernameExists)
+                        let lastChangeDate = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userUsername).lastUsernameChange;
+                        const isPaidUser = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userUsername).paid);
+                        if (!lastChangeDate || lastChangeDate === null || lastChangeDate === ``)
+                            lastChangeDate = 0;
+                        lastChangeDate = new Date(lastChangeDate);
+                        const timeSinceLastChange = Date.now() - lastChangeDate;
+                        const currentDate = new Date(Date.now()).toISOString().slice(0, 10);
+                        if ((timeSinceLastChange > 7_776_000_000 || isPaidUser) && !bannedUsernames.has(newUsername)) // 3 months
                         {
-                            let lastChangeDate = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userUsername).lastUsernameChange;
-                            const isPaidUser = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userUsername).paid);
-                            if (!lastChangeDate || lastChangeDate === null || lastChangeDate === ``)
-                                lastChangeDate = 0;
-                            lastChangeDate = new Date(lastChangeDate);
-                            const timeSinceLastChange = Date.now() - lastChangeDate;
-                            const currentDate = new Date(Date.now()).toISOString().slice(0, 10);
-                            if ((timeSinceLastChange > 7_776_000_000 || isPaidUser) && !bannedUsernames.has(newUsername)) // 3 months
-                            {
-                                sql.prepare(`UPDATE userAuth SET username = ? WHERE username = ?`).run(newUsername, userUsername);
-                                sql.prepare(`UPDATE users SET username = ?, lastUsernameChange = ? WHERE username = ?`).run(newUsername, currentDate, userUsername);
-                                sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their username to || ${ newUsername } ||.`, discordWebhookURL);
-                            }
+                            sql.prepare(`UPDATE userAuth SET username = ? WHERE username = ?`).run(newUsername, userUsername);
+                            sql.prepare(`UPDATE users SET username = ?, lastUsernameChange = ? WHERE username = ?`).run(newUsername, currentDate, userUsername);
+                            sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their username to || ${ newUsername } ||.`, discordWebhookURL);
                         }
                     }
                 }
