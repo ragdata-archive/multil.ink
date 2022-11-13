@@ -689,9 +689,9 @@ async function run()
             let ageGated = request.body.adultContent;
             ageGated = ageGated === `` ? `1` : `0`;
 
-            const updatedDisplayName = request.body.displayName.trim().slice(0, 60);
-            const updatedBio = request.body.bio.trim().slice(0, 280);
-            const updatedImage = request.body.image.trim();
+            let updatedDisplayName = request.body.displayName.trim().slice(0, 60);
+            let updatedBio = request.body.bio.trim().slice(0, 280);
+            let updatedImage = request.body.image.trim();
             let theme = request.body.theme.trim();
             let advancedTheme = request.body.finalCSS.trim();
             advancedTheme = advancedTheme.replace(/ {2}/g, ` `);
@@ -701,6 +701,19 @@ async function run()
 
             if (theme !== `Custom`)
                 advancedTheme = ``;
+
+            // eslint-disable-next-line no-control-regex
+            const regexForASCII = /^[\u0000-\u007F]*$/;
+            if (!regexForASCII.test(updatedDisplayName) || updatedDisplayName.length > 60)
+                updatedDisplayName = username;
+
+            if (!regexForASCII.test(updatedBio) || updatedBio.length > 280)
+                updatedBio = `No bio yet.`;
+
+            // eslint-disable-next-line no-useless-escape
+            const regexForURL = new RegExp(`/^(http|https):\/\/${ request.get(`host)`) }\/img\/ugc\/(.*)/`);
+            if (!regexForURL.test(updatedImage))
+                updatedImage = `${ https }://${ request.get(`host`) }/img/person.png`;
 
             let updatedLinks = [];
             let updatedLinkNames = [];
