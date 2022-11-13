@@ -331,23 +331,26 @@ async function run()
             else
             {
                 const stripeCID = userData.stripeCID;
-                const customer = await Stripe.customers.retrieve(stripeCID);
-                /* eslint-disable camelcase */
-                const session = await Stripe.checkout.sessions.create({
-                    mode: `subscription`,
-                    payment_method_types: [`card`],
-                    customer: customer.id,
-                    line_items: [
-                        {
-                            price: stripeProductID,
-                            quantity: 1
-                        },
-                    ],
-                    success_url: `${ https }://${ request.get(`host`) }/upgrade?session_id={CHECKOUT_SESSION_ID}`,
-                    cancel_url: `${ https }://${ request.get(`host`) }/edit`
-                });
-                /* eslint-enable camelcase */
-                return response.redirect(session.url);
+                if (stripeCID)
+                {
+                    const customer = await Stripe.customers.retrieve(stripeCID);
+                    /* eslint-disable camelcase */
+                    const session = await Stripe.checkout.sessions.create({
+                        mode: `subscription`,
+                        payment_method_types: [`card`],
+                        customer: customer.id,
+                        line_items: [
+                            {
+                                price: stripeProductID,
+                                quantity: 1
+                            },
+                        ],
+                        success_url: `${ https }://${ request.get(`host`) }/upgrade?session_id={CHECKOUT_SESSION_ID}`,
+                        cancel_url: `${ https }://${ request.get(`host`) }/edit`
+                    });
+                    /* eslint-enable camelcase */
+                    return response.redirect(session.url);
+                }
             }
         }
         response.redirect(`/edit`);
@@ -363,7 +366,11 @@ async function run()
         }
 
         if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
-            return response.redirect(`${ stripeCustomerPortalURL }`);
+        {
+            const stripeCID = userData.stripeCID;
+            if (stripeCID)
+                return response.redirect(`${ stripeCustomerPortalURL }`);
+        }
         response.redirect(`/edit`);
     });
 
