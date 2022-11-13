@@ -66,7 +66,8 @@ const linksDiv = document.querySelector(`.links`);
 for (const link of linksArray)
 {
     const index = linksArray.indexOf(link);
-    addLink(index, link, linksNamesArray[index]);
+    if (linksArray[index] !== ``)
+        addLink(index, link, linksNamesArray[index]);
 }
 
 document.querySelector(`#addLink`).addEventListener(`click`, (event) =>
