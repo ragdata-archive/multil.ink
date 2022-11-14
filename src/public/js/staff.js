@@ -463,7 +463,7 @@ async function extendUser(username, months)
 {
     const protocol = window.location.protocol;
     const domain = window.location.href.split(`/`)[2];
-    await $.ajax(`${ protocol }//${ domain }/staff/promoteUser`, {
+    await $.ajax(`${ protocol }//${ domain }/staff/extendUser`, {
         type: `POST`,
         contentType: `application/json`,
         data: JSON.stringify({
