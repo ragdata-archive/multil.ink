@@ -283,7 +283,7 @@ async function run()
             // If this is the first user, make them staff.
             const userCount = sql.prepare(`SELECT COUNT(*) FROM userAuth`).get();
             if (userCount[`COUNT(*)`] === 1)
-                sql.prepare(`UPDATE users SET paid = ?, subExpires = ?, verified = ? WHERE username = ?`).run(`1`, `9999-01-01`, `2`, username);
+                sql.prepare(`UPDATE users SET paid = ?, subExpires = ?, verified = ? WHERE username = ?`).run(`1`, `9999-01-01`, `${ VER_STATUS.STAFF_MEMBER }`, username);
             else
             {
                 if (emailSMTPHost && emailSMTPPort && emailSMTPUser && emailSMTPPass && emailFromDisplayName)
@@ -419,7 +419,7 @@ async function run()
                     if (discordWebhookURL)
                     {
                         let paidCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE paid = 1`).get()[`COUNT(*)`];
-                        const staffCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = 2`).get()[`COUNT(*)`];
+                        const staffCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = ?`).get(`${ VER_STATUS.STAFF_MEMBER }`)[`COUNT(*)`];
                         paidCount -= staffCount;
                         let content = ``;
                         content += `|| ${ userData.username } // ${ userData.email } || has upgraded their account!\nWe now have **${ paidCount }** paid users.`;
@@ -1031,12 +1031,12 @@ async function run()
         let userAuthDataByPage = sql.prepare(`SELECT * FROM userAuth LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
 
         let totalUserCount = sql.prepare(`SELECT COUNT(*) FROM users`).get()[`COUNT(*)`];
-        const verifiedCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = 1`).get()[`COUNT(*)`];
+        const verifiedCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = ?`).get(`${ VER_STATUS.VERIFIED_MEMBER }`)[`COUNT(*)`];
         let paidCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE paid = 1`).get()[`COUNT(*)`];
-        const suspendedCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = -1`).get()[`COUNT(*)`];
-        const staffCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = 2`).get()[`COUNT(*)`];
-        const shadowUserCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = -2`).get()[`COUNT(*)`];
-        const awaitingEmailUserCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = -3`).get()[`COUNT(*)`];
+        const suspendedCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = ?`).get(`${ VER_STATUS.SUSPENDED }`)[`COUNT(*)`];
+        const staffCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = ?`).get(`${ VER_STATUS.STAFF_MEMBER }`)[`COUNT(*)`];
+        const shadowUserCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = ?`).get(`${ VER_STATUS.SHADOW_USER }`)[`COUNT(*)`];
+        const awaitingEmailUserCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = ?`).get(`${ VER_STATUS.AWAITING_VERIFICATION }`)[`COUNT(*)`];
 
         let freeCount = totalUserCount - paidCount - staffCount - shadowUserCount;
         if (freeCount < 0)
@@ -1258,26 +1258,26 @@ async function run()
                     const verifiedLevel = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn).verified;
                     if (verifiedLevel === VER_STATUS.MEMBER)
                     {
-                        sql.prepare(`UPDATE users SET verified = 1 WHERE username = ?`).run(usernameToTakeActionOn);
+                        sql.prepare(`UPDATE users SET verified = ? WHERE username = ?`).run(`${ VER_STATUS.VERIFIED_MEMBER }`, usernameToTakeActionOn);
                         sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || verified || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
                     }
                     else if (verifiedLevel === VER_STATUS.AWAITING_VERIFICATION)
                     {
                         sql.prepare(`DELETE FROM emailActivations WHERE username = ?`).run(usernameToTakeActionOn);
-                        sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                        sql.prepare(`UPDATE users SET verified = ? WHERE username = ?`).run(`${ VER_STATUS.MEMBER }`, usernameToTakeActionOn);
                         sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || skipped email activation for || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
                     }
                     response.redirect(`/staff`);
                     break;
                 }
                 case `unverifyUser`: {
-                    sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sql.prepare(`UPDATE users SET verified = ? WHERE username = ?`).run(`${ VER_STATUS.MEMBER }`, usernameToTakeActionOn);
                     sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || unverified || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
                     response.redirect(`/staff`);
                     break;
                 }
                 case `promoteUser`: {
-                    sql.prepare(`UPDATE users SET verified = 2 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sql.prepare(`UPDATE users SET verified = ? WHERE username = ?`).run(`${ VER_STATUS.STAFF_MEMBER }`, usernameToTakeActionOn);
                     sql.prepare(`UPDATE users SET paid = 1 WHERE username = ?`).run(usernameToTakeActionOn);
                     sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(`9999-01-01`, usernameToTakeActionOn);
                     sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || promoted || ${ usernameToTakeActionOn } || to Staff.`, discordWebhookURL);
@@ -1285,7 +1285,7 @@ async function run()
                     break;
                 }
                 case `demoteUser`: {
-                    sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sql.prepare(`UPDATE users SET verified = ? WHERE username = ?`).run(`${ VER_STATUS.MEMBER }`, usernameToTakeActionOn);
                     sql.prepare(`UPDATE users SET paid = 0 WHERE username = ?`).run(usernameToTakeActionOn);
                     sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(``, usernameToTakeActionOn);
                     sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || demoted || ${ usernameToTakeActionOn } || from Staff.`, discordWebhookURL);
@@ -1293,13 +1293,13 @@ async function run()
                     break;
                 }
                 case `suspendUser`: {
-                    sql.prepare(`UPDATE users SET verified = -1 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sql.prepare(`UPDATE users SET verified = ? WHERE username = ?`).run(`${ VER_STATUS.SUSPENDED }`, usernameToTakeActionOn);
                     sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || suspended || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
                     response.redirect(`/staff`);
                     break;
                 }
                 case `unsuspendUser`: {
-                    sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sql.prepare(`UPDATE users SET verified = ? WHERE username = ?`).run(`${ VER_STATUS.MEMBER }`, usernameToTakeActionOn);
                     sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || unsuspended || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
                     response.redirect(`/staff`);
                     break;
@@ -1354,7 +1354,7 @@ async function run()
                     if (user)
                         return response.redirect(`/staff`);
 
-                    sql.prepare(`INSERT INTO users (username, displayName, bio, image, links, linkNames, verified, paid, subExpires, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, redirectTo, ``, ``, `[]`, `[]`, `-2`, `0`, ``, ``, ``, `0`);
+                    sql.prepare(`INSERT INTO users (username, displayName, bio, image, links, linkNames, verified, paid, subExpires, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, redirectTo, ``, ``, `[]`, `[]`, `${ VER_STATUS.SHADOW_USER }`, `0`, ``, ``, ``, `0`);
                     sql.prepare(`INSERT INTO userAuth (username, password, email, stripeCID) VALUES (?, ?, ?, ?)`).run(username, ``, ``, ``);
                     sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || created a new shadow user || ${ username } || which redirects to || ${ redirectTo } ||.`, discordWebhookURL);
 
