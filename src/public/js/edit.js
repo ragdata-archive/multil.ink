@@ -60,7 +60,7 @@ window.matchMedia(`(prefers-color-scheme: dark)`).addEventListener(`change`, (ev
 darkMode(window.matchMedia(`(prefers-color-scheme: dark)`).matches ? `dark` : `light`);
 
 const linksArray = links.split(`,`);
-const linksNamesArray = linksNames.split(`,`);
+const linksNamesArray = JSON.parse(linksNames);
 const linksDiv = document.querySelector(`.links`);
 
 for (const link of linksArray)
@@ -343,42 +343,6 @@ async function changeUsername(username, password)
 }
 
 /**
- * @name updateCSS
- * @description Update Advanced Theme CSS
- */
-function updateCSS()
-{
-    const backgroundColor = document.querySelector(`#backgroundColor`).value;
-    const textColor = document.querySelector(`#textColor`).value;
-    const borderColor = document.querySelector(`#borderColor`).value;
-    const finalCSS = document.querySelector(`#finalCSS`);
-    finalCSS.value = `<style>
-    :root {
-    --background-color: ${ backgroundColor };
-    --text-color: ${ textColor };
-    --border-color: ${ borderColor };
-}
-
-    html,
-    body,
-    main,
-    div.links>div>button {
-        background-color: var(--background-color);
-    }
-
-    p,
-    a {
-        color: var(--text-color);
-    }
-
-    div.links>div>button {
-        border: solid var(--border-color) 2px;
-        color: var(--text-color);
-    }
-    </style>`;
-}
-
-/**
  * @name showHideColorPickers
  * @description Shows or hides the color pickers if the user wants to use the Custom theme
  */
@@ -390,10 +354,6 @@ function showHideColorPickers()
         document.querySelector(`#advancedThemes`).style.display = `none`;
 }
 
-document.querySelector(`#backgroundColor`).addEventListener(`change`, updateCSS);
-document.querySelector(`#textColor`).addEventListener(`change`, updateCSS);
-document.querySelector(`#borderColor`).addEventListener(`change`, updateCSS);
 document.querySelector(`#themeOptions`).addEventListener(`change`, showHideColorPickers);
 
-updateCSS();
 showHideColorPickers();

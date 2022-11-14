@@ -107,9 +107,6 @@
                 <input type="color" class="colorPicker" id="textColor" name="textColor" value="<%=textColor%>">
                 <label for="borderColor" class="">Border Color</label>
                 <input type="color" class="colorPicker" id="borderColor" name="borderColor" value="<%=borderColor%>">
-                <div id="" style="display: none;">
-                    <input type="text" class="finalCSS" id="finalCSS" name="finalCSS" readonly required>
-                </div>
             </div>
             <div>
                 <label for="displayName">Page Title</label>
@@ -280,11 +277,10 @@
 
     <script>
         const links = `<%=links%>`;
-        const linksNames = `<%=linkNames%>`;
+        const linksNames = decodeURIComponent(atob(`<%=linkNames%>`));
         let paid = `<%=paid%>`;
         const verified = Number.parseInt(`<%=verified%>`, 10);
         const userTheme = `<%=theme%>`;
-        const advancedTheme = `<%-advancedTheme%>`;
         let themes = `<%=themes%>`;
         themes = themes.split(`,`);
         for (let index = 0; index < themes.length; index++)

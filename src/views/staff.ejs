@@ -27,7 +27,7 @@
                 <summary>User Statistics</summary>
                 <div class="bg-dark p-4 m-1 rounded">
                     <div class="stats ">
-                        <h4 class="text-white">Total <span class="badge bg-primary" id="userCountTotal"></span>
+                        <h4 class="text-white">Total <span class="badge bg-primary" id="totalUserCount"></span>
                         </h4>
                         <h4 class="text-white">Paying <span class="badge bg-success" id="paidCount"></span></h4>
                         <h4 class="text-white">Free <span class="badge bg-secondary" id="freeCount"></span></h4>
@@ -202,36 +202,36 @@
     </main>
 
     <script>
-        const myUsername = "<%=myUsername%>"
-        const numberOfUsers = "<%=numberOfUsers%>";
-        const usernames = "<%=usernames%>";
-        const emails = "<%=emails%>";
-        const verified = "<%=verified%>";
-        const paid = "<%=paid%>";
-        const subExpires = "<%=subExpires%>";
-        const displayNames = "<%=displayNames%>";
-        const bios = "<%=bios%>";
-        const images = "<%=images%>";
-        const links = "<%=links%>";
-        const linkNames = "<%=linkNames%>";
-        const ageGatedUsers = "<%=ageGated%>";
-        const userCountTotal = `<%=userCountTotal%>`;
+        const myUsername = `<%=myUsername%>`
+        const userCountPaginated = `<%=userCountPaginated%>`;
+        const usernames = `<%=usernames%>`;
+        const emails = `<%=emails%>`;
+        const verified = `<%=verified%>`;
+        const paid = `<%=paid%>`;
+        const subExpires = `<%=subExpires%>`;
+        const displayNames = `<%=displayNames%>`;
+        const bios = `<%=bios%>`;
+        const images = `<%=images%>`;
+        const links = `<%=links%>`;
+        const linkNames = `<%=linkNames%>`;
+        const ageGatedUsers = `<%=ageGated%>`;
+        const totalUserCount = `<%=totalUserCount%>`;
         const verifiedCount = `<%=verifiedCount%>`;
-        const paidCount = `<%=paidCount %>`;
+        const paidCount = `<%=paidCount%>`;
         const suspendedCount = `<%=suspendedCount%>`;
         const staffCount = `<%=staffCount%>`;
         const freeCount = `<%=freeCount%>`;
         const shadowUserCount = `<%=shadowUserCount%>`;
         const awaitingEmailUserCount = `<%=awaitingEmailUserCount%>`;
 
-        const percentOfUsersVerified = Math.round((verifiedCount / userCountTotal) * 100);
-        const percentOfUsersPaid = Math.round((paidCount / userCountTotal) * 100);
-        const percentOfUsersSuspended = Math.round((suspendedCount / userCountTotal) * 100);
-        const percentOfUsersStaff = Math.round((staffCount / userCountTotal) * 100);
-        const percentOfUsersFree = Math.round((freeCount / userCountTotal) * 100);
-        const percentOfUsersShadow = Math.round((shadowUserCount / (userCountTotal + shadowUserCount)) * 100);
-        const percentOfUsersAwaitingEmail = Math.round((awaitingEmailUserCount / userCountTotal) * 100);
-        document.querySelector(`#userCountTotal`).innerText = userCountTotal;
+        const percentOfUsersVerified = Math.round((verifiedCount / totalUserCount) * 100);
+        const percentOfUsersPaid = Math.round((paidCount / totalUserCount) * 100);
+        const percentOfUsersSuspended = Math.round((suspendedCount / totalUserCount) * 100);
+        const percentOfUsersStaff = Math.round((staffCount / totalUserCount) * 100);
+        const percentOfUsersFree = Math.round((freeCount / totalUserCount) * 100);
+        const percentOfUsersShadow = Math.round((shadowUserCount / (totalUserCount + shadowUserCount)) * 100);
+        const percentOfUsersAwaitingEmail = Math.round((awaitingEmailUserCount / totalUserCount) * 100);
+        document.querySelector(`#totalUserCount`).innerText = totalUserCount;
         document.querySelector(`#paidCount`).innerText = `${ paidCount } (${ percentOfUsersPaid }%)`;
         document.querySelector(`#verifiedCount`).innerText = `${ verifiedCount } (${ percentOfUsersVerified }%)`;
         document.querySelector(`#suspendedCount`).innerText = `${ suspendedCount } (${ percentOfUsersSuspended }%)`;

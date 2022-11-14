@@ -17,7 +17,7 @@ else if (verified === VER_STATUS.VERIFIED_MEMBER)
     document.querySelector(`#verifiedBadge`).style.display = `block`;
 
 let linksArray = links.split(`,`);
-let linksNamesArray = linksNames.split(`,`);
+let linksNamesArray = JSON.parse(linksNames);
 if (!paid)
 {
     linksArray = linksArray.slice(0, 7);

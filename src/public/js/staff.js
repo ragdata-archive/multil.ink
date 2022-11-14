@@ -5,7 +5,7 @@ document.body.classList.add(`bg-dark`);
 document.documentElement.classList.add(`bg-dark`);
 
 const users = [];
-for (let index = 0; index < numberOfUsers; index++)
+for (let index = 0; index < userCountPaginated; index++)
 {
     let linkData = links.split(`,`)[index];
     linkData = decodeURIComponent(atob(linkData));
@@ -23,12 +23,12 @@ for (let index = 0; index < numberOfUsers; index++)
     ageGated = ageGated === `1` ? `checked` : ``;
     users.push({
         username: usernames.split(`,`)[index],
-        email: emails.split(`,`)[index],
+        email: decodeURIComponent(atob(emails.split(`,`)[index])),
         verified: Number.parseInt(verified.split(`,`)[index], 10),
         paid: paid.split(`,`)[index],
         subExpires: subExpires.split(`,`)[index],
-        displayName: displayNames.split(`,`)[index],
-        bio: bios.split(`,`)[index],
+        displayName: decodeURIComponent(atob(displayNames.split(`,`)[index])),
+        bio: decodeURIComponent(atob(bios.split(`,`)[index])),
         image: images.split(`,`)[index],
         links: linkData,
         linkNames: linkNamesData,

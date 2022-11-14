@@ -53,10 +53,10 @@ async function run()
 
     https = https ? `https` : `http`;
     const usernameRegex = /^[\dA-Za-z]+$/;
-    const emailRegex = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
+    const emailRegex = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/;
     // eslint-disable-next-line no-control-regex
     const ASCIIRegex = /^[\u0000-\u007F]*$/;
-    const linkRegex = /https?:\/\/(www\.)?[\w#%+.:=@~-]{1,256}\.[\d()A-Za-z]{1,6}\b([\w!#%&()+./:=?@~-]*)/gm;
+    const linkRegex = /https?:\/\/(www\.)?[\w#%+.:=@~-]{1,256}\.[\d()A-Za-z]{1,6}\b([\w!#%&()+./:=?@~-]*)/;
 
     const bannedUsernames = new Set([
         `css`,
@@ -204,17 +204,24 @@ async function run()
 
     app.post(`/login`, checkNotAuthenticated, async (request, response, next) =>
     {
-        const verifyResults = await verify(hcaptchaSecret, request.body[`h-captcha-response`]);
-        if (!verifyResults.success)
+        try
         {
-            request.flash(`error`, `Please fill out the captcha.`);
-            return response.redirect(`/login?message=Please fill out the captcha.&type=error`);
+            const verifyResults = await verify(hcaptchaSecret, request.body[`h-captcha-response`]);
+            if (!verifyResults.success)
+            {
+                request.flash(`error`, `Please fill out the captcha.`);
+                return response.redirect(`/login?message=Please fill out the captcha.&type=error`);
+            }
+            passport.authenticate(`local`, {
+                successRedirect: `/edit`,
+                failureRedirect: `/login?message=Email/Password incorrect.&type=error`,
+                failureFlash: true
+            })(request, response, next);
         }
-        passport.authenticate(`local`, {
-            successRedirect: `/edit`,
-            failureRedirect: `/login?message=Email/Password incorrect.&type=error`,
-            failureFlash: true
-        })(request, response, next);
+        catch
+        {
+            response.redirect(`/login?message=An error occurred.&type=error`);
+        }
     });
 
     app.get(`/register`, checkNotAuthenticated, (request, response) =>
@@ -271,13 +278,12 @@ async function run()
                 stripeCID = customer.id;
             }
             sql.prepare(`INSERT INTO userAuth (username, email, password, stripeCID) VALUES (?, ?, ?, ?)`).run(username, email, hashedPassword, stripeCID);
-            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, `-3`, `0`, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ https }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`, `Light`, ``, `0`);
+            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, `${ VER_STATUS.AWAITING_VERIFICATION }`, `0`, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ https }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`, `Light`, ``, `0`);
 
             // If this is the first user, make them staff.
             const userCount = sql.prepare(`SELECT COUNT(*) FROM userAuth`).get();
             if (userCount[`COUNT(*)`] === 1)
-                sql.prepare(`UPDATE users SET paid = ?, subExpires = ?, verified = ? WHERE username = ?`).run(1, `9999-01-01`, `2`, username);
-
+                sql.prepare(`UPDATE users SET paid = ?, subExpires = ?, verified = ? WHERE username = ?`).run(`1`, `9999-01-01`, `2`, username);
             else
             {
                 if (emailSMTPHost && emailSMTPPort && emailSMTPUser && emailSMTPPass && emailFromDisplayName)
@@ -290,11 +296,9 @@ async function run()
                         html: `<p>Please verify your email by clicking the link below:</p><p><a href="${ https }://${ request.get(`host`) }/verifyemail?token=${ token }">${ https }://${ request.get(`host`) }/verifyemail?token=${ token }</a></p><p>If you did not sign up for an account, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
                     });
                 }
-
                 sendAuditLog(`|| ${ username } // ${ email } || registered for an account.`, discordWebhookURL);
                 return response.redirect(`/login?message=Account created. Please verify your email address, if you do not verify within 24 hours we will delete your account.&type=success`);
             }
-
             response.redirect(`/edit`);
         }
         catch
@@ -312,46 +316,53 @@ async function run()
             return response.redirect(`/login`);
         }
 
-        if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
+        try
         {
-            // if we have a query string, it's a stripe redirect
-            if (request.query && request.query.session_id)
+            if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
             {
-                // verify the session
-                const session = await Stripe.checkout.sessions.retrieve(request.query.session_id);
-                if (session.customer !== userData.stripeCID)
-                    return response.redirect(`/edit?message=An error occurred.&type=error`);
+                // if we have a query string, it's a stripe redirect
+                if (request.query && request.query.session_id)
+                {
+                    // verify the session
+                    const session = await Stripe.checkout.sessions.retrieve(request.query.session_id);
+                    if (session.customer !== userData.stripeCID)
+                        return response.redirect(`/edit?message=An error occurred.&type=error`);
 
-                if (session.payment_status === `paid`)
+                    if (session.payment_status === `paid`)
+                    {
+                        // We handle the actual subscription update in the webhook.
+                        return response.redirect(`/edit?message=You have successfully upgraded your account.&type=success`);
+                    }
+                }
+                else
                 {
-                    // We handle the actual subscription update in the webhook.
-                    return response.redirect(`/edit?message=You have successfully upgraded your account.&type=success`);
+                    const stripeCID = userData.stripeCID;
+                    if (stripeCID)
+                    {
+                        const customer = await Stripe.customers.retrieve(stripeCID);
+                        /* eslint-disable camelcase */
+                        const session = await Stripe.checkout.sessions.create({
+                            mode: `subscription`,
+                            payment_method_types: [`card`],
+                            customer: customer.id,
+                            line_items: [
+                                {
+                                    price: stripeProductID,
+                                    quantity: 1
+                                },
+                            ],
+                            success_url: `${ https }://${ request.get(`host`) }/upgrade?session_id={CHECKOUT_SESSION_ID}`,
+                            cancel_url: `${ https }://${ request.get(`host`) }/edit`
+                        });
+                        /* eslint-enable camelcase */
+                        return response.redirect(session.url);
+                    }
                 }
             }
-            else
-            {
-                const stripeCID = userData.stripeCID;
-                if (stripeCID)
-                {
-                    const customer = await Stripe.customers.retrieve(stripeCID);
-                    /* eslint-disable camelcase */
-                    const session = await Stripe.checkout.sessions.create({
-                        mode: `subscription`,
-                        payment_method_types: [`card`],
-                        customer: customer.id,
-                        line_items: [
-                            {
-                                price: stripeProductID,
-                                quantity: 1
-                            },
-                        ],
-                        success_url: `${ https }://${ request.get(`host`) }/upgrade?session_id={CHECKOUT_SESSION_ID}`,
-                        cancel_url: `${ https }://${ request.get(`host`) }/edit`
-                    });
-                    /* eslint-enable camelcase */
-                    return response.redirect(session.url);
-                }
-            }
+        }
+        catch
+        {
+            response.redirect(`/edit`);
         }
         response.redirect(`/edit`);
     });
@@ -403,7 +414,7 @@ async function run()
                         return response.sendStatus(400);
                     const timeNow = new Date(Date.now());
                     const timeNextYear = new Date(timeNow.setFullYear(timeNow.getFullYear() + 1));
-                    sql.prepare(`UPDATE users SET paid = ?, subExpires = ? WHERE username = ?`).run(1, `${ timeNextYear.toISOString().slice(0, 10) }`, userData.username);
+                    sql.prepare(`UPDATE users SET paid = ?, subExpires = ? WHERE username = ?`).run(`1`, `${ timeNextYear.toISOString().slice(0, 10) }`, userData.username);
 
                     if (discordWebhookURL)
                     {
@@ -423,7 +434,16 @@ async function run()
                     sendAuditLog(`|| ${ userAuthData.username } // ${ userAuthData.email } || has cancelled their subscription.\nThey will lose pro perks on/around <t:${ data.current_period_end }>`, discordWebhookURL);
 
                 else if (data.status === `unpaid`)
+                {
+                    const userAuthData = sql.prepare(`SELECT * FROM userAuth WHERE stripeCID = ?`).get(data.customer);
+                    if (!userAuthData)
+                        return response.sendStatus(400);
+                    const userData = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userAuthData.username);
+                    if (!userData)
+                        return response.sendStatus(400);
+                    sql.prepare(`UPDATE users SET paid = ?, subExpires = ? WHERE username = ?`).run(`0`, ``, userData.username);
                     sendAuditLog(`|| ${ userAuthData.username } // ${ userAuthData.email } || has failed to pay their subscription.`, discordWebhookURL);
+                }
             }
 
             response.sendStatus(200);
@@ -434,63 +454,77 @@ async function run()
 
     app.get(`/verifyemail`, (request, response) =>
     {
-        const queries = request.query;
-        if (!queries.token)
-            return response.redirect(`/edit?message=Invalid token.&type=error`);
-        const token = queries.token.trim().slice(0, 32);
-        const tokenData = sql.prepare(`SELECT * FROM emailActivations WHERE token = ?`).get(token);
-        if (!tokenData)
-            return response.redirect(`/edit?message=Invalid token.&type=error`);
-        const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(tokenData.username);
-        if (!user)
-            return response.redirect(`/edit?message=An error occurred.&type=error`);
-        if (tokenData.expires < new Date(Date.now()).toISOString().slice(0, 10))
+        try
         {
+            const queries = request.query;
+            if (!queries.token)
+                return response.redirect(`/edit?message=Invalid token.&type=error`);
+            const token = queries.token.trim().slice(0, 32);
+            const tokenData = sql.prepare(`SELECT * FROM emailActivations WHERE token = ?`).get(token);
+            if (!tokenData)
+                return response.redirect(`/edit?message=Invalid token.&type=error`);
+            const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(tokenData.username);
+            if (!user)
+                return response.redirect(`/edit?message=An error occurred.&type=error`);
+            if (tokenData.expires < new Date(Date.now()).toISOString().slice(0, 10))
+            {
+                sql.prepare(`DELETE FROM emailActivations WHERE token = ?`).run(token);
+                return response.redirect(`/edit?message=Token expired.&type=error`);
+            }
             sql.prepare(`DELETE FROM emailActivations WHERE token = ?`).run(token);
-            return response.redirect(`/edit?message=Token expired.&type=error`);
+            if (user.verified === VER_STATUS.AWAITING_VERIFICATION)
+                sql.prepare(`UPDATE users SET verified = ? WHERE username = ?`).run(`${ VER_STATUS.MEMBER }`, tokenData.username);
+            sendAuditLog(`|| ${ user.username } // ${ tokenData.email } || activated their account.`, discordWebhookURL);
+            return response.redirect(`/login?message=Email verified.&type=success`);
         }
-        sql.prepare(`DELETE FROM emailActivations WHERE token = ?`).run(token);
-        if (user.verified === VER_STATUS.AWAITING_VERIFICATION)
-            sql.prepare(`UPDATE users SET verified = ? WHERE username = ?`).run(`0`, tokenData.username);
-        sendAuditLog(`|| ${ user.username } // ${ tokenData.email } || activated their account.`, discordWebhookURL);
-        return response.redirect(`/login?message=Email verified.&type=success`);
+        catch
+        {
+            response.redirect(`/edit?message=An error occurred.&type=error`);
+        }
     });
 
     app.get(`/resendactivationemail`, checkAuthenticated, async (request, response, next) =>
     {
-        const userEmail = request.user;
-        const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail);
-        if (!userData)
+        try
         {
-            logoutUser(request, response, next);
-            return response.redirect(`/login`);
-        }
-        const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userData.username);
-        if (user.verified !== -3)
-            return response.redirect(`/edit?message=Email already verified.&type=error`);
-        const availableChars = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`;
-        let token = ``;
-        for (let index = 0; index < 32; index++)
-            token += availableChars.charAt(Math.floor(Math.random() * availableChars.length));
-        sql.prepare(`DELETE FROM emailActivations WHERE email = ?`).run(userEmail);
+            const userEmail = request.user;
+            const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail);
+            if (!userData)
+            {
+                logoutUser(request, response, next);
+                return response.redirect(`/login`);
+            }
+            const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userData.username);
+            if (user.verified !== `${ VER_STATUS.AWAITING_VERIFICATION }`)
+                return response.redirect(`/edit?message=Email already verified.&type=error`);
+            const availableChars = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`;
+            let token = ``;
+            for (let index = 0; index < 32; index++)
+                token += availableChars.charAt(Math.floor(Math.random() * availableChars.length));
+            sql.prepare(`DELETE FROM emailActivations WHERE email = ?`).run(userEmail);
 
-        const tokenExists = sql.prepare(`SELECT * FROM emailActivations WHERE token = ?`).get(token);
-        if (tokenExists) // too lazy to gen them another one so just force them to do it again
-            return response.redirect(`/edit?message=An error occurred. Please try again.&type=error`);
-        sql.prepare(`INSERT INTO emailActivations (email, username, token, expires) VALUES (?, ?, ?, ?)`).run(userEmail, userData.username, `${ token }`, `${ new Date(Date.now() + (86_400_000 * 2)).toISOString().slice(0, 10) }`);
-        if (emailSMTPHost && emailSMTPPort && emailSMTPUser && emailSMTPPass && emailFromDisplayName)
+            const tokenExists = sql.prepare(`SELECT * FROM emailActivations WHERE token = ?`).get(token);
+            if (tokenExists) // too lazy to gen them another one so just force them to do it again
+                return response.redirect(`/edit?message=An error occurred. Please try again.&type=error`);
+            sql.prepare(`INSERT INTO emailActivations (email, username, token, expires) VALUES (?, ?, ?, ?)`).run(userEmail, userData.username, `${ token }`, `${ new Date(Date.now() + (86_400_000 * 2)).toISOString().slice(0, 10) }`);
+            if (emailSMTPHost && emailSMTPPort && emailSMTPUser && emailSMTPPass && emailFromDisplayName)
+            {
+                await transporter.sendMail({
+                    from: `"${ emailFromDisplayName }" <${ emailSMTPUser }>`,
+                    to: `${ userEmail }`,
+                    subject: `Please verify your email`,
+                    text: `Please verify your email by clicking the link below:\n\n${ https }://${ request.get(`host`) }/verifyemail?token=${ token }\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\n${ emailFromDisplayName }`,
+                    html: `<p>Please verify your email by clicking the link below:</p><p><a href="${ https }://${ request.get(`host`) }/verifyemail?token=${ token }">${ https }://${ request.get(`host`) }/verifyemail?token=${ token }</a></p><p>If you did not sign up for an account, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
+                });
+            }
+
+            sendAuditLog(`|| ${ userData.username } // ${ userEmail } || requested a new email activation.`, discordWebhookURL);
+            return response.redirect(`/edit?message=Email resent.&type=success`);
+        }
+        catch
         {
-            await transporter.sendMail({
-                from: `"${ emailFromDisplayName }" <${ emailSMTPUser }>`,
-                to: `${ userEmail }`,
-                subject: `Please verify your email`,
-                text: `Please verify your email by clicking the link below:\n\n${ https }://${ request.get(`host`) }/verifyemail?token=${ token }\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\n${ emailFromDisplayName }`,
-                html: `<p>Please verify your email by clicking the link below:</p><p><a href="${ https }://${ request.get(`host`) }/verifyemail?token=${ token }">${ https }://${ request.get(`host`) }/verifyemail?token=${ token }</a></p><p>If you did not sign up for an account, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
-            });
+            response.redirect(`/edit?message=An error occurred.&type=error`);
         }
-
-        sendAuditLog(`|| ${ userData.username } // ${ userEmail } || requested a new email activation.`, discordWebhookURL);
-        return response.redirect(`/edit?message=Email resent.&type=success`);
     });
 
     app.get(`/forgotpassword`, (request, response) =>
@@ -502,41 +536,48 @@ async function run()
 
     app.post(`/forgotpassword`, async (request, response) =>
     {
-        const verifyResults = await verify(hcaptchaSecret, request.body[`h-captcha-response`]);
-        if (!verifyResults.success)
+        try
         {
-            request.flash(`error`, `Please fill out the captcha.`);
-            return response.redirect(`/login?message=Please fill out the captcha.&type=error`);
-        }
-        const email = request.body.email;
-        if (!email)
-            return response.redirect(`/forgotpassword?message=Please enter an email.&type=error`);
-        const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(email);
-        if (!userData)
-            return response.redirect(`/forgotpassword?message=An error occurred.&type=error`);
+            const verifyResults = await verify(hcaptchaSecret, request.body[`h-captcha-response`]);
+            if (!verifyResults.success)
+            {
+                request.flash(`error`, `Please fill out the captcha.`);
+                return response.redirect(`/login?message=Please fill out the captcha.&type=error`);
+            }
+            const email = request.body.email;
+            if (!email)
+                return response.redirect(`/forgotpassword?message=Please enter an email.&type=error`);
+            const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(email);
+            if (!userData)
+                return response.redirect(`/forgotpassword?message=An error occurred.&type=error`);
 
-        const availableChars = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`;
-        let token = ``;
-        for (let index = 0; index < 32; index++)
-            token += availableChars.charAt(Math.floor(Math.random() * availableChars.length));
-        sql.prepare(`DELETE FROM passwordResets WHERE email = ?`).run(email);
-        const tokenExists = sql.prepare(`SELECT * FROM passwordResets WHERE token = ?`).get(token);
-        if (tokenExists) // too lazy to gen them another one so just force them to do it again
-            return response.redirect(`/forgotpassword?message=An error occurred. Please try again.&type=error`);
-        sql.prepare(`INSERT INTO passwordResets (email, username, token, expires) VALUES (?, ?, ?, ?)`).run(email, userData.username, `${ token }`, `${ new Date(Date.now() + (86_400_000 * 2)).toISOString().slice(0, 10) }`);
-        if (emailSMTPHost && emailSMTPPort && emailSMTPUser && emailSMTPPass && emailFromDisplayName)
+            const availableChars = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`;
+            let token = ``;
+            for (let index = 0; index < 32; index++)
+                token += availableChars.charAt(Math.floor(Math.random() * availableChars.length));
+            sql.prepare(`DELETE FROM passwordResets WHERE email = ?`).run(email);
+            const tokenExists = sql.prepare(`SELECT * FROM passwordResets WHERE token = ?`).get(token);
+            if (tokenExists) // too lazy to gen them another one so just force them to do it again
+                return response.redirect(`/forgotpassword?message=An error occurred. Please try again.&type=error`);
+            sql.prepare(`INSERT INTO passwordResets (email, username, token, expires) VALUES (?, ?, ?, ?)`).run(email, userData.username, `${ token }`, `${ new Date(Date.now() + (86_400_000 * 2)).toISOString().slice(0, 10) }`);
+            if (emailSMTPHost && emailSMTPPort && emailSMTPUser && emailSMTPPass && emailFromDisplayName)
+            {
+                await transporter.sendMail({
+                    from: `"${ emailFromDisplayName }" <${ emailSMTPUser }>`,
+                    to: `${ email }`,
+                    subject: `Password Reset`,
+                    text: `Please reset your password by clicking the link below:\n\n${ https }://${ request.get(`host`) }/resetpassword?token=${ token }\n\nIf you did not request a password reset, please ignore this email.\n\nThanks,\n${ emailFromDisplayName }`,
+                    html: `<p>Please reset your password by clicking the link below:</p><p><a href="${ https }://${ request.get(`host`) }/resetpassword?token=${ token }">${ https }://${ request.get(`host`) }/resetpassword?token=${ token }</a></p><p>If you did not request a password reset, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
+                });
+            }
+
+            sendAuditLog(`|| ${ userData.username } // ${ email } || requested a password reset.`, discordWebhookURL);
+            return response.redirect(`/forgotpassword?message=Password reset email sent.&type=success`);
+        }
+        catch
         {
-            await transporter.sendMail({
-                from: `"${ emailFromDisplayName }" <${ emailSMTPUser }>`,
-                to: `${ email }`,
-                subject: `Password Reset`,
-                text: `Please reset your password by clicking the link below:\n\n${ https }://${ request.get(`host`) }/resetpassword?token=${ token }\n\nIf you did not request a password reset, please ignore this email.\n\nThanks,\n${ emailFromDisplayName }`,
-                html: `<p>Please reset your password by clicking the link below:</p><p><a href="${ https }://${ request.get(`host`) }/resetpassword?token=${ token }">${ https }://${ request.get(`host`) }/resetpassword?token=${ token }</a></p><p>If you did not request a password reset, please ignore this email.</p><p>Thanks,<br>${ emailFromDisplayName }</p>`
-            });
+            response.redirect(`/forgotpassword?message=An error occurred.&type=error`);
         }
-
-        sendAuditLog(`|| ${ userData.username } // ${ email } || requested a password reset.`, discordWebhookURL);
-        return response.redirect(`/forgotpassword?message=Password reset email sent.&type=success`);
     });
 
     app.get(`/resetpassword`, (request, response) =>
@@ -560,34 +601,41 @@ async function run()
 
     app.post(`/resetpassword`, async (request, response) =>
     {
-        const verifyResults = await verify(hcaptchaSecret, request.body[`h-captcha-response`]);
-        if (!verifyResults.success)
+        try
         {
-            request.flash(`error`, `Please fill out the captcha.`);
-            return response.redirect(`/login?message=Please fill out the captcha.&type=error`);
-        }
-        const token = request.body.token;
-        if (!token)
-            return response.redirect(`/forgotpassword?message=Invalid token.&type=error`);
-        const tokenData = sql.prepare(`SELECT * FROM passwordResets WHERE token = ?`).get(token);
-        if (!tokenData)
-            return response.redirect(`/forgotpassword?message=Invalid token.&type=error`);
-        if (tokenData.expires < new Date(Date.now()).toISOString())
-        {
+            const token = request.body.token;
+            if (!token)
+                return response.redirect(`/forgotpassword?message=Invalid token.&type=error`);
+            const verifyResults = await verify(hcaptchaSecret, request.body[`h-captcha-response`]);
+            if (!verifyResults.success)
+            {
+                request.flash(`error`, `Please fill out the captcha.`);
+                return response.redirect(`/resetpassword?token=${ token }&message=Please fill out the captcha.&type=error`);
+            }
+            const tokenData = sql.prepare(`SELECT * FROM passwordResets WHERE token = ?`).get(token);
+            if (!tokenData)
+                return response.redirect(`/forgotpassword?message=Invalid token.&type=error`);
+            if (tokenData.expires < new Date(Date.now()).toISOString())
+            {
+                sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token);
+                return response.redirect(`/forgotpassword?message=Token expired.&type=error`);
+            }
+            const password = request.body.password;
+            const confirmPassword = request.body.password2;
+            if (!password || !confirmPassword)
+                return response.redirect(`/resetpassword?token=${ token }&message=Please enter a password.&type=error`);
+            if (password !== confirmPassword)
+                return response.redirect(`/resetpassword?token=${ token }&message=Passwords do not match.&type=error`);
+            const hash = await bcrypt.hash(password.slice(0, 128), 10);
+            sql.prepare(`UPDATE userAuth SET password = ? WHERE email = ?`).run(hash, tokenData.email);
             sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token);
-            return response.redirect(`/forgotpassword?message=Token expired.&type=error`);
+            sendAuditLog(`|| ${ tokenData.username } // ${ tokenData.email } || reset their password.`, discordWebhookURL);
+            return response.redirect(`/login?message=Password reset.&type=success`);
         }
-        const password = request.body.password;
-        if (!password)
-            return response.redirect(`/resetpassword?token=${ token }&message=Please enter a password.&type=error`);
-        const confirmPassword = request.body.password2;
-        if (password !== confirmPassword)
-            return response.redirect(`/resetpassword?token=${ token }&message=Passwords do not match.&type=error`);
-        const hash = await bcrypt.hash(password.slice(0, 128), 10);
-        sql.prepare(`UPDATE userAuth SET password = ? WHERE email = ?`).run(hash, tokenData.email);
-        sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token);
-        sendAuditLog(`|| ${ tokenData.username } // ${ tokenData.email } || reset their password.`, discordWebhookURL);
-        return response.redirect(`/login?message=Password reset.&type=success`);
+        catch
+        {
+            response.redirect(`/forgotpassword?message=An error occurred.&type=error`);
+        }
     });
 
     app.get(`/report`, (request, response) =>
@@ -599,31 +647,38 @@ async function run()
 
     app.post(`/report`, async (request, response) =>
     {
-        const verifyResults = await verify(hcaptchaSecret, request.body[`h-captcha-response`]);
-        if (!verifyResults.success)
+        try
         {
-            request.flash(`error`, `Please fill out the captcha.`);
-            return response.redirect(`/report?message=Please fill out the captcha.&type=error`);
-        }
-        const email = request.body.email;
-        const fullName = request.body.fullName;
-        const message = request.body.message;
-        if (!email || !fullName || !message)
-            return response.redirect(`/report?message=Please complete the form.&type=error`);
+            const verifyResults = await verify(hcaptchaSecret, request.body[`h-captcha-response`]);
+            if (!verifyResults.success)
+            {
+                request.flash(`error`, `Please fill out the captcha.`);
+                return response.redirect(`/report?message=Please fill out the captcha.&type=error`);
+            }
+            const email = request.body.email;
+            const fullName = request.body.fullName;
+            const message = request.body.message;
+            if (!email || !fullName || !message)
+                return response.redirect(`/report?message=Please complete the form.&type=error`);
 
-        if (emailSMTPHost && emailSMTPPort && emailSMTPUser && emailSMTPPass && emailFromDisplayName && reportEmail)
-        {
-            await transporter.sendMail({
-                from: `"${ emailFromDisplayName }" <${ emailSMTPUser }>`,
-                to: `${ reportEmail }`,
-                subject: `New Report Form Submission`,
-                text: `New report form submission:\n\nEmail: ${ email }\nFull Name: ${ fullName }\nMessage: ${ message }`,
-                html: `<p>New report form submission:</p><p>Email: ${ email }</p><p>Full Name: ${ fullName }</p><p>Message: ${ message }</p>`
-            });
-            sendAuditLog(`New report form submission. Please have the report administrator check their email.`, discordWebhookURL);
-            return response.redirect(`/report?message=Your report has been received.&type=success`);
+            if (emailSMTPHost && emailSMTPPort && emailSMTPUser && emailSMTPPass && emailFromDisplayName && reportEmail)
+            {
+                await transporter.sendMail({
+                    from: `"${ emailFromDisplayName }" <${ emailSMTPUser }>`,
+                    to: `${ reportEmail }`,
+                    subject: `New Report Form Submission`,
+                    text: `New report form submission:\n\nEmail: ${ email }\nFull Name: ${ fullName }\nMessage: ${ message }`,
+                    html: `<p>New report form submission:</p><p>Email: ${ email }</p><p>Full Name: ${ fullName }</p><p>Message: ${ message }</p>`
+                });
+                sendAuditLog(`New report form submission. Please have the report administrator check their email.`, discordWebhookURL);
+                return response.redirect(`/report?message=Your report has been received.&type=success`);
+            }
+            return response.redirect(`/report?message=An error occurred.&type=error`);
         }
-        return response.redirect(`/report?message=An error occurred.&type=error`);
+        catch
+        {
+            response.redirect(`/report?message=An error occurred.&type=error`);
+        }
     });
 
     app.get(`/edit`, checkAuthenticated, (request, response, next) =>
@@ -660,13 +715,12 @@ async function run()
             bio: user.bio,
             image: user.image,
             links: JSON.parse(user.links),
-            linkNames: JSON.parse(user.linkNames),
+            linkNames: Buffer.from(user.linkNames).toString(`base64`),
             paid: Boolean(user.paid),
             subExpires: user.subExpires,
             verified: user.verified,
             ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`,
             theme: user.theme,
-            advancedTheme,
             themes,
             backgroundColor,
             textColor,
@@ -689,11 +743,9 @@ async function run()
             }
             username = username.username;
             const isPaidUser = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).paid);
-            const isStaffMember = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === VER_STATUS.STAFF_MEMBER);
             const isSuspended = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === VER_STATUS.SUSPENDED);
-            const isNotEmailVerified = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username).verified === VER_STATUS.AWAITING_VERIFICATION);
 
-            if (isSuspended || isNotEmailVerified)
+            if (isSuspended)
                 return response.redirect(`/`);
 
             let ageGated = request.body.adultContent;
@@ -703,20 +755,50 @@ async function run()
             let updatedBio = request.body.bio.trim().slice(0, 280);
             let updatedImage = request.body.image.trim();
             let theme = request.body.theme.trim();
-            let advancedTheme = request.body.finalCSS.trim();
-            advancedTheme = advancedTheme.replace(/ {2}/g, ` `);
+            let backgroundColor = request.body.backgroundColor.trim().slice(0, 7);
+            let textColor = request.body.textColor.trim().slice(0, 7);
+            let borderColor = request.body.borderColor.trim().slice(0, 7);
+            const colorRegex = /^#[\da-f]{6}$/i;
+            if (!colorRegex.test(backgroundColor))
+                backgroundColor = `#ffffff`;
+            if (!colorRegex.test(textColor))
+                textColor = `#000000`;
+            if (!colorRegex.test(borderColor))
+                borderColor = `#ffffff`;
+            let advancedTheme = `
+                    <style>
+                    :root {
+                    --background-color: ${ backgroundColor };
+                    --text-color: ${ textColor };
+                    --border-color: ${ borderColor };
+                }
+
+                    html,
+                    body,
+                    main,
+                    div.links>div>button {
+                        background-color: var(--background-color);
+                    }
+
+                    p,
+                    a {
+                        color: var(--text-color);
+                    }
+
+                    div.links>div>button {
+                        border: solid var(--border-color) 2px;
+                        color: var(--text-color);
+                    }
+                    </style>
+    `.trim();
+            advancedTheme = advancedTheme.replace(/(\r\n|\n|\r|\t)/g, ``);
+            advancedTheme = advancedTheme.replace(/ {2}/g, ``);
 
             if ((!themes.includes(theme) || theme !== `Custom`) && (!isPaidUser && theme === `Custom`))
                 theme = `Light`;
 
             if (theme !== `Custom`)
                 advancedTheme = ``;
-
-            if (!advancedTheme.startsWith(`<style>`) || !advancedTheme.endsWith(`</style>`))
-            {
-                advancedTheme = ``; // If the user somehow manages to bypass the client-side check, this will prevent them from injecting shit into <head> of their profile.
-                theme = `Light`;
-            }
 
             if (!ASCIIRegex.test(updatedDisplayName) || updatedDisplayName.length > 60)
                 updatedDisplayName = username;
@@ -725,8 +807,8 @@ async function run()
                 updatedBio = `No bio yet.`;
 
             // eslint-disable-next-line no-useless-escape
-            const regexForURL = new RegExp(`/^(http|https):\/\/${ request.get(`host)`) }\/img\/ugc\/(.*)/`);
-            if (!regexForURL.test(updatedImage))
+            const regexForImageUGCUrl = new RegExp(`/^(http|https):\/\/${ request.get(`host)`) }\/img\/ugc\/(.*)/`);
+            if (!regexForImageUGCUrl.test(updatedImage))
                 updatedImage = `${ https }://${ request.get(`host`) }/img/person.png`;
 
             let updatedLinks = [];
@@ -740,15 +822,13 @@ async function run()
                     if (!link.startsWith(`http://`) && !link.startsWith(`https://`))
                         link = `https://${ link }`;
 
-                    if (linkRegex.test(link) && link && linkName && !updatedLinks.includes(link))
+                    if (linkRegex.test(link) && linkName && !updatedLinks.includes(link))
                     {
                         let allowed = false;
                         if (linkWhitelist)
                         {
-                            let domain = link.split(`//`)[1].split(`/`)[0];
-                            if (domain.startsWith(`www.`))
-                                domain = domain.slice(4);
-                            if (!freeLinks.includes(domain) && !isPaidUser && !isStaffMember) // If free user & link is not in free list, skip.
+                            const domain = link.split(`//`)[1].split(`/`)[0];
+                            if (!freeLinks.includes(domain) && !isPaidUser) // If free user & link is not in free list, skip.
                             {
                                 allowed = false;
                                 continue;
@@ -756,8 +836,9 @@ async function run()
                             else
                                 allowed = true;
                         }
+                        else if (!linkWhitelist)
+                            allowed = true; // they passed all checks
 
-                        allowed = true; // they passed all checks
                         if (allowed)
                         {
                             updatedLinks.push(link);
@@ -770,9 +851,19 @@ async function run()
             updatedLinkNames = JSON.stringify(updatedLinkNames);
             const currentUserInfo = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
             sql.prepare(`UPDATE users SET displayName = ?, bio = ?, image = ?, links = ?, linkNames = ?, theme = ?, advancedTheme = ?, ageGated = ? WHERE username = ?`).run(updatedDisplayName, updatedBio, updatedImage, updatedLinks, updatedLinkNames, theme, advancedTheme, ageGated, username);
-            let newProfileInfo = request.body;
+            let newProfileInfo = {
+                displayName: updatedDisplayName,
+                bio: updatedBio,
+                image: updatedImage,
+                links: updatedLinks,
+                linkNames: updatedLinkNames,
+                theme,
+                backgroundColor,
+                textColor,
+                borderColor,
+                ageGated
+            };
 
-            delete newProfileInfo.finalCSS;
             if (newProfileInfo.theme !== `Custom`)
             {
                 delete newProfileInfo.backgroundColor;
@@ -788,24 +879,19 @@ async function run()
                 delete newProfileInfo.bio;
             if (newProfileInfo.image === currentUserInfo.image)
                 delete newProfileInfo.image;
-            if (updatedLinks !== currentUserInfo.links)
-                newProfileInfo.links = JSON.parse(updatedLinks);
-            if (updatedLinkNames !== currentUserInfo.linkNames)
-                newProfileInfo.linkNames = JSON.parse(updatedLinkNames);
-
-            for (let index = 0; index < 50; index++)
-            {
-                if (newProfileInfo[`link${ index }`])
-                    delete newProfileInfo[`link${ index }`];
-                if (newProfileInfo[`linkName${ index }`])
-                    delete newProfileInfo[`linkName${ index }`];
-            }
+            if (newProfileInfo.links === currentUserInfo.links)
+                delete newProfileInfo.links;
+            else if (newProfileInfo.links)
+                newProfileInfo.links = JSON.parse(newProfileInfo.links);
+            if (newProfileInfo.linkNames === currentUserInfo.linkNames)
+                delete newProfileInfo.linkNames;
+            else if (newProfileInfo.linkNames)
+                newProfileInfo.linkNames = JSON.parse(newProfileInfo.linkNames);
             newProfileInfo.ageGated = ageGated;
             if (newProfileInfo.ageGated === `1` && currentUserInfo.ageGated === `1`)
                 delete newProfileInfo.ageGated;
             if (newProfileInfo.ageGated === `0` && currentUserInfo.ageGated === `0`)
                 delete newProfileInfo.ageGated;
-            delete newProfileInfo.adultContent;
 
             if (Object.keys(newProfileInfo).length > 0)
             {
@@ -823,112 +909,113 @@ async function run()
 
     app.post(`/edit/*`, checkAuthenticated, async (request, response, next) =>
     {
-        const usersCurrentEmail = request.user;
-        let userUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(usersCurrentEmail);
-        if (!userUsername)
+        try
         {
-            logoutUser(request, response, next);
-            return response.redirect(`/login?message=An error occurred.&type=error`);
-        }
-        userUsername = userUsername.username;
-        const actionToTake = request.params[0];
+            const usersCurrentEmail = request.user;
+            let userUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(usersCurrentEmail);
+            if (!userUsername)
+            {
+                logoutUser(request, response, next);
+                return response.redirect(`/login?message=An error occurred.&type=error`);
+            }
+            userUsername = userUsername.username;
+            const actionToTake = request.params[0];
 
-        switch (actionToTake)
-        {
-            case `changeEmail`: {
-                const oldEmailInput = request.body.oldEmail.toLowerCase().trim();
-                const newEmail = request.body.newEmail.toLowerCase().trim();
-                const password = request.body.password.trim();
-                const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
-                const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
+            switch (actionToTake)
+            {
+                case `changeEmail`: {
+                    const oldEmailInput = request.body.oldEmail.toLowerCase().trim();
+                    const newEmail = request.body.newEmail.toLowerCase().trim();
+                    const password = request.body.password.trim();
+                    const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
+                    const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
 
-                if ((oldEmailInput === usersCurrentEmail)
-                    && isCorrectPassword && newEmail && newEmail.length > 0 && newEmail.length <= 512
-                    && emailRegex.test(newEmail))
-                {
-                    const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
-                    if (!emailExists)
+                    if ((oldEmailInput === usersCurrentEmail)
+                        && isCorrectPassword && newEmail.length <= 512
+                        && emailRegex.test(newEmail))
                     {
-                        if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
+                        const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
+                        if (!emailExists)
                         {
-                            const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).stripeCID;
-                            if (stripeCID)
+                            if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
                             {
-                                await Stripe.customers.update(
-                                    stripeCID,
-                                    {
-                                        email: newEmail,
-                                    }
-                                );
+                                const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).stripeCID;
+                                if (stripeCID)
+                                {
+                                    await Stripe.customers.update(
+                                        stripeCID,
+                                        {
+                                            email: newEmail,
+                                        }
+                                    );
+                                }
+                            }
+
+                            sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userUsername);
+                            sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their email to || ${ newEmail } ||.`, discordWebhookURL);
+                        }
+                    }
+
+                    response.redirect(`/edit`);
+                    break;
+                }
+                case `changePassword`: {
+                    const oldPassword = request.body.oldPassword.trim();
+                    const newPassword = request.body.newPassword.trim();
+                    const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
+                    const isCorrectPassword = await bcrypt.compare(oldPassword, usersHashedPassword);
+
+                    if (isCorrectPassword && newPassword && newPassword.length > 0 && newPassword.length < 1024)
+                    {
+                        const hashedPassword = await bcrypt.hash(newPassword, 10);
+                        sql.prepare(`UPDATE userAuth SET password = ? WHERE username = ?`).run(hashedPassword, userUsername);
+                        sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their password.`, discordWebhookURL);
+                    }
+                    response.redirect(`/edit`);
+                    break;
+                }
+                case `changeUsername`: {
+                    const newUsername = request.body.username.trim().toLowerCase().slice(0, 60);
+                    const password = request.body.password.trim();
+                    const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
+                    const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
+
+                    if (isCorrectPassword && newUsername && usernameRegex.test(newUsername))
+                    {
+                        const usernameExists = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(newUsername);
+                        if (!usernameExists)
+                        {
+                            let lastChangeDate = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userUsername).lastUsernameChange;
+                            const isPaidUser = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userUsername).paid);
+                            lastChangeDate = new Date(lastChangeDate);
+                            const timeSinceLastChange = Date.now() - lastChangeDate;
+                            const currentDate = new Date(Date.now()).toISOString().slice(0, 10);
+                            if ((timeSinceLastChange > 7_776_000_000 || isPaidUser) && !bannedUsernames.has(newUsername)) // 3 months
+                            {
+                                sql.prepare(`UPDATE userAuth SET username = ? WHERE username = ?`).run(newUsername, userUsername);
+                                sql.prepare(`UPDATE users SET username = ?, lastUsernameChange = ? WHERE username = ?`).run(newUsername, currentDate, userUsername);
+                                sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their username to || ${ newUsername } ||.`, discordWebhookURL);
                             }
                         }
-
-                        sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userUsername);
-                        sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their email to || ${ newEmail } ||.`, discordWebhookURL);
                     }
+                    response.redirect(`/edit`);
+                    break;
                 }
-
-                response.redirect(`/edit`);
-                break;
-            }
-            case `changePassword`: {
-                const oldPassword = request.body.oldPassword.trim();
-                const newPassword = request.body.newPassword.trim();
-                const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
-                const isCorrectPassword = await bcrypt.compare(oldPassword, usersHashedPassword);
-
-                if (isCorrectPassword && newPassword && newPassword.length > 0 && newPassword.length < 1024)
-                {
-                    const hashedPassword = await bcrypt.hash(newPassword, 10);
-                    sql.prepare(`UPDATE userAuth SET password = ? WHERE username = ?`).run(hashedPassword, userUsername);
-                    sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their password.`, discordWebhookURL);
+                default: {
+                    response.redirect(`/edit`);
+                    break;
                 }
-                response.redirect(`/edit`);
-                break;
             }
-            case `changeUsername`: {
-                const newUsername = request.body.username.trim().toLowerCase().slice(0, 60);
-                const password = request.body.password.trim();
-                const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
-                const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
-
-                if (isCorrectPassword
-                    && newUsername && newUsername.length > 0 && newUsername.length < 60
-                    && usernameRegex.test(newUsername))
-                {
-                    const usernameExists = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(newUsername);
-                    if (!usernameExists)
-                    {
-                        let lastChangeDate = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userUsername).lastUsernameChange;
-                        const isPaidUser = Boolean(sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userUsername).paid);
-                        if (!lastChangeDate || lastChangeDate === null || lastChangeDate === ``)
-                            lastChangeDate = 0;
-                        lastChangeDate = new Date(lastChangeDate);
-                        const timeSinceLastChange = Date.now() - lastChangeDate;
-                        const currentDate = new Date(Date.now()).toISOString().slice(0, 10);
-                        if ((timeSinceLastChange > 7_776_000_000 || isPaidUser) && !bannedUsernames.has(newUsername)) // 3 months
-                        {
-                            sql.prepare(`UPDATE userAuth SET username = ? WHERE username = ?`).run(newUsername, userUsername);
-                            sql.prepare(`UPDATE users SET username = ?, lastUsernameChange = ? WHERE username = ?`).run(newUsername, currentDate, userUsername);
-                            sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their username to || ${ newUsername } ||.`, discordWebhookURL);
-                        }
-                    }
-                }
-                response.redirect(`/edit`);
-                break;
-            }
-            default: {
-                response.redirect(`/edit`);
-                break;
-            }
+        }
+        catch
+        {
+            response.redirect(`/edit?message=An error occurred.&type=error`);
         }
     });
 
     app.get(`/staff`, checkAuthenticatedStaff, (request, response, next) =>
     {
-        const ourImage = `${ https }://${ request.get(`host`) }/img/logo.png`;
-        let myUsername = request.user;
-        myUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(myUsername);
+        let myUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(request.user);
         if (!myUsername)
         {
             logoutUser(request, response, next);
@@ -940,10 +1027,10 @@ async function run()
         const pageNumber = request.query.page || 1;
         const usersPerPage = 100;
         // select users from database that are in the page number*100
-        let allUsers = sql.prepare(`SELECT * FROM users LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
-        let allUserAuth = sql.prepare(`SELECT * FROM userAuth LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
+        let userDataByPage = sql.prepare(`SELECT * FROM users LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
+        let userAuthDataByPage = sql.prepare(`SELECT * FROM userAuth LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
 
-        let userCountTotal = sql.prepare(`SELECT COUNT(*) FROM users`).get()[`COUNT(*)`];
+        let totalUserCount = sql.prepare(`SELECT COUNT(*) FROM users`).get()[`COUNT(*)`];
         const verifiedCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = 1`).get()[`COUNT(*)`];
         let paidCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE paid = 1`).get()[`COUNT(*)`];
         const suspendedCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = -1`).get()[`COUNT(*)`];
@@ -951,24 +1038,24 @@ async function run()
         const shadowUserCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = -2`).get()[`COUNT(*)`];
         const awaitingEmailUserCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = -3`).get()[`COUNT(*)`];
 
-        let freeCount = userCountTotal - paidCount - staffCount - shadowUserCount;
+        let freeCount = totalUserCount - paidCount - staffCount - shadowUserCount;
         if (freeCount < 0)
             freeCount = 0;
 
-        userCountTotal -= shadowUserCount;
+        totalUserCount -= shadowUserCount;
         paidCount -= staffCount;
 
         const search = request.query.search || ``;
         if (search)
         {
-            allUsers = sql.prepare(`SELECT * FROM users WHERE username LIKE ?`).all(`%${ search }%`);
-            allUserAuth = sql.prepare(`SELECT * FROM userAuth WHERE username LIKE ?`).all(`%${ search }%`);
+            userDataByPage = sql.prepare(`SELECT * FROM users WHERE username LIKE ?`).all(`%${ search }%`);
+            userAuthDataByPage = sql.prepare(`SELECT * FROM userAuth WHERE username LIKE ?`).all(`%${ search }%`);
         }
 
-        if (allUsers.length === 0)
+        if (userDataByPage.length === 0)
             return response.redirect(`/staff?page=1`);
 
-        const userCount = allUsers.length;
+        const userCountPaginated = userDataByPage.length;
         const usernames = [];
         const emails = [];
         const verified = [];
@@ -981,18 +1068,18 @@ async function run()
         const linkNames = [];
         const ageGated = [];
 
-        for (const [index, allUser] of allUsers.entries())
+        for (const [index, allUser] of userDataByPage.entries())
         {
             usernames.push(allUser.username);
-            emails.push(allUserAuth[index].email);
+            emails.push(Buffer.from(userAuthDataByPage[index].email).toString(`base64`));
             verified.push(allUser.verified);
             paid.push(allUser.paid);
             let subExpire = allUser.subExpires;
             if (subExpire === ``)
                 subExpire = `n/a`;
             subExpires.push(subExpire);
-            displayNames.push(allUser.displayName);
-            bios.push(allUser.bio);
+            displayNames.push(Buffer.from(allUser.displayName).toString(`base64`));
+            bios.push(Buffer.from(allUser.bio).toString(`base64`));
             images.push(allUser.image);
             let linkData = JSON.stringify(allUser.links);
             linkData = Buffer.from(linkData).toString(`base64`);
@@ -1002,10 +1089,9 @@ async function run()
             linkNames.push(linkNameData);
             ageGated.push(allUser.ageGated);
         }
-        const numberOfUsers = userCount;
 
         response.render(`staff.ejs`, {
-            numberOfUsers,
+            userCountPaginated,
             usernames,
             emails,
             verified,
@@ -1018,7 +1104,7 @@ async function run()
             links,
             linkNames,
             ageGated,
-            userCountTotal,
+            totalUserCount,
             verifiedCount,
             paidCount,
             suspendedCount,
@@ -1027,227 +1113,263 @@ async function run()
             shadowUserCount,
             awaitingEmailUserCount,
             projectName,
-            ourImage
+            ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`
         });
     });
 
     app.post(`/staff/*`, checkAuthenticatedStaff, async (request, response, next) =>
     {
-        const staffEmail = request.user;
-        let staffUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(staffEmail);
-        if (!staffUsername)
+        // ! There is not a lot of security here, so be sure you trust who is staff.
+        // ! They can delete/modify ANY user, even other staff.
+        try
         {
-            logoutUser(request, response, next);
-            return response.redirect(`/login`);
-        }
-        staffUsername = staffUsername.username;
-        const actionToTake = request.params[0];
-        const usernameToTakeActionOn = request.body.username;
+            const staffEmail = request.user;
+            let staffUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(staffEmail);
+            if (!staffUsername)
+            {
+                logoutUser(request, response, next);
+                return response.redirect(`/login`);
+            }
+            staffUsername = staffUsername.username;
+            const actionToTake = request.params[0];
+            const usernameToTakeActionOn = request.body.username;
 
-        if (usernameToTakeActionOn === staffUsername)
-            return response.redirect(`/staff`);
+            if (usernameToTakeActionOn === staffUsername)
+                return response.redirect(`/staff`);
 
-        switch (actionToTake)
-        {
-            case `editUser`: {
-                const userToEdit = request.body.username;
+            switch (actionToTake)
+            {
+                case `editUser`: {
+                    const userToEdit = request.body.username;
 
-                const currentUserInfo = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn);
-                for (const [key, value] of Object.entries(request.body))
-                {
-                    if (key === `username`)
-                        continue;
-                    else if (key === `newUsername`)
+                    const currentUserInfo = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn);
+                    for (const [key, value] of Object.entries(request.body))
                     {
-                        if (value === ``)
-                            continue;
-                        const newUsername = value.trim().toLowerCase().slice(0, 60);
-                        const usernameExists = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(newUsername);
-                        if (!usernameExists && !bannedUsernames.has(newUsername))
+                        switch (key)
                         {
-                            sql.prepare(`UPDATE users SET username = ? WHERE username = ?`).run(newUsername, userToEdit);
-                            sql.prepare(`UPDATE userAuth SET username = ? WHERE username = ?`).run(newUsername, userToEdit);
-                        }
-                    }
-                    else if (key === `bio` && value === ``)
-                        sql.prepare(`UPDATE users SET bio = ? WHERE username = ?`).run(`No bio yet.`, userToEdit);
-                    else if (key === `image` && value === ``)
-                        sql.prepare(`UPDATE users SET image = ? WHERE username = ?`).run(`${ https }://${ request.get(`host`) }/img/person.png`, userToEdit);
-                    else if (key === `displayName` && value === ``)
-                        continue;
-                    else if ((key === `links` && value === ``) || (key === `linkNames` && value === ``))
-                    {
-                        sql.prepare(`UPDATE users SET links = ? WHERE username = ?`).run(`[]`, userToEdit);
-                        sql.prepare(`UPDATE users SET linkNames = ? WHERE username = ?`).run(`[]`, userToEdit);
-                    }
-                    else if (key === `email`)
-                    {
-                        if (value === ``)
-                            continue;
-                        const newEmail = value;
-                        const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
-                        if (!emailExists)
-                        {
-                            if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
-                            {
-                                const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userToEdit).stripeCID;
-                                if (stripeCID)
-                                {
-                                    await Stripe.customers.update(
-                                        stripeCID,
-                                        {
-                                            email: newEmail,
-                                        }
-                                    );
-                                }
+                            case `username`: {
+                                continue;
                             }
-                            sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userToEdit);
+                            case `newUsername`: {
+                                if (value === ``)
+                                    continue;
+                                const newUsername = value.trim().toLowerCase().slice(0, 60);
+                                const usernameExists = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(newUsername);
+                                if (!usernameExists && !bannedUsernames.has(newUsername))
+                                {
+                                    sql.prepare(`UPDATE users SET username = ? WHERE username = ?`).run(newUsername, userToEdit);
+                                    sql.prepare(`UPDATE userAuth SET username = ? WHERE username = ?`).run(newUsername, userToEdit);
+                                }
+                                break;
+                            }
+                            case `bio`: {
+                                if (value === ``)
+                                    sql.prepare(`UPDATE users SET bio = ? WHERE username = ?`).run(`No bio yet.`, userToEdit);
+                                else
+                                    sql.prepare(`UPDATE users SET bio = ? WHERE username = ?`).run(`${ value }`, userToEdit);
+                                break;
+                            }
+                            case `image`: {
+                                if (value === ``)
+                                    sql.prepare(`UPDATE users SET image = ? WHERE username = ?`).run(`${ https }://${ request.get(`host`) }/img/person.png`, userToEdit);
+                                break;
+                            }
+                            case `displayName`: {
+                                if (value === ``)
+                                    sql.prepare(`UPDATE users SET displayName = ? WHERE username = ?`).run(`${ userToEdit }`, userToEdit);
+                                else
+                                    sql.prepare(`UPDATE users SET displayName = ? WHERE username = ?`).run(`${ value }`, userToEdit);
+                                break;
+                            }
+                            case `links`: {
+                                if (value === `` || value === `[]`)
+                                    sql.prepare(`UPDATE users SET links = ? WHERE username = ?`).run(`[]`, userToEdit);
+                                else
+                                    sql.prepare(`UPDATE users SET links = ? WHERE username = ?`).run(`${ value }`, userToEdit);
+                                break;
+                            }
+                            case `linkNames`: {
+                                if (value === `` || value === `[]`)
+                                    sql.prepare(`UPDATE users SET linkNames = ? WHERE username = ?`).run(`[]`, userToEdit);
+                                else
+                                    sql.prepare(`UPDATE users SET linkNames = ? WHERE username = ?`).run(`${ value }`, userToEdit);
+                                break;
+                            }
+                            case `email`: {
+                                if (value === ``)
+                                    continue;
+                                const newEmail = value;
+                                const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
+                                if (!emailExists)
+                                {
+                                    if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
+                                    {
+                                        const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userToEdit).stripeCID;
+                                        if (stripeCID)
+                                        {
+                                            await Stripe.customers.update(
+                                                stripeCID,
+                                                {
+                                                    email: newEmail,
+                                                }
+                                            );
+                                        }
+                                    }
+                                    sql.prepare(`UPDATE userAuth SET email = ? WHERE username = ?`).run(newEmail, userToEdit);
+                                }
+                                break;
+                            }
+                            case `ageGated`: {
+                                if (value === true)
+                                    sql.prepare(`UPDATE users SET ageGated = ? WHERE username = ?`).run(`1`, userToEdit);
+                                else if (value === false)
+                                    sql.prepare(`UPDATE users SET ageGated = ? WHERE username = ?`).run(`0`, userToEdit);
+                                break;
+                            }
+                            default: {
+                                break;
+                            }
                         }
                     }
-                    else if (key === `ageGated`)
+                    const oldData = request.body;
+                    let auditEntry = oldData;
+                    delete auditEntry.username;
+
+                    if (auditEntry.ageGated === true && currentUserInfo.ageGated === `1`)
+                        delete auditEntry.ageGated;
+                    if (auditEntry.ageGated === false && currentUserInfo.ageGated === `0`)
+                        delete auditEntry.ageGated;
+
+                    if (auditEntry.links)
+                        auditEntry.links = JSON.parse(auditEntry.links);
+                    if (auditEntry.linkNames)
+                        auditEntry.linkNames = JSON.parse(auditEntry.linkNames);
+
+                    if (Object.keys(auditEntry).length > 0)
                     {
-                        if (value === true)
-                            sql.prepare(`UPDATE users SET ageGated = ? WHERE username = ?`).run(`1`, userToEdit);
-                        else if (value === false)
-                            sql.prepare(`UPDATE users SET ageGated = ? WHERE username = ?`).run(`0`, userToEdit);
+                        auditEntry = JSON.stringify(auditEntry, undefined, 4);
+                        sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || modified user || ${ userToEdit } || with: \`\`\`json\n${ auditEntry }\n\`\`\``, discordWebhookURL);
+                    }
+
+                    response.redirect(`/staff`);
+                    break;
+                }
+                case `verifyUser`: {
+                    const verifiedLevel = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn).verified;
+                    if (verifiedLevel === VER_STATUS.MEMBER)
+                    {
+                        sql.prepare(`UPDATE users SET verified = 1 WHERE username = ?`).run(usernameToTakeActionOn);
+                        sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || verified || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
+                    }
+                    else if (verifiedLevel === VER_STATUS.AWAITING_VERIFICATION)
+                    {
+                        sql.prepare(`DELETE FROM emailActivations WHERE username = ?`).run(usernameToTakeActionOn);
+                        sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                        sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || skipped email activation for || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
+                    }
+                    response.redirect(`/staff`);
+                    break;
+                }
+                case `unverifyUser`: {
+                    sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || unverified || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
+                    response.redirect(`/staff`);
+                    break;
+                }
+                case `promoteUser`: {
+                    sql.prepare(`UPDATE users SET verified = 2 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sql.prepare(`UPDATE users SET paid = 1 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(`9999-01-01`, usernameToTakeActionOn);
+                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || promoted || ${ usernameToTakeActionOn } || to Staff.`, discordWebhookURL);
+                    response.redirect(`/staff`);
+                    break;
+                }
+                case `demoteUser`: {
+                    sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sql.prepare(`UPDATE users SET paid = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(``, usernameToTakeActionOn);
+                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || demoted || ${ usernameToTakeActionOn } || from Staff.`, discordWebhookURL);
+                    response.redirect(`/staff`);
+                    break;
+                }
+                case `suspendUser`: {
+                    sql.prepare(`UPDATE users SET verified = -1 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || suspended || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
+                    response.redirect(`/staff`);
+                    break;
+                }
+                case `unsuspendUser`: {
+                    sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || unsuspended || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
+                    response.redirect(`/staff`);
+                    break;
+                }
+                case `deleteUser`: {
+                    if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
+                    {
+                        const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(usernameToTakeActionOn).stripeCID;
+                        if (stripeCID)
+                            await Stripe.customers.del(stripeCID);
+                    }
+                    sql.prepare(`DELETE FROM users WHERE username = ?`).run(usernameToTakeActionOn);
+                    sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(usernameToTakeActionOn);
+                    sql.prepare(`DELETE FROM emailActivations WHERE username = ?`).run(usernameToTakeActionOn);
+                    sql.prepare(`DELETE FROM passwordResets WHERE username = ?`).run(usernameToTakeActionOn);
+                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || deleted || ${ usernameToTakeActionOn } ||'s account.`, discordWebhookURL);
+                    response.redirect(`/staff`);
+                    break;
+                }
+                case `extendUser`: {
+                    const timeToExtendInMonths = request.body.months;
+                    const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn);
+                    const subExpires = user.subExpires;
+                    if (subExpires.startsWith(`9999`))
+                        return response.redirect(`/staff`);
+                    let newSubExpires;
+                    if (timeToExtendInMonths === `-1`) // unlimited paid subscription
+                    {
+                        newSubExpires = `9999-01-01`;
+                        sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(newSubExpires, usernameToTakeActionOn);
                     }
                     else
-                        sql.prepare(`UPDATE users SET ${ key } = ? WHERE username = ?`).run(value, userToEdit);
+                    {
+                        newSubExpires = subExpires === `` ? new Date() : new Date(subExpires);
+                        newSubExpires.setMonth(newSubExpires.getMonth() + Number.parseInt(timeToExtendInMonths, 10));
+                        newSubExpires = newSubExpires.toISOString().split(`T`)[0];
+                        sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(newSubExpires, usernameToTakeActionOn);
+                    }
+                    sql.prepare(`UPDATE users SET paid = 1 WHERE username = ?`).run(usernameToTakeActionOn);
+                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || extended || ${ usernameToTakeActionOn } ||'s subscription to ${ newSubExpires }.`, discordWebhookURL);
+                    response.redirect(`/staff`);
+                    break;
                 }
-                const oldData = request.body;
-                let auditEntry = oldData;
-                delete auditEntry.username;
+                case `createShadowUser`: {
+                    const username = request.body.username;
+                    const redirectTo = request.body.redirect;
 
-                if (auditEntry.ageGated === true && currentUserInfo.ageGated === `1`)
-                    delete auditEntry.ageGated;
-                if (auditEntry.ageGated === false && currentUserInfo.ageGated === `0`)
-                    delete auditEntry.ageGated;
+                    if (!username || !redirectTo)
+                        return response.redirect(`/staff`);
 
-                if (auditEntry.links)
-                    auditEntry.links = JSON.parse(auditEntry.links);
-                if (auditEntry.linkNames)
-                    auditEntry.linkNames = JSON.parse(auditEntry.linkNames);
+                    const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
+                    if (user)
+                        return response.redirect(`/staff`);
 
-                if (Object.keys(auditEntry).length > 0)
-                {
-                    auditEntry = JSON.stringify(auditEntry, undefined, 4);
-                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || modified user || ${ userToEdit } || with: \`\`\`json\n${ auditEntry }\n\`\`\``, discordWebhookURL);
+                    sql.prepare(`INSERT INTO users (username, displayName, bio, image, links, linkNames, verified, paid, subExpires, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, redirectTo, ``, ``, `[]`, `[]`, `-2`, `0`, ``, ``, ``, `0`);
+                    sql.prepare(`INSERT INTO userAuth (username, password, email, stripeCID) VALUES (?, ?, ?, ?)`).run(username, ``, ``, ``);
+                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || created a new shadow user || ${ username } || which redirects to || ${ redirectTo } ||.`, discordWebhookURL);
+
+                    response.redirect(`/staff`);
+                    break;
                 }
-
-                response.redirect(`/staff`);
-                break;
-            }
-            case `verifyUser`: {
-                const verifiedLevel = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn).verified;
-                if (verifiedLevel === 0)
-                {
-                    sql.prepare(`UPDATE users SET verified = 1 WHERE username = ?`).run(usernameToTakeActionOn);
-                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || verified || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
+                default: {
+                    response.redirect(`/staff`);
+                    break;
                 }
-                else if (verifiedLevel === -3)
-                {
-                    sql.prepare(`DELETE FROM emailActivations WHERE username = ?`).run(usernameToTakeActionOn);
-                    sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
-                    sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || skipped email activation for || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
-                }
-                response.redirect(`/staff`);
-                break;
             }
-            case `unverifyUser`: {
-                sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
-                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || unverified || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
-                response.redirect(`/staff`);
-                break;
-            }
-            case `promoteUser`: {
-                sql.prepare(`UPDATE users SET verified = 2 WHERE username = ?`).run(usernameToTakeActionOn);
-                sql.prepare(`UPDATE users SET paid = 1 WHERE username = ?`).run(usernameToTakeActionOn);
-                sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(`9999-01-01`, usernameToTakeActionOn);
-                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || promoted || ${ usernameToTakeActionOn } || to Staff.`, discordWebhookURL);
-                response.redirect(`/staff`);
-                break;
-            }
-            case `demoteUser`: {
-                sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
-                sql.prepare(`UPDATE users SET paid = 0 WHERE username = ?`).run(usernameToTakeActionOn);
-                sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(``, usernameToTakeActionOn);
-                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || demoted || ${ usernameToTakeActionOn } || from Staff.`, discordWebhookURL);
-                response.redirect(`/staff`);
-                break;
-            }
-            case `suspendUser`: {
-                sql.prepare(`UPDATE users SET verified = -1 WHERE username = ?`).run(usernameToTakeActionOn);
-                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || suspended || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
-                response.redirect(`/staff`);
-                break;
-            }
-            case `unsuspendUser`: {
-                sql.prepare(`UPDATE users SET verified = 0 WHERE username = ?`).run(usernameToTakeActionOn);
-                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || unsuspended || ${ usernameToTakeActionOn } ||.`, discordWebhookURL);
-                response.redirect(`/staff`);
-                break;
-            }
-            case `deleteUser`: {
-                if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
-                {
-                    const stripeCID = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(usernameToTakeActionOn).stripeCID;
-                    if (stripeCID)
-                        await Stripe.customers.del(stripeCID);
-                }
-                sql.prepare(`DELETE FROM users WHERE username = ?`).run(usernameToTakeActionOn);
-                sql.prepare(`DELETE FROM userAuth WHERE username = ?`).run(usernameToTakeActionOn);
-                sql.prepare(`DELETE FROM emailActivations WHERE username = ?`).run(usernameToTakeActionOn);
-                sql.prepare(`DELETE FROM passwordResets WHERE username = ?`).run(usernameToTakeActionOn);
-                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || deleted || ${ usernameToTakeActionOn } ||'s account.`, discordWebhookURL);
-                response.redirect(`/staff`);
-                break;
-            }
-            case `extendUser`: {
-                const timeToExtendInMonths = request.body.months;
-                const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn);
-                const subExpires = user.subExpires;
-                if (subExpires.startsWith(`9999`))
-                    return response.redirect(`/staff`);
-                let newSubExpires;
-                if (timeToExtendInMonths === `-1`) // unlimited paid subscription
-                {
-                    newSubExpires = `9999-01-01`;
-                    sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(newSubExpires, usernameToTakeActionOn);
-                }
-                else
-                {
-                    newSubExpires = subExpires === `` ? new Date() : new Date(subExpires);
-                    newSubExpires.setMonth(newSubExpires.getMonth() + Number.parseInt(timeToExtendInMonths, 10));
-                    newSubExpires = newSubExpires.toISOString().split(`T`)[0];
-                    sql.prepare(`UPDATE users SET subExpires = ? WHERE username = ?`).run(newSubExpires, usernameToTakeActionOn);
-                }
-                sql.prepare(`UPDATE users SET paid = 1 WHERE username = ?`).run(usernameToTakeActionOn);
-                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || extended || ${ usernameToTakeActionOn } ||'s subscription to ${ newSubExpires }.`, discordWebhookURL);
-                response.redirect(`/staff`);
-                break;
-            }
-            case `createShadowUser`: {
-                const username = request.body.username;
-                const redirectTo = request.body.redirect;
-
-                if (!username || !redirectTo)
-                    return response.redirect(`/staff`);
-
-                const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
-                if (user)
-                    return response.redirect(`/staff`);
-
-                sql.prepare(`INSERT INTO users (username, displayName, bio, image, links, linkNames, verified, paid, subExpires, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, redirectTo, ``, ``, `[]`, `[]`, `-2`, `0`, ``, ``, ``, `0`);
-                sql.prepare(`INSERT INTO userAuth (username, password, email, stripeCID) VALUES (?, ?, ?, ?)`).run(username, ``, ``, ``);
-                sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || created a new shadow user || ${ username } || which redirects to || ${ redirectTo } ||.`, discordWebhookURL);
-
-                response.redirect(`/staff`);
-                break;
-            }
-            default: {
-                response.redirect(`/staff`);
-                break;
-            }
+        }
+        catch
+        {
+            response.redirect(`/staff`);
         }
     });
 
@@ -1343,7 +1465,7 @@ async function run()
             const bio = user.bio;
             const image = user.image;
             const links = JSON.parse(user.links);
-            const linkNames = JSON.parse(user.linkNames);
+            const linkNames = Buffer.from(user.linkNames).toString(`base64`);
             const paid = Boolean(user.paid);
             const verified = user.verified;
             const theme = user.theme;

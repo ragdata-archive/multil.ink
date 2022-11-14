@@ -70,7 +70,7 @@
         let paid = `<%=paid%>`;
         let verified = Number.parseInt(`<%=verified%>`, 10);
         const links = `<%=links%>`;
-        const linksNames = `<%=linkNames%>`;
+        const linksNames = decodeURIComponent(atob(`<%=linkNames%>`));
         const ageGated = `<%=ageGated%>`;
     </script>
     <script src="js/common.js"></script>
