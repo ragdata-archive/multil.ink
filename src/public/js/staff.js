@@ -348,6 +348,7 @@ async function verifyUser(username)
         contentType: `application/json`,
         data: JSON.stringify({
             username,
+            _csrf: csrfToken,
         }),
     });
     window.location.reload();
@@ -367,6 +368,7 @@ async function unverifyUser(username)
         contentType: `application/json`,
         data: JSON.stringify({
             username,
+            _csrf: csrfToken,
         }),
     });
     window.location.reload();
@@ -386,6 +388,7 @@ async function promoteUser(username)
         contentType: `application/json`,
         data: JSON.stringify({
             username,
+            _csrf: csrfToken,
         }),
     });
     window.location.reload();
@@ -405,6 +408,7 @@ async function demoteUser(username)
         contentType: `application/json`,
         data: JSON.stringify({
             username,
+            _csrf: csrfToken,
         }),
     });
     window.location.reload();
@@ -424,6 +428,7 @@ async function suspendUser(username)
         contentType: `application/json`,
         data: JSON.stringify({
             username,
+            _csrf: csrfToken,
         }),
     });
     window.location.reload();
@@ -443,6 +448,7 @@ async function unsuspendUser(username)
         contentType: `application/json`,
         data: JSON.stringify({
             username,
+            _csrf: csrfToken,
         }),
     });
     window.location.reload();
@@ -462,6 +468,7 @@ async function deleteUser(username)
         contentType: `application/json`,
         data: JSON.stringify({
             username,
+            _csrf: csrfToken,
         }),
     });
     window.location.reload();
@@ -483,6 +490,7 @@ async function extendUser(username, months)
         data: JSON.stringify({
             username,
             months,
+            _csrf: csrfToken,
         }),
     });
     window.location.reload();
@@ -527,6 +535,7 @@ async function sendUserEdit(oldUsername, newUsername, email, displayName, bio, i
     const user = users[index];
 
     let dataToSend = {
+        _csrf: csrfToken,
         username: oldUsername,
     };
 
@@ -628,6 +637,7 @@ async function shadowUserEdit(username)
         data: JSON.stringify({
             username,
             displayName: newRedirect,
+            _csrf: csrfToken,
         }),
     });
     window.location.reload();
@@ -653,6 +663,7 @@ async function createShadowUser()
         data: JSON.stringify({
             username: userToCreate,
             redirect: userToRedirectTo,
+            _csrf: csrfToken,
         }),
     });
     window.location.reload();

@@ -35,7 +35,7 @@ async function run()
         port, secret, linkWhitelist, freeLinks, projectName, projectDescription, dev,
         emailSMTPHost, emailSMTPPort, emailSMTPSecure, emailSMTPUser, emailSMTPPass, emailFromDisplayName,
         stripeSecretKey, stripeProductID, stripeCustomerPortalURL, stripeWebhookSigningSecret,
-        reportEmail
+        reportEmail, cookieParserSecret, csrfSecret
     } = require(`./config.json`);
 
     let {
@@ -101,16 +101,6 @@ async function run()
     sql.prepare(`CREATE TABLE IF NOT EXISTS emailActivations (email TEXT PRIMARY KEY, username TEXT, token TEXT, expires TEXT)`).run();
     sql.prepare(`CREATE TABLE IF NOT EXISTS passwordResets (email TEXT PRIMARY KEY, username TEXT, token TEXT, expires TEXT)`).run();
 
-    const app = express();
-
-    app.use(helmet(
-        {
-            crossOriginEmbedderPolicy: false,
-            crossOriginResourcePolicy: false,
-            contentSecurityPolicy: false,
-        }
-    ));
-
     const bcrypt = require(`bcrypt`);
     const passport = require(`passport`);
     const flash = require(`express-flash`);
@@ -118,6 +108,60 @@ async function run()
     const methodOverride = require(`method-override`);
     const nodemailer = require(`nodemailer`);
     const stripe = require(`stripe`);
+    const csurf = require(`tiny-csrf`);
+    const cookieParser = require(`cookie-parser`);
+    const app = express();
+    let secureCookie = ``;
+    secureCookie = https === `https`;
+
+    app.use(`/webhook`, bodyParser.raw({ type: `application/json` }));
+    app.use(bodyParser.json());
+    app.use(express.urlencoded({ extended: true }));
+    app.use(cookieParser(cookieParserSecret));
+    app.use(session({
+        secret,
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            httpOnly: true,
+            secure: secureCookie,
+            maxAge: 1000 * 60 * 60 * 24 * 7, // 7d
+        },
+    }));
+    app.use(
+        csurf(
+            csrfSecret, // secret -- must be 32 bits or chars in length
+            [`POST`, `DELETE`], // the request methods we want CSRF protection for
+            [
+                `/img`,
+                `/webhook`,
+            ], // any URLs we want to exclude, either as strings or regexp
+        )
+    );
+    app.use(helmet(
+        {
+            crossOriginEmbedderPolicy: false,
+            crossOriginResourcePolicy: false,
+            contentSecurityPolicy: false,
+        }
+    ));
+    app.use(flash());
+    app.use(passport.initialize());
+    app.use(passport.session());
+    app.use(methodOverride(`_method`));
+    app.use(express.static(`./src/public`));
+    app.use(express.static(`./src/views`));
+    // hotload jquery, bootstrap, and fontawesome
+    const projectRoot = path.join(__dirname, `..`);
+    app.use(`/css`, express.static(path.join(projectRoot, `node_modules/bootstrap/dist/css`)));
+    app.use(`/js`, express.static(path.join(projectRoot, `node_modules/bootstrap/dist/js`)));
+    app.use(`/js`, express.static(path.join(projectRoot, `node_modules/jquery/dist`)));
+    app.use(`/js`, express.static(path.join(projectRoot, `node_modules/uppy/dist`)));
+    app.use(`/css`, express.static(path.join(projectRoot, `node_modules/uppy/dist`)));
+    app.use(`/css`, express.static(path.join(projectRoot, `node_modules/@fortawesome/fontawesome-free/css`)));
+    app.use(`/webfonts`, express.static(path.join(projectRoot, `node_modules/@fortawesome/fontawesome-free/webfonts`)));
+    app.set(`views`, `./src/views`);
+    app.set(`view engine`, `ejs`);
 
     let Stripe;
     if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
@@ -152,7 +196,6 @@ async function run()
             }
         }
     );
-
     const uploadImage = multer({ storage }).single(`photo`);
 
     const initializePassport = require(`./passport-config.cjs`);
@@ -162,43 +205,17 @@ async function run()
         (id) => sql.prepare(`SELECT * FROM userAuth WHERE uid = ?`).get(id)
     );
 
-    app.use(`/webhook`, bodyParser.raw({ type: `application/json` }));
-    app.use(bodyParser.json());
-    app.use(express.urlencoded({ extended: true }));
-    app.use(flash());
-    app.use(session({
-        secret,
-        resave: false,
-        saveUninitialized: false
-    }));
-    app.use(passport.initialize());
-    app.use(passport.session());
-    app.use(methodOverride(`_method`));
-    app.use(express.static(`./src/public`));
-    app.use(express.static(`./src/views`));
-    // hotload jquery, bootstrap, and fontawesome
-    const projectRoot = path.join(__dirname, `..`);
-    app.use(`/css`, express.static(path.join(projectRoot, `node_modules/bootstrap/dist/css`)));
-    app.use(`/js`, express.static(path.join(projectRoot, `node_modules/bootstrap/dist/js`)));
-    app.use(`/js`, express.static(path.join(projectRoot, `node_modules/jquery/dist`)));
-    app.use(`/js`, express.static(path.join(projectRoot, `node_modules/uppy/dist`)));
-    app.use(`/css`, express.static(path.join(projectRoot, `node_modules/uppy/dist`)));
-    app.use(`/css`, express.static(path.join(projectRoot, `node_modules/@fortawesome/fontawesome-free/css`)));
-    app.use(`/webfonts`, express.static(path.join(projectRoot, `node_modules/@fortawesome/fontawesome-free/webfonts`)));
-    app.set(`views`, `./src/views`);
-    app.set(`view engine`, `ejs`);
-
     app.get(`/`, (request, response) =>
     {
         response.render(`index.ejs`, {
-            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, isLoggedIn: request.isAuthenticated()
+            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, isLoggedIn: request.isAuthenticated(), csrfToken: request.csrfToken()
         });
     });
 
     app.get(`/login`, checkNotAuthenticated, (request, response) =>
     {
         response.render(`login.ejs`, {
-            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
+            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey, csrfToken: request.csrfToken()
         });
     });
 
@@ -227,7 +244,7 @@ async function run()
     app.get(`/register`, checkNotAuthenticated, (request, response) =>
     {
         response.render(`register.ejs`, {
-            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
+            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey, csrfToken: request.csrfToken()
         });
     });
 
@@ -530,7 +547,7 @@ async function run()
     app.get(`/forgotpassword`, (request, response) =>
     {
         response.render(`forgotpassword.ejs`, {
-            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
+            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey, csrfToken: request.csrfToken()
         });
     });
 
@@ -595,7 +612,7 @@ async function run()
             return response.redirect(`/forgotpassword?message=Token expired.&type=error`);
         }
         response.render(`resetpassword.ejs`, {
-            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey, token
+            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey, token, csrfToken: request.csrfToken()
         });
     });
 
@@ -641,7 +658,7 @@ async function run()
     app.get(`/report`, (request, response) =>
     {
         response.render(`report.ejs`, {
-            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey
+            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey, csrfToken: request.csrfToken()
         });
     });
 
@@ -727,7 +744,8 @@ async function run()
             borderColor,
             ageGated: (user.ageGated === `1` ? `checked` : ``),
             projectName,
-            linkWhitelist: freeLinks
+            linkWhitelist: freeLinks,
+            csrfToken: request.csrfToken()
         });
     });
 
@@ -977,6 +995,7 @@ async function run()
                         const hashedPassword = await bcrypt.hash(newPassword, 10);
                         sql.prepare(`UPDATE userAuth SET password = ? WHERE username = ?`).run(hashedPassword, userUsername);
                         sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their password.`, discordWebhookURL);
+                        logoutUser(request, response, next);
                     }
                     response.redirect(`/edit`);
                     break;
@@ -1119,7 +1138,8 @@ async function run()
             shadowUserCount,
             awaitingEmailUserCount,
             projectName,
-            ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`
+            ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`,
+            csrfToken: request.csrfToken()
         });
     });
 
@@ -1154,6 +1174,9 @@ async function run()
                         switch (key)
                         {
                             case `username`: {
+                                continue;
+                            }
+                            case `_csrf`: {
                                 continue;
                             }
                             case `newUsername`: {
@@ -1592,7 +1615,18 @@ async function initSetup()
     for (let index = 0; index < 50; index++)
         sessionSecret += possible.charAt(Math.floor(Math.random() * possible.length));
 
+    let cookieParserSecret = ``;
+    for (let index = 0; index < 50; index++)
+        cookieParserSecret += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    let csrfSecret = ``;
+    for (let index = 0; index < 32; index++)
+        csrfSecret += possible.charAt(Math.floor(Math.random() * possible.length));
+
     config.secret = sessionSecret;
+    config.cookieParserSecret = cookieParserSecret;
+    config.csrfSecret = csrfSecret;
+
     fs.writeFileSync(`./src/config.json`, JSON.stringify(config, undefined, 4));
 }
 
@@ -1782,6 +1816,7 @@ async function sendAuditLog(message, discordWebhookURL)
  * @name escapeRegex
  * @description Escapes a string for use in a regex
  * @param {string} string String to escape
+ * @returns { string } Escaped string
  */
 function escapeRegex(string)
 {

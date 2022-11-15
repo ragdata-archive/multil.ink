@@ -297,6 +297,7 @@
         if (paid === `1` || paid === `true`)
             document.querySelector(`#themeOptions`).innerHTML += `<option value="Custom">Custom</option>`;
         document.querySelector(`#themeOptions`).value = userTheme;
+        const csrfToken = "<%=csrfToken%>";
     </script>
     <script type="module">
         import

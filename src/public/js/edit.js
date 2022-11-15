@@ -234,6 +234,7 @@ async function deleteAccount(password)
         contentType: `application/json`,
         data: JSON.stringify({
             password,
+            _csrf: csrfToken,
         }),
     });
     window.location.reload();
@@ -264,6 +265,7 @@ async function changeEmail(oldEmailGuess, newEmail, password)
             oldEmail: oldEmailGuess,
             newEmail,
             password,
+            _csrf: csrfToken,
         }),
     });
     window.location.reload();
@@ -290,9 +292,10 @@ async function changePassword(oldPasswordGuess, newPassword, newPasswordRepeat)
         data: JSON.stringify({
             oldPassword: oldPasswordGuess,
             newPassword,
+            _csrf: csrfToken,
         }),
     });
-    logout();
+    window.location.reload();
 }
 
 /**
@@ -314,6 +317,7 @@ async function changeUsername(username, password)
         data: JSON.stringify({
             username,
             password,
+            _csrf: csrfToken,
         }),
     });
     window.location.reload();

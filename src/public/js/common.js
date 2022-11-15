@@ -52,6 +52,12 @@ for (const form of document.querySelectorAll(`form`))
             inputField.classList.add(`disabled`);
         }
     });
+    // inject CSRF token into form
+    const csrfInput = document.createElement(`input`);
+    csrfInput.setAttribute(`type`, `hidden`);
+    csrfInput.setAttribute(`name`, `_csrf`);
+    csrfInput.setAttribute(`value`, `${ csrfToken }`);
+    form.append(csrfInput);
 }
 
 /**
@@ -170,6 +176,10 @@ async function logout()
     const domain = window.location.href.split(`/`)[2];
     await $.ajax(`${ protocol }//${ domain }/logout?_method=DELETE`, {
         type: `POST`,
+        contentType: `application/json`,
+        data: JSON.stringify({
+            _csrf: csrfToken
+        }),
     });
     window.location.reload();
 }

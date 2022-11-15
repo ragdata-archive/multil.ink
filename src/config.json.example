@@ -1,6 +1,8 @@
 {
     "port": 5000,
     "secret": "",
+    "cookieParserSecret": "",
+    "csrfSecret": "",
     "linkWhitelist": true,
     "freeLinks": [
         "example.com",
