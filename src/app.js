@@ -726,7 +726,8 @@ async function run()
             textColor,
             borderColor,
             ageGated: (user.ageGated === `1` ? `checked` : ``),
-            projectName
+            projectName,
+            linkWhitelist: freeLinks
         });
     });
 
@@ -814,6 +815,7 @@ async function run()
 
             let updatedLinks = [];
             let updatedLinkNames = [];
+            let unallowedLink = false;
             for (let index = 0; index < 50; index++)
             {
                 if (request.body[`link${ index }`] && request.body[`linkName${ index }`])
@@ -833,6 +835,7 @@ async function run()
                             if (!freeLinks.includes(domain) && !isPaidUser) // If free user & link is not in free list, skip.
                             {
                                 allowed = false;
+                                unallowedLink = true;
                                 continue;
                             }
                             else
@@ -901,6 +904,8 @@ async function run()
                 sendAuditLog(`|| ${ username } // ${ userEmail } || updated their profile with: \`\`\`json\n${ newProfileInfo }\n\`\`\``, discordWebhookURL);
             }
 
+            if (unallowedLink)
+                return response.redirect(`/edit?message=Some of the links you tried to add are not allowed in the free plan.&type=error`);
             response.redirect(`/edit`);
         }
         catch

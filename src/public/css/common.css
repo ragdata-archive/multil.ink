@@ -116,3 +116,12 @@ button.close {
     background-color: transparent;
     color: var(--text-color);
 }
+
+#liveAlertPlaceholder,
+#bugUserToVerify {
+    max-width: 65%;
+    text-align: center;
+    justify-content: center;
+    justify-items: center;
+    margin: auto;
+}

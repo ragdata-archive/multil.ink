@@ -332,3 +332,10 @@ function showHideColorPickers()
 }
 document.querySelector(`#themeOptions`).addEventListener(`change`, showHideColorPickers);
 showHideColorPickers();
+
+for (const element of linkWhitelist)
+{
+    const li = document.createElement(`li`);
+    li.textContent = element;
+    document.querySelector(`#whitelist`).append(li);
+}
