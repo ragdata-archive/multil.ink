@@ -8,6 +8,7 @@ import path from 'node:path';
 import fs from "node:fs";
 import { verify } from 'hcaptcha';
 import fetch from 'node-fetch';
+import { rateLimit } from "express-rate-limit";
 
 // eslint-disable-next-line no-underscore-dangle
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -110,6 +111,10 @@ async function run()
     const stripe = require(`stripe`);
     const csurf = require(`tiny-csrf`);
     const cookieParser = require(`cookie-parser`);
+    const rateLimiter = rateLimit({
+        windowMs: 1 * 30 * 1000, // Every 30s
+        max: 300 // Limit each IP to X requests per windowMs.
+    });
     const app = express();
     let secureCookie = ``;
     secureCookie = https === `https`;
@@ -149,6 +154,7 @@ async function run()
     app.use(passport.initialize());
     app.use(passport.session());
     app.use(methodOverride(`_method`));
+    app.use(rateLimiter);
     app.use(express.static(`./src/public`));
     app.use(express.static(`./src/views`));
     // hotload jquery, bootstrap, and fontawesome
