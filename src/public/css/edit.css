@@ -23,6 +23,10 @@ div.links>div {
     width: 80% !important;
 }
 
+input[type=checkbox] {
+    background-color: var(--white-color) !important;
+}
+
 @media screen and (max-width: 600px) {
 
     input[type=text],
