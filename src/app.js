@@ -807,7 +807,7 @@ async function run()
             if (!ASCIIRegex.test(updatedBio) || updatedBio.length > 280)
                 updatedBio = `No bio yet.`;
 
-            const host = request.get(`host`);
+            const host = escapeRegex(request.get(`host`));
             // eslint-disable-next-line no-useless-escape
             const regexForImageUGCUrl = new RegExp(`^(http|https):\/\/${ host }\/img\/ugc\/(.*)`);
             if (!regexForImageUGCUrl.test(updatedImage))
@@ -1776,4 +1776,15 @@ async function sendAuditLog(message, discordWebhookURL)
             })
         });
     }
+}
+
+/**
+ * @name escapeRegex
+ * @description Escapes a string for use in a regex
+ * @param {string} string String to escape
+ */
+function escapeRegex(string)
+{
+    // eslint-disable-next-line unicorn/better-regex
+    return string.replace(/[/\-\\^$*+?.()|[\]{}]/g, `\\$&`);
 }
