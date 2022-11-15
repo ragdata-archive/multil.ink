@@ -53,10 +53,6 @@ select,
     color: var(--text-color) !important;
 }
 
-a:hover {
-    color: var(--link-hover-color) !important;
-}
-
 html,
 body,
 main,

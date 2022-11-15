@@ -150,5 +150,5 @@ textarea:placeholder {
 }
 
 .underlineHover:hover {
-    color: #0d0d0d;
+    color: var(--link-hover-color);
 }
