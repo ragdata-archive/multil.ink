@@ -88,11 +88,6 @@ input[type=text]:focus {
     }
 }
 
-/* Hero Three (????) */
-#unknown {
-    background-color: var(--green-color);
-}
-
 /* Hero Four (Pricing */
 #pricing {
     background-color: var(--purple-color);
