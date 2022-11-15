@@ -1,1 +1,22 @@
-/* This is the default theme (profile.css) */
+:root {
+    --background-color: white;
+    --text-color: black;
+    --border-color: black;
+}
+
+html,
+body,
+main,
+div.links>div>button {
+    background-color: var(--background-color);
+}
+
+p,
+a {
+    color: var(--text-color);
+}
+
+div.links>div>button {
+    border: solid var(--border-color) 2px;
+    color: var(--text-color);
+}
