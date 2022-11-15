@@ -1045,12 +1045,11 @@ async function run()
         const shadowUserCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = ?`).get(`${ VER_STATUS.SHADOW_USER }`)[`COUNT(*)`];
         const awaitingEmailUserCount = sql.prepare(`SELECT COUNT(*) FROM users WHERE verified = ?`).get(`${ VER_STATUS.AWAITING_VERIFICATION }`)[`COUNT(*)`];
 
-        let freeCount = totalUserCount - paidCount - staffCount - shadowUserCount;
-        if (freeCount < 0)
-            freeCount = 0;
-
         totalUserCount -= shadowUserCount;
         paidCount -= staffCount;
+        let freeCount = totalUserCount - paidCount - staffCount;
+        if (freeCount < 0)
+            freeCount = 0;
 
         const search = request.query.search || ``;
         if (search)
