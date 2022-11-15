@@ -17,6 +17,10 @@ document.querySelector(`#main`).style.display = `block`;
 const alertPlaceholder = document.querySelector(`#liveAlertPlaceholder`);
 const alert = (message, type) =>
 {
+    message = escape(message.toString());
+    type = escape(type.toString());
+    message = message.replace(/%20/g, ` `);
+    message = message.replace(/%2C/g, `,`);
     const wrapper = document.createElement(`div`);
     wrapper.innerHTML = [
         `<div class="alert alert-${ type } alert-dismissible" role="alert">`,
