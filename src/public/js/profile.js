@@ -39,7 +39,9 @@ const faBrandsList = [
     `<i class="fa-brands fa-linkedin"></i> `,
     `<i class="fa-brands fa-github"></i> `,
     `<i class="fa-brands fa-steam"></i> `,
-    `<i class="fa-brands fa-tiktok"></i> `
+    `<i class="fa-brands fa-tiktok"></i> `,
+    `<i class="fa-brands fa-discord"></i> `,
+    `<i class="fa-brands fa-discord"></i> `
 ];
 const faBrandDomainList = [
     `instagram.com`,
@@ -55,7 +57,9 @@ const faBrandDomainList = [
     `linkedin.com`,
     `github.com`,
     `steamcommunity.com`,
-    `tiktok.com`
+    `tiktok.com`,
+    `discord.com`,
+    `discord.gg`
 ];
 for (const link of linksArray)
 {
