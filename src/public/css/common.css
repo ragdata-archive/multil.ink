@@ -4,6 +4,7 @@
     --background-color: var(--bs-light);
     --text-color: var(--bs-dark);
     --link-color: #92badd;
+    --link-hover-color: #7191ad;
     --white-color: white;
     --pink-color: #E95FBA;
     --dark-pink-color: #c44f9d;
@@ -50,6 +51,10 @@ select,
 #ageGate h1,
 #footer {
     color: var(--text-color) !important;
+}
+
+a:hover {
+    color: var(--link-hover-color) !important;
 }
 
 html,
