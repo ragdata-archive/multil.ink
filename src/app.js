@@ -806,8 +806,9 @@ async function run()
             if (!ASCIIRegex.test(updatedBio) || updatedBio.length > 280)
                 updatedBio = `No bio yet.`;
 
+            const host = request.get(`host`);
             // eslint-disable-next-line no-useless-escape
-            const regexForImageUGCUrl = new RegExp(`/^(http|https):\/\/${ request.get(`host)`) }\/img\/ugc\/(.*)/`);
+            const regexForImageUGCUrl = new RegExp(`^(http|https):\/\/${ host }\/img\/ugc\/(.*)`);
             if (!regexForImageUGCUrl.test(updatedImage))
                 updatedImage = `${ https }://${ request.get(`host`) }/img/person.png`;
 
