@@ -822,6 +822,7 @@ async function run()
                     const linkName = request.body[`linkName${ index }`].trim();
                     if (!link.startsWith(`http://`) && !link.startsWith(`https://`))
                         link = `https://${ link }`;
+                    link = link.replace(`www.`, ``);
 
                     if (linkRegex.test(link) && linkName && !updatedLinks.includes(link))
                     {
