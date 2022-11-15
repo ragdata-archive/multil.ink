@@ -1,0 +1,117 @@
+@import url('./font-roboto.css');
+
+:root {
+    --background-color: var(--bs-light);
+    --text-color: var(--bs-dark);
+    --link-color: #92badd;
+    --white-color: white;
+    --pink-color: #E95FBA;
+    --dark-pink-color: #c44f9d;
+    --baby-blue-color: #5fbae9;
+    --dark-baby-blue-color: #39ace7;
+    --purple-color: rgb(62, 0, 62);
+    --green-color: green;
+    --inner-form-color: #f6f6f6;
+    --form-entry-background-color: #eeeeee;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: var(--bs-dark);
+        --text-color: var(--bs-light);
+        --inner-form-color: #373737;
+        --form-entry-background-color: #333333;
+    }
+}
+
+body {
+    font-family: "Roboto", sans-serif;
+    height: 100vh;
+}
+
+html,
+body,
+main,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ul,
+ol,
+input,
+textarea,
+select,
+.modal-content,
+#ageGate,
+#ageGate p,
+#ageGate h1,
+#footer {
+    color: var(--text-color) !important;
+}
+
+html,
+body,
+main,
+input,
+textarea,
+select,
+.modal-content,
+#ageGate,
+#ageGate p,
+#ageGate h1,
+#footer {
+    background-color: var(--background-color) !important;
+}
+
+#formContent,
+#formFooter,
+#formHeader {
+    background-color: var(--inner-form-color);
+    color: var(--text-color);
+}
+
+input[type=checkbox] {
+    background-color: none !important;
+    border-color: none !important;
+}
+
+input[type=checkbox]:checked {
+    background-color: var(--baby-blue-color) !important;
+    border-color: var(--baby-blue-color) !important;
+}
+
+*:focus {
+    outline: none !important;
+    outline-width: 0 !important;
+    box-shadow: none;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+}
+
+#pfp {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px solid none;
+    display: block;
+    margin: auto;
+    margin-top: 35px;
+}
+
+.modal-footer {
+    margin-bottom: 0;
+    margin-top: 20px;
+}
+
+.modal-footer button {
+    margin-top: 10px;
+}
+
+button.close {
+    border: none;
+    background-color: transparent;
+    color: var(--text-color);
+}

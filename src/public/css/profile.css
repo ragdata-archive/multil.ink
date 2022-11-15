@@ -1,74 +1,5 @@
-@import url('./font-roboto.css');
-
-#pfp {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 2px solid none;
-    display: block;
-    margin: auto;
-    margin-top: 35px;
-}
-
-body {
-    margin: auto;
-    padding: 0px;
-    font-family: 'Roboto', sans-serif;
-    display: flex;
-    min-height: 100vh;
-    min-width: 100vw;
-    flex-direction: column;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-}
-
-main#main {
-    flex: 1 auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    text-align: center;
-}
-
-p#username {
-    font-size: 24pt;
-    font-weight: bold;
-}
-
-div.links {
-    padding: 20px 0px;
-}
-
-div.links>div>button {
-    border-radius: 20px;
-    border: solid black 2px;
-    display: block;
-    margin: 20px auto;
-    padding: 17px;
-    font-size: 1rem;
-    font-weight: 500;
-    text-align: center;
-    width: 600px;
-    background-color: white;
-}
-
-div.links>div>button:hover {
-    transform: scale(1.25);
-    /* text-decoration: underline; */
-}
-
-div.links>div>button {
-    overflow-wrap: break-word;
-    word-break: break-word;
-    hyphens: auto;
-    /* font-size: 24px; */
-}
-
-@media screen and (max-width: 600px) {
-    div.links>div>button {
-        width: 65%;
-    }
-}
+@import url('./common.css');
+@import url('./center-everything.css');
 
 #header {
     display: flex;
@@ -82,6 +13,11 @@ div.links>div>button {
     margin-top: 15px;
 }
 
+p#username {
+    font-size: 24pt;
+    font-weight: bold;
+}
+
 #verifiedBadge,
 #verifiedBadgeStaff {
     display: block;
@@ -89,6 +25,36 @@ div.links>div>button {
     margin-right: 0;
     margin-top: 24px;
     height: 32px;
+}
+
+div.links {
+    padding: 20px 0px;
+}
+
+div.links>div>button {
+    border-radius: 20px;
+    display: block;
+    margin: 20px auto;
+    padding: 17px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    width: 600px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+    /* font-size: 24px; */
+}
+
+@media screen and (max-width: 600px) {
+    div.links>div>button {
+        width: 65%;
+    }
+}
+
+div.links>div>button:hover {
+    transform: scale(1.25);
+    /* text-decoration: underline; */
 }
 
 #ageGate {
@@ -102,12 +68,8 @@ div.links>div>button {
     justify-content: center;
     align-items: center;
     margin: auto;
-    background-color: white !important;
     max-width: 100%;
     max-height: 100%;
-}
-
-#ageGate>div {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -115,21 +77,28 @@ div.links>div>button {
     text-align: center;
 }
 
-#ageGate p {
+/* Hardcode colors here or else the users theme can override them */
+#ageGate p,
+#ageGate h1 {
     color: black !important;
+}
+
+#ageGate,
+#ageGate p,
+#ageGate h1 {
+    background-color: white !important;
 }
 
 @media (prefers-color-scheme: dark) {
 
-    #ageGate {
-        background-color: black !important;
-    }
-
+    #ageGate p,
     #ageGate h1 {
         color: white !important;
     }
 
-    #ageGate p {
-        color: white !important;
+    #ageGate,
+    #ageGate p,
+    #ageGate h1 {
+        background-color: black !important;
     }
 }

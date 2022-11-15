@@ -1,8 +1,21 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 
-document.body.classList.add(`bg-dark`);
-document.documentElement.classList.add(`bg-dark`);
+const percentOfUsersVerified = Math.round((verifiedCount / totalUserCount) * 100);
+const percentOfUsersPaid = Math.round((paidCount / totalUserCount) * 100);
+const percentOfUsersSuspended = Math.round((suspendedCount / totalUserCount) * 100);
+const percentOfUsersStaff = Math.round((staffCount / totalUserCount) * 100);
+const percentOfUsersFree = Math.round((freeCount / totalUserCount) * 100);
+const percentOfUsersShadow = Math.round((shadowUserCount / (totalUserCount + shadowUserCount)) * 100);
+const percentOfUsersAwaitingEmail = Math.round((awaitingEmailUserCount / totalUserCount) * 100);
+document.querySelector(`#totalUserCount`).textContent = totalUserCount;
+document.querySelector(`#paidCount`).textContent = `${ paidCount } (${ percentOfUsersPaid }%)`;
+document.querySelector(`#verifiedCount`).textContent = `${ verifiedCount } (${ percentOfUsersVerified }%)`;
+document.querySelector(`#suspendedCount`).textContent = `${ suspendedCount } (${ percentOfUsersSuspended }%)`;
+document.querySelector(`#staffCount`).textContent = `${ staffCount } (${ percentOfUsersStaff }%)`;
+document.querySelector(`#freeCount`).textContent = `${ freeCount } (${ percentOfUsersFree }%)`;
+document.querySelector(`#shadowUserCount`).textContent = shadowUserCount;
+document.querySelector(`#awaitingEmailUserCount`).textContent = `${ awaitingEmailUserCount } (${ percentOfUsersAwaitingEmail }%)`;
 
 const users = [];
 for (let index = 0; index < userCountPaginated; index++)
@@ -179,9 +192,7 @@ for (let index = 0; index < userCountPaginated; index++)
     if (users[index].verified !== VER_STATUS.STAFF_MEMBER && users[index].verified !== VER_STATUS.SUSPENDED
         && users[index].verified !== VER_STATUS.SHADOW_USER && users[index].verified !== VER_STATUS.AWAITING_VERIFICATION)
     {
-        let extendClass = `btn btn-primary dropdown-toggle`;
-        if (users[index].username === myUsername || users[index].subExpires.startsWith(`9999`))
-            extendClass += ` hidden`;
+        const extendClass = `btn btn-primary dropdown-toggle`;
 
         const extendButton = `
                 <button class="${ extendClass }" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -199,9 +210,12 @@ for (let index = 0; index < userCountPaginated; index++)
                     <a class="dropdown-item" href="#" onclick="extendUser('${ users[index].username }', -1)">Forever</a>
                 </div>
                `;
-        actions.innerHTML += extendButton;
+        if (!users[index].username === myUsername || !users[index].subExpires.startsWith(`9999`))
+            actions.innerHTML += extendButton;
     }
 }
+
+darkMode(window.matchMedia(`(prefers-color-scheme: dark)`).matches ? `dark` : `light`); // bad hack to get the extend sub dropdown to react to color on init load
 
 const tableNavigation = document.querySelectorAll(`.tableNav`);
 for (const [index, element] of tableNavigation.entries())

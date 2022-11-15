@@ -25,7 +25,7 @@
         <main class="container">
             <details class="text-white m-1 p-4">
                 <summary>User Statistics</summary>
-                <div class="bg-dark p-4 m-1 rounded">
+                <div class="reactiveToColor p-4 m-1 rounded">
                     <div class="stats ">
                         <h4 class="text-white">Total <span class="badge bg-primary" id="totalUserCount"></span>
                         </h4>
@@ -49,7 +49,7 @@
             <hr>
 
             <div class="tableNav"></div>
-            <table class="table table-dark" id="users">
+            <table class="table" id="users">
                 <thead>
                     <tr>
                         <th scope="col">Username</th>
@@ -223,22 +223,6 @@
         const freeCount = `<%=freeCount%>`;
         const shadowUserCount = `<%=shadowUserCount%>`;
         const awaitingEmailUserCount = `<%=awaitingEmailUserCount%>`;
-
-        const percentOfUsersVerified = Math.round((verifiedCount / totalUserCount) * 100);
-        const percentOfUsersPaid = Math.round((paidCount / totalUserCount) * 100);
-        const percentOfUsersSuspended = Math.round((suspendedCount / totalUserCount) * 100);
-        const percentOfUsersStaff = Math.round((staffCount / totalUserCount) * 100);
-        const percentOfUsersFree = Math.round((freeCount / totalUserCount) * 100);
-        const percentOfUsersShadow = Math.round((shadowUserCount / (totalUserCount + shadowUserCount)) * 100);
-        const percentOfUsersAwaitingEmail = Math.round((awaitingEmailUserCount / totalUserCount) * 100);
-        document.querySelector(`#totalUserCount`).innerText = totalUserCount;
-        document.querySelector(`#paidCount`).innerText = `${ paidCount } (${ percentOfUsersPaid }%)`;
-        document.querySelector(`#verifiedCount`).innerText = `${ verifiedCount } (${ percentOfUsersVerified }%)`;
-        document.querySelector(`#suspendedCount`).innerText = `${ suspendedCount } (${ percentOfUsersSuspended }%)`;
-        document.querySelector(`#staffCount`).innerText = `${ staffCount } (${ percentOfUsersStaff }%)`;
-        document.querySelector(`#freeCount`).innerText = `${ freeCount } (${ percentOfUsersFree }%)`;
-        document.querySelector(`#shadowUserCount`).innerText = shadowUserCount;
-        document.querySelector(`#awaitingEmailUserCount`).innerText = `${ awaitingEmailUserCount } (${ percentOfUsersAwaitingEmail }%)`;
     </script>
     <script src="js/common.js"></script>
     <script src="js/staff.js"></script>

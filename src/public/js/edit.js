@@ -1,11 +1,6 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 
-window.addEventListener(`resize`, () =>
-{
-    fixDropdown();
-});
-
 /**
  * @name fixDropdown
  * @description Fixes the dropdown menu for mobile
@@ -35,29 +30,11 @@ function fixDropdown()
     }
 }
 
-fixDropdown();
-
-/**
- * @name darkMode
- * @description Adds the dark mode class to the dropdown menu
- * @param {string} dark if user is using dark
- */
-function darkMode(dark)
+window.addEventListener(`resize`, () =>
 {
-    if (dark === `dark`)
-        document.querySelector(`.dropdown-menu`).classList.add(`dropdown-menu-dark`);
-
-    else
-        document.querySelector(`.dropdown-menu`).classList.remove(`dropdown-menu-dark`);
-}
-
-window.matchMedia(`(prefers-color-scheme: dark)`).addEventListener(`change`, (event) =>
-{
-    const colorScheme = event.matches ? `dark` : `light`;
-    darkMode(colorScheme);
+    fixDropdown();
 });
-
-darkMode(window.matchMedia(`(prefers-color-scheme: dark)`).matches ? `dark` : `light`);
+fixDropdown();
 
 const linksArray = links.split(`,`);
 const linksNamesArray = JSON.parse(linksNames);
@@ -353,7 +330,5 @@ function showHideColorPickers()
     else
         document.querySelector(`#advancedThemes`).style.display = `none`;
 }
-
 document.querySelector(`#themeOptions`).addEventListener(`change`, showHideColorPickers);
-
 showHideColorPickers();

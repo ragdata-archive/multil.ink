@@ -1,47 +1,6 @@
-@import url('./font-roboto.css');
+@import url('./common.css');
+@import url('./center-everything.css');
 @import url('./auth.css');
-
-#pfp {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 2px solid none;
-    display: block;
-    margin: auto;
-    margin-top: 35px;
-}
-
-body {
-    margin: auto;
-    padding: 0px;
-    font-family: 'Roboto', sans-serif;
-    display: flex;
-    min-height: 100vh;
-    min-width: 100vw;
-    flex-direction: column;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-}
-
-main#main {
-    flex: 1 auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    text-align: center;
-}
-
-form>div {
-    margin: 10px auto;
-}
-
-div.links>div {
-    margin: 10px auto;
-}
-
-div.links>div>label {
-    margin: 10px;
-}
 
 input[type=text],
 input[type=email],
@@ -49,6 +8,19 @@ input[type=password],
 .form-select {
     padding: 15px 24px;
     width: 25%;
+}
+
+form>div,
+div.links>div {
+    margin: 10px auto;
+}
+
+.colorPicker {
+    margin-right: 10px;
+}
+
+.modalInput {
+    width: 80% !important;
 }
 
 @media screen and (max-width: 600px) {
@@ -64,28 +36,9 @@ input[type=password],
     .links input {
         width: 80%;
     }
-}
 
-select {
-    text-align: center;
-    text-align-last: center;
-    -moz-text-align-last: center;
-}
-
-.modalInput {
-    width: 80% !important;
-}
-
-@media screen and (max-width: 600px) {
-
-    #pageBreakForButtons {
-        display: block;
-    }
-
-    #pageBreakForLinkName {
-        display: block;
-    }
-
+    #pageBreakForButtons,
+    #pageBreakForLinkName,
     #hrForMobile {
         display: block;
     }
@@ -93,40 +46,11 @@ select {
 
 @media screen and (min-width: 600px) {
 
-    #pageBreakForButtons {
-        display: none;
-    }
-
-    #pageBreakForLinkName {
-        display: none;
-    }
-
+    #pageBreakForButtons,
+    #pageBreakForLinkName,
     #hrForMobile {
         display: none;
     }
-}
-
-@media (prefers-color-scheme: dark) {
-    .modal-content {
-        background-color: #1e1e1e;
-        color: white;
-    }
-}
-
-button.close {
-    border: none;
-    background-color: transparent;
-    color: #000;
-}
-
-@media (prefers-color-scheme: dark) {
-    button.close {
-        color: white;
-    }
-}
-
-.colorPicker {
-    margin-right: 10px;
 }
 
 #drag-drop-area,
@@ -136,20 +60,4 @@ button.close {
     justify-content: center;
     align-items: center;
     width: 100%;
-}
-
-@media screen and (max-width: 600px) {
-
-    #navbar-brand {
-        width: 100%;
-    }
-}
-
-.modal-footer {
-    margin-bottom: 0;
-    margin-top: 20px;
-}
-
-.modal-footer button {
-    margin-top: 10px;
 }

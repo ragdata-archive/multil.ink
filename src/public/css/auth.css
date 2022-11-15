@@ -1,40 +1,4 @@
-@import url('./font-roboto.css');
-
-html {
-    background-color: #ffffff;
-}
-
-@media (prefers-color-scheme: dark) {
-
-    html,
-    body,
-    main {
-        background-color: #1e1e1e;
-        color: white;
-    }
-}
-
-body {
-    font-family: "Roboto", sans-serif;
-    height: 100vh;
-}
-
-a {
-    color: #92badd;
-    display: inline-block;
-    text-decoration: none;
-    font-weight: 400;
-}
-
-h2 {
-    text-align: center;
-    font-size: 16px;
-    font-weight: 600;
-    text-transform: uppercase;
-    display: inline-block;
-    margin: 40px 8px 10px 8px;
-    color: #cccccc;
-}
+@import url('./common.css');
 
 .wrapper {
     display: flex;
@@ -46,10 +10,33 @@ h2 {
     padding: 20px;
 }
 
+a {
+    color: var(--link-color);
+    display: inline-block;
+    text-decoration: none;
+    font-weight: 400;
+}
+
+h2 {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+    margin: 20px 8px 10px 8px;
+}
+
+.underlineHover:hover:after {
+    width: 100%;
+}
+
+.contactUsMessage {
+    height: 400px;
+}
+
 #formContent {
     -webkit-border-radius: 10px 10px 10px 10px;
     border-radius: 10px 10px 10px 10px;
-    background: #fff;
     padding: 30px;
     width: 90%;
     max-width: 450px;
@@ -62,43 +49,18 @@ h2 {
 
 #formFooter,
 #formHeader {
-    background-color: #f6f6f6;
     padding: 25px;
     text-align: center;
 }
 
 #formFooter {
-    border-top: 1px solid #dce8f1;
     -webkit-border-radius: 0 0 10px 10px;
     border-radius: 0 0 10px 10px;
 }
 
 #formHeader {
-    border-top: 1px solid #dce8f1;
     -webkit-border-radius: 10px 10px 0 0;
     border-radius: 10px 10px 0 0;
-}
-
-@media (prefers-color-scheme: dark) {
-
-    #formContent {
-        background-color: #373737;
-        color: white;
-    }
-
-    #formHeader,
-    #formFooter {
-        background-color: #1e1e1e;
-        color: white;
-    }
-
-    #formHeader {
-        border-top: 1px solid #1e1e1e;
-    }
-
-    #formFooter {
-        border-top: 1px solid #1e1e1e;
-    }
 }
 
 #formHeaderPadding {
@@ -109,21 +71,12 @@ h2 {
     padding: 10px;
 }
 
-h2.inactive {
-    color: #cccccc;
-}
-
-h2.active {
-    color: #0d0d0d;
-    border-bottom: 2px solid #5fbae9;
-}
-
 input[type=button],
 input[type=submit],
 input[type=reset] {
-    background-color: #56baed;
+    background-color: var(--baby-blue-color) !important;
     border: none;
-    color: white;
+    color: var(--white-color) !important;
     padding: 15px 80px;
     text-align: center;
     text-decoration: none;
@@ -145,7 +98,7 @@ input[type=reset] {
 input[type=button]:hover,
 input[type=submit]:hover,
 input[type=reset]:hover {
-    background-color: #39ace7;
+    background-color: var(--dark-baby-blue-color) !important;
 }
 
 input[type=button]:active,
@@ -163,9 +116,7 @@ input[type=email],
 input[type=password],
 .form-select,
 textarea {
-    background-color: #f6f6f6;
     border: none;
-    color: #0d0d0d;
     padding: 15px 32px;
     text-align: center;
     text-decoration: none;
@@ -173,7 +124,8 @@ textarea {
     font-size: 16px;
     margin: 5px;
     width: 85%;
-    border: 2px solid #f6f6f6;
+    border: 2px solid var(--text-color);
+    background-color: var(--form-entry-background-color) !important;
     -webkit-transition: all 0.5s ease-in-out;
     -moz-transition: all 0.5s ease-in-out;
     -ms-transition: all 0.5s ease-in-out;
@@ -187,8 +139,7 @@ input[type=text]:focus,
 input[type=email]:focus,
 input[type=password]:focus,
 textarea:focus {
-    background-color: #fff;
-    border-bottom: 2px solid #5fbae9;
+    border-bottom: 2px solid var(--baby-blue-color);
 }
 
 input[type=text]:placeholder,
@@ -200,48 +151,4 @@ textarea:placeholder {
 
 .underlineHover:hover {
     color: #0d0d0d;
-}
-
-@media (prefers-color-scheme: dark) {
-
-    input[type=text],
-    input[type=email],
-    input[type=password],
-    .form-select,
-    textarea {
-        background-color: #373737;
-        color: white;
-    }
-
-    input[type=text]:focus,
-    input[type=email]:focus,
-    input[type=password]:focus,
-    textarea:focus {
-        background-color: #1e1e1e;
-        border-bottom: 2px solid #5fbae9;
-        color: #cccccc;
-    }
-
-    input[type=text]:placeholder,
-    input[type=email]:placeholder,
-    input[type=password]:placeholder,
-    textarea:placeholder {
-        color: #cccccc;
-    }
-
-    .underlineHover:hover {
-        color: #5b5b5b;
-    }
-}
-
-.underlineHover:hover:after {
-    width: 100%;
-}
-
-*:focus {
-    outline: none;
-}
-
-.contactUsMessage {
-    height: 400px;
 }
