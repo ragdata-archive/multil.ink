@@ -26,7 +26,7 @@
     },
     "homepage": "https://github.com/multilinkhq/multil.ink#readme",
     "dependencies": {
-        "@fortawesome/fontawesome-free": "6.2.0",
+        "@fortawesome/fontawesome-free": "6.2.1",
         "@popperjs/core": "2.11.6",
         "bcrypt": "5.1.0",
         "better-sqlite3": "7.6.2",
