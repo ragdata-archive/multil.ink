@@ -483,7 +483,7 @@ async function run()
             const queries = request.query;
             if (!queries.token)
                 return response.redirect(`/edit?message=Invalid token.&type=error`);
-            const token = queries.token.trim().slice(0, 32);
+            const token = queries.token.toString().trim().slice(0, 32);
             const tokenData = sql.prepare(`SELECT * FROM emailActivations WHERE token = ?`).get(token);
             if (!tokenData)
                 return response.redirect(`/edit?message=Invalid token.&type=error`);
@@ -609,7 +609,7 @@ async function run()
         const queries = request.query;
         if (!queries.token)
             return response.redirect(`/forgotpassword?message=Invalid token.&type=error`);
-        const token = queries.token.trim().slice(0, 32);
+        const token = queries.token.toString().trim().slice(0, 32);
         const tokenData = sql.prepare(`SELECT * FROM passwordResets WHERE token = ?`).get(token);
         if (!tokenData)
             return response.redirect(`/forgotpassword?message=Invalid token.&type=error`);
@@ -845,8 +845,8 @@ async function run()
             {
                 if (request.body[`link${ index }`] && request.body[`linkName${ index }`])
                 {
-                    let link = request.body[`link${ index }`].trim();
-                    const linkName = request.body[`linkName${ index }`].trim();
+                    let link = request.body[`link${ index }`].toString().trim();
+                    const linkName = request.body[`linkName${ index }`].toString().trim();
                     if (!link.startsWith(`http://`) && !link.startsWith(`https://`))
                         link = `https://${ link }`;
                     link = link.replace(`www.`, ``);
@@ -1057,7 +1057,9 @@ async function run()
         myUsername = myUsername.username;
         if (!request.query.page && !request.query.search)
             return response.redirect(`/staff?page=1`);
-        const pageNumber = request.query.page || 1;
+        const pageNumber = Number.parseInt(request.query.page.toString(), 10);
+        if (Number.isNaN(pageNumber) || pageNumber < 1)
+            return response.redirect(`/staff?page=1`);
         const usersPerPage = 100;
         // select users from database that are in the page number*100
         let userDataByPage = sql.prepare(`SELECT * FROM users LIMIT ? OFFSET ?`).all(usersPerPage, (pageNumber - 1) * usersPerPage);
@@ -1077,9 +1079,10 @@ async function run()
         if (freeCount < 0)
             freeCount = 0;
 
-        const search = request.query.search || ``;
+        let search = request.query.search;
         if (search)
         {
+            search = search.toString().trim().toLowerCase();
             userDataByPage = sql.prepare(`SELECT * FROM users WHERE username LIKE ?`).all(`%${ search }%`);
             userAuthDataByPage = sql.prepare(`SELECT * FROM userAuth WHERE username LIKE ?`).all(`%${ search }%`);
         }
