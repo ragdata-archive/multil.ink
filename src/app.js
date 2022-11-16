@@ -154,7 +154,7 @@ async function run()
     app.use(passport.initialize());
     app.use(passport.session());
     app.use(methodOverride(`_method`));
-    app.use(rateLimiter);
+    if (!dev) app.use(rateLimiter);
     app.use(express.static(`./src/public`));
     app.use(express.static(`./src/views`));
     // hotload jquery, bootstrap, and fontawesome
@@ -264,14 +264,14 @@ async function run()
                 request.flash(`error`, `Please fill out the captcha.`);
                 return response.redirect(`/register?message=Please fill out the captcha.&type=error`);
             }
-            const username = request.body.username.toLowerCase().trim().slice(0, 60);
+            const username = request.body.username.toString().toLowerCase().trim().slice(0, 60);
             if (bannedUsernames.has(username))
                 return response.redirect(`/register?message=That username is not available.&type=error`);
 
             if (!usernameRegex.test(username))
                 return response.redirect(`/register?message=That username is not available.&type=error`);
 
-            const email = request.body.email.toLowerCase().trim().slice(0, 512);
+            const email = request.body.email.toString().toLowerCase().trim().slice(0, 512);
             if (!emailRegex.test(email))
                 return response.redirect(`/register?message=That email is not valid.&type=error`);
 
@@ -279,7 +279,7 @@ async function run()
             const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(email);
             if (user || emailExists)
                 return response.redirect(`/register?message=That username/email is already in use.&type=error`);
-            const hashedPassword = await bcrypt.hash(request.body.password.trim().slice(0, 1024), 10);
+            const hashedPassword = await bcrypt.hash(request.body.password.toString().trim().slice(0, 1024), 10);
 
             const availableChars = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`;
             let token = ``;
@@ -567,7 +567,7 @@ async function run()
                 request.flash(`error`, `Please fill out the captcha.`);
                 return response.redirect(`/login?message=Please fill out the captcha.&type=error`);
             }
-            const email = request.body.email;
+            const email = request.body.email.toString();
             if (!email)
                 return response.redirect(`/forgotpassword?message=Please enter an email.&type=error`);
             const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(email);
@@ -626,7 +626,7 @@ async function run()
     {
         try
         {
-            const token = request.body.token;
+            const token = request.body.token.toString();
             if (!token)
                 return response.redirect(`/forgotpassword?message=Invalid token.&type=error`);
             const verifyResults = await verify(hcaptchaSecret, request.body[`h-captcha-response`]);
@@ -643,8 +643,8 @@ async function run()
                 sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token);
                 return response.redirect(`/forgotpassword?message=Token expired.&type=error`);
             }
-            const password = request.body.password;
-            const confirmPassword = request.body.password2;
+            const password = request.body.password.toString();
+            const confirmPassword = request.body.password2.toString();
             if (!password || !confirmPassword)
                 return response.redirect(`/resetpassword?token=${ token }&message=Please enter a password.&type=error`);
             if (password !== confirmPassword)
@@ -678,9 +678,9 @@ async function run()
                 request.flash(`error`, `Please fill out the captcha.`);
                 return response.redirect(`/report?message=Please fill out the captcha.&type=error`);
             }
-            const email = request.body.email;
-            const fullName = request.body.fullName;
-            const message = request.body.message;
+            const email = request.body.email.toString();
+            const fullName = request.body.fullName.toString();
+            const message = request.body.message.toString();
             if (!email || !fullName || !message)
                 return response.redirect(`/report?message=Please complete the form.&type=error`);
 
@@ -774,15 +774,15 @@ async function run()
                 return response.redirect(`/`);
 
             let ageGated = request.body.adultContent;
-            ageGated = ageGated === `` ? `1` : `0`;
+            ageGated = ageGated ? `1` : `0`;
 
-            let updatedDisplayName = request.body.displayName.trim().slice(0, 60);
-            let updatedBio = request.body.bio.trim().slice(0, 280);
-            let updatedImage = request.body.image.trim();
-            let theme = request.body.theme.trim();
-            let backgroundColor = request.body.backgroundColor.trim().slice(0, 7);
-            let textColor = request.body.textColor.trim().slice(0, 7);
-            let borderColor = request.body.borderColor.trim().slice(0, 7);
+            let updatedDisplayName = request.body.displayName.toString().trim().slice(0, 60);
+            let updatedBio = request.body.bio.toString().trim().slice(0, 280);
+            let updatedImage = request.body.image.toString().trim();
+            let theme = request.body.theme.toString().trim();
+            let backgroundColor = request.body.backgroundColor.toString().trim().slice(0, 7);
+            let textColor = request.body.textColor.toString().trim().slice(0, 7);
+            let borderColor = request.body.borderColor.toString().trim().slice(0, 7);
             const colorRegex = /^#[\da-f]{6}$/i;
             if (!colorRegex.test(backgroundColor))
                 backgroundColor = `#ffffff`;
@@ -955,9 +955,9 @@ async function run()
             switch (actionToTake)
             {
                 case `changeEmail`: {
-                    const oldEmailInput = request.body.oldEmail.toLowerCase().trim();
-                    const newEmail = request.body.newEmail.toLowerCase().trim();
-                    const password = request.body.password.trim();
+                    const oldEmailInput = request.body.oldEmail.toString().toLowerCase().trim();
+                    const newEmail = request.body.newEmail.toString().toLowerCase().trim();
+                    const password = request.body.password.toString().trim();
                     const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
                     const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
 
@@ -991,8 +991,8 @@ async function run()
                     break;
                 }
                 case `changePassword`: {
-                    const oldPassword = request.body.oldPassword.trim();
-                    const newPassword = request.body.newPassword.trim();
+                    const oldPassword = request.body.oldPassword.toString().trim();
+                    const newPassword = request.body.newPassword.toString().trim();
                     const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
                     const isCorrectPassword = await bcrypt.compare(oldPassword, usersHashedPassword);
 
@@ -1007,8 +1007,8 @@ async function run()
                     break;
                 }
                 case `changeUsername`: {
-                    const newUsername = request.body.username.trim().toLowerCase().slice(0, 60);
-                    const password = request.body.password.trim();
+                    const newUsername = request.body.username.toString().trim().toLowerCase().slice(0, 60);
+                    const password = request.body.password.toString().trim();
                     const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
                     const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
 
@@ -1164,7 +1164,7 @@ async function run()
             }
             staffUsername = staffUsername.username;
             const actionToTake = request.params[0];
-            const usernameToTakeActionOn = request.body.username;
+            const usernameToTakeActionOn = request.body.username.toString();
 
             if (usernameToTakeActionOn === staffUsername)
                 return response.redirect(`/staff`);
@@ -1172,7 +1172,7 @@ async function run()
             switch (actionToTake)
             {
                 case `editUser`: {
-                    const userToEdit = request.body.username;
+                    const userToEdit = request.body.username.toString();
 
                     const currentUserInfo = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn);
                     for (const [key, value] of Object.entries(request.body))
@@ -1355,7 +1355,7 @@ async function run()
                     break;
                 }
                 case `extendUser`: {
-                    const timeToExtendInMonths = request.body.months;
+                    const timeToExtendInMonths = request.body.months.toString();
                     const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn);
                     const subExpires = user.subExpires;
                     if (subExpires.startsWith(`9999`))
@@ -1379,8 +1379,8 @@ async function run()
                     break;
                 }
                 case `createShadowUser`: {
-                    const username = request.body.username;
-                    const redirectTo = request.body.redirect;
+                    const username = request.body.username.toString();
+                    const redirectTo = request.body.redirect.toString();
 
                     if (!username || !redirectTo)
                         return response.redirect(`/staff`);
@@ -1424,7 +1424,7 @@ async function run()
             return response.redirect(`/login`);
         username = username.username;
 
-        const password = request.body.password.trim();
+        const password = request.body.password.toString().trim();
         const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(username).password;
         const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
         if (isCorrectPassword)
