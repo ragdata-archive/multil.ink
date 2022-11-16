@@ -116,6 +116,7 @@ async function run()
         max: 300 // Limit each IP to X requests per windowMs.
     });
     const app = express();
+    if (!dev) app.set(`trust proxy`, 1); // trust first proxy
     let secureCookie = ``;
     secureCookie = https === `https`;
 
