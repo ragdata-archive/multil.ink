@@ -1273,6 +1273,8 @@ async function run()
                     const oldData = request.body;
                     let auditEntry = oldData;
                     delete auditEntry.username;
+                    // eslint-disable-next-line no-underscore-dangle
+                    delete auditEntry._csrf;
 
                     if (auditEntry.ageGated === true && currentUserInfo.ageGated === `1`)
                         delete auditEntry.ageGated;
