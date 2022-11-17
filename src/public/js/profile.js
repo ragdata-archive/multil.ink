@@ -86,7 +86,6 @@ for (const link of linksArray)
         linksDiv.append(linkDiv);
 }
 
-// TODO: build embed for featuredContent
 const featuredContentEmbeds = [
     {
         url: `youtube.com`,
