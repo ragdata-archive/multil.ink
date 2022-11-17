@@ -121,7 +121,6 @@ async function run()
     const passport = require(`passport`);
     const flash = require(`express-flash`);
     const session = require(`express-session`);
-    const methodOverride = require(`method-override`);
     const nodemailer = require(`nodemailer`);
     const stripe = require(`stripe`);
     const csurf = require(`tiny-csrf`);
@@ -132,8 +131,6 @@ async function run()
     });
     const app = express();
     if (!dev) app.set(`trust proxy`, 1); // trust first proxy
-    let secureCookie = ``;
-    secureCookie = https === `https`;
 
     app.use(`/webhook`, bodyParser.raw({ type: `application/json` }));
     app.use(bodyParser.json());
@@ -145,7 +142,7 @@ async function run()
         saveUninitialized: false,
         cookie: {
             httpOnly: true,
-            secure: secureCookie,
+            secure: https === `https`,
             maxAge: 1000 * 60 * 60 * 24 * 7, // 7d
         },
     }));
@@ -169,7 +166,6 @@ async function run()
     app.use(flash());
     app.use(passport.initialize());
     app.use(passport.session());
-    app.use(methodOverride(`_method`));
     if (!dev) app.use(rateLimiter);
     app.use(express.static(`./src/public`));
     app.use(express.static(`./src/views`));
@@ -1455,7 +1451,7 @@ async function run()
         }
     });
 
-    app.delete(`/logout`, (request, response, next) =>
+    app.post(`/logout`, (request, response, next) =>
     {
         logoutUser(request, response, next);
         return response.redirect(`/login`);

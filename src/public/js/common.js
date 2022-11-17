@@ -180,7 +180,7 @@ async function logout()
 {
     const protocol = window.location.protocol;
     const domain = window.location.href.split(`/`)[2];
-    await $.ajax(`${ protocol }//${ domain }/logout?_method=DELETE`, {
+    await $.ajax(`${ protocol }//${ domain }/logout`, {
         type: `POST`,
         contentType: `application/json`,
         data: JSON.stringify({
