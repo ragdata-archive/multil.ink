@@ -106,10 +106,16 @@ async function run()
         }
     }
 
-    sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT, featuredContent TEXT, theme TEXT, advancedTheme TEXT, ageGated TEXT)`).run();
-    sql.prepare(`CREATE TABLE IF NOT EXISTS userAuth (uid INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT, stripeCID TEXT)`).run();
-    sql.prepare(`CREATE TABLE IF NOT EXISTS emailActivations (email TEXT PRIMARY KEY, username TEXT, token TEXT, expires TEXT)`).run();
-    sql.prepare(`CREATE TABLE IF NOT EXISTS passwordResets (email TEXT PRIMARY KEY, username TEXT, token TEXT, expires TEXT)`).run();
+    sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT UNIQUE PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT, featuredContent TEXT, theme TEXT, advancedTheme TEXT, ageGated TEXT)`).run();
+    sql.prepare(`CREATE TABLE IF NOT EXISTS userAuth (uid INTEGER PRIMARY KEY UNIQUE, username TEXT UNIQUE, email TEXT UNIQUE, password TEXT, stripeCID TEXT)`).run();
+    sql.prepare(`CREATE TABLE IF NOT EXISTS emailActivations (email TEXT PRIMARY KEY UNIQUE, username TEXT UNIQUE, token TEXT UNIQUE, expires TEXT)`).run();
+    sql.prepare(`CREATE TABLE IF NOT EXISTS passwordResets (email TEXT PRIMARY KEY UNIQUE, username TEXT UNIQUE, token TEXT UNIQUE, expires TEXT)`).run();
+    sql.pragma(`synchronous = 1`);
+    sql.pragma(`journal_mode = wal`);
+    process.on(`exit`, () => sql.close());
+    process.on(`SIGHUP`, () => process.exit(128 + 1));
+    process.on(`SIGINT`, () => process.exit(128 + 2));
+    process.on(`SIGTERM`, () => process.exit(128 + 15));
 
     const bcrypt = require(`bcrypt`);
     const passport = require(`passport`);
@@ -1431,7 +1437,7 @@ async function run()
                         return response.redirect(`/staff`);
 
                     sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames, featuredContent, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, `${ VER_STATUS.SHADOW_USER }`, `0`, ``, ``, redirectTo, ``, ``, `[]`, `[]`, ``, ``, ``, `0`);
-                    sql.prepare(`INSERT INTO userAuth (username, password, email, stripeCID) VALUES (?, ?, ?, ?)`).run(username, ``, ``, ``);
+                    sql.prepare(`INSERT INTO userAuth (username, password, email, stripeCID) VALUES (?, ?, ?, ?)`).run(username, ``, username, ``);
                     sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || created a new shadow user || ${ username } || which redirects to || ${ redirectTo } ||.`, discordWebhookURL);
 
                     response.redirect(`/staff`);
