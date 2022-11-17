@@ -26,6 +26,7 @@
     },
     "homepage": "https://github.com/multilinkhq/multil.ink#readme",
     "dependencies": {
+        "@dr.pogodin/csurf": "1.12.1",
         "@fortawesome/fontawesome-free": "6.2.1",
         "@popperjs/core": "2.11.6",
         "bcrypt": "5.1.0",
@@ -48,7 +49,6 @@
         "passport": "0.6.0",
         "passport-local": "1.0.0",
         "stripe": "11.0.0",
-        "tiny-csrf": "1.1.3",
         "uppy": "3.3.1"
     },
     "devDependencies": {

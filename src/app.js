@@ -36,7 +36,7 @@ async function run()
         port, secret, linkWhitelist, freeLinks, projectName, projectDescription, dev,
         emailSMTPHost, emailSMTPPort, emailSMTPSecure, emailSMTPUser, emailSMTPPass, emailFromDisplayName,
         stripeSecretKey, stripeProductID, stripeCustomerPortalURL, stripeWebhookSigningSecret,
-        reportEmail, cookieParserSecret, csrfSecret
+        reportEmail
     } = require(`./config.json`);
 
     let {
@@ -123,7 +123,14 @@ async function run()
     const session = require(`express-session`);
     const nodemailer = require(`nodemailer`);
     const stripe = require(`stripe`);
-    const csurf = require(`tiny-csrf`);
+    const csurf = require(`@dr.pogodin/csurf`);
+    const csrfProtection = csurf({
+        cookie: {
+            httpOnly: true,
+            secure: https === `https`,
+            sameSite: `strict`,
+        },
+    });
     const cookieParser = require(`cookie-parser`);
     const rateLimiter = rateLimit({
         windowMs: 1 * 30 * 1000, // Every 30s
@@ -135,7 +142,7 @@ async function run()
     app.use(`/webhook`, bodyParser.raw({ type: `application/json` }));
     app.use(bodyParser.json());
     app.use(express.urlencoded({ extended: true }));
-    app.use(cookieParser(cookieParserSecret));
+    app.use(cookieParser(secret));
     app.use(session({
         secret,
         resave: false,
@@ -146,16 +153,6 @@ async function run()
             maxAge: 1000 * 60 * 60 * 24 * 7, // 7d
         },
     }));
-    app.use(
-        csurf(
-            csrfSecret, // secret -- must be 32 bits or chars in length
-            [`POST`, `DELETE`], // the request methods we want CSRF protection for
-            [
-                `/img`,
-                `/webhook`,
-            ], // any URLs we want to exclude, either as strings or regexp
-        )
-    );
     app.use(helmet(
         {
             crossOriginEmbedderPolicy: false,
@@ -223,21 +220,31 @@ async function run()
         (id) => sql.prepare(`SELECT * FROM userAuth WHERE uid = ?`).get(id)
     );
 
-    app.get(`/`, (request, response) =>
+    app.get(`/`, csrfProtection, (request, response) =>
     {
+        const csrfToken = request.csrfToken();
         response.render(`index.ejs`, {
-            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, isLoggedIn: request.isAuthenticated(), csrfToken: request.csrfToken()
+            projectName,
+            projectDescription,
+            image: `${ https }://${ request.get(`host`) }/img/logo.png`,
+            isLoggedIn: request.isAuthenticated(),
+            csrfToken,
         });
     });
 
-    app.get(`/login`, checkNotAuthenticated, (request, response) =>
+    app.get(`/login`, csrfProtection, checkNotAuthenticated, (request, response) =>
     {
+        const csrfToken = request.csrfToken();
         response.render(`login.ejs`, {
-            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey, csrfToken: request.csrfToken()
+            projectName,
+            projectDescription,
+            image: `${ https }://${ request.get(`host`) }/img/logo.png`,
+            hcaptchaSiteKey,
+            csrfToken,
         });
     });
 
-    app.post(`/login`, checkNotAuthenticated, async (request, response, next) =>
+    app.post(`/login`, csrfProtection, checkNotAuthenticated, async (request, response, next) =>
     {
         try
         {
@@ -259,14 +266,19 @@ async function run()
         }
     });
 
-    app.get(`/register`, checkNotAuthenticated, (request, response) =>
+    app.get(`/register`, csrfProtection, checkNotAuthenticated, (request, response) =>
     {
+        const csrfToken = request.csrfToken();
         response.render(`register.ejs`, {
-            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey, csrfToken: request.csrfToken()
+            projectName,
+            projectDescription,
+            image: `${ https }://${ request.get(`host`) }/img/logo.png`,
+            hcaptchaSiteKey,
+            csrfToken,
         });
     });
 
-    app.post(`/register`, checkNotAuthenticated, async (request, response) =>
+    app.post(`/register`, csrfProtection, checkNotAuthenticated, async (request, response) =>
     {
         try
         {
@@ -342,7 +354,7 @@ async function run()
         }
     });
 
-    app.get(`/upgrade`, checkAuthenticated, async (request, response, next) =>
+    app.get(`/upgrade`, csrfProtection, checkAuthenticated, async (request, response, next) =>
     {
         const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(request.user);
         if (!userData)
@@ -402,7 +414,7 @@ async function run()
         response.redirect(`/edit`);
     });
 
-    app.get(`/downgrade`, checkAuthenticated, async (request, response, next) =>
+    app.get(`/downgrade`, csrfProtection, checkAuthenticated, async (request, response, next) =>
     {
         const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(request.user);
         if (!userData)
@@ -487,7 +499,7 @@ async function run()
             response.sendStatus(400);
     });
 
-    app.get(`/verifyemail`, (request, response) =>
+    app.get(`/verifyemail`, csrfProtection, (request, response) =>
     {
         try
         {
@@ -518,7 +530,7 @@ async function run()
         }
     });
 
-    app.get(`/resendactivationemail`, checkAuthenticated, async (request, response, next) =>
+    app.get(`/resendactivationemail`, csrfProtection, checkAuthenticated, async (request, response, next) =>
     {
         try
         {
@@ -562,14 +574,19 @@ async function run()
         }
     });
 
-    app.get(`/forgotpassword`, (request, response) =>
+    app.get(`/forgotpassword`, csrfProtection, (request, response) =>
     {
+        const csrfToken = request.csrfToken();
         response.render(`forgotpassword.ejs`, {
-            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey, csrfToken: request.csrfToken()
+            projectName,
+            projectDescription,
+            image: `${ https }://${ request.get(`host`) }/img/logo.png`,
+            hcaptchaSiteKey,
+            csrfToken,
         });
     });
 
-    app.post(`/forgotpassword`, async (request, response) =>
+    app.post(`/forgotpassword`, csrfProtection, async (request, response) =>
     {
         try
         {
@@ -615,7 +632,7 @@ async function run()
         }
     });
 
-    app.get(`/resetpassword`, (request, response) =>
+    app.get(`/resetpassword`, csrfProtection, (request, response) =>
     {
         const queries = request.query;
         if (!queries.token)
@@ -629,12 +646,18 @@ async function run()
             sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token);
             return response.redirect(`/forgotpassword?message=Token expired.&type=error`);
         }
+        const csrfToken = request.csrfToken();
         response.render(`resetpassword.ejs`, {
-            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey, token, csrfToken: request.csrfToken()
+            projectName,
+            projectDescription,
+            image: `${ https }://${ request.get(`host`) }/img/logo.png`,
+            hcaptchaSiteKey,
+            token,
+            csrfToken,
         });
     });
 
-    app.post(`/resetpassword`, async (request, response) =>
+    app.post(`/resetpassword`, csrfProtection, async (request, response) =>
     {
         try
         {
@@ -673,14 +696,19 @@ async function run()
         }
     });
 
-    app.get(`/report`, (request, response) =>
+    app.get(`/report`, csrfProtection, (request, response) =>
     {
+        const csrfToken = request.csrfToken();
         response.render(`report.ejs`, {
-            projectName, projectDescription, image: `${ https }://${ request.get(`host`) }/img/logo.png`, hcaptchaSiteKey, csrfToken: request.csrfToken()
+            projectName,
+            projectDescription,
+            image: `${ https }://${ request.get(`host`) }/img/logo.png`,
+            hcaptchaSiteKey,
+            csrfToken,
         });
     });
 
-    app.post(`/report`, async (request, response) =>
+    app.post(`/report`, csrfProtection, async (request, response) =>
     {
         try
         {
@@ -716,7 +744,7 @@ async function run()
         }
     });
 
-    app.get(`/edit`, checkAuthenticated, (request, response, next) =>
+    app.get(`/edit`, csrfProtection, checkAuthenticated, (request, response, next) =>
     {
         const userAuth = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(request.user);
         if (!userAuth)
@@ -744,6 +772,7 @@ async function run()
             borderColor = advancedTheme.split(`--border-color: `)[1].split(`;`)[0];
         }
 
+        const csrfToken = request.csrfToken();
         response.render(`edit.ejs`, {
             username: user.username,
             displayName: user.displayName,
@@ -763,13 +792,13 @@ async function run()
             ageGated: (user.ageGated === `1` ? `checked` : ``),
             projectName,
             linkWhitelist: freeLinks,
-            csrfToken: request.csrfToken(),
             featuredContent: user.featuredContent,
             supportedFeaturedContentUrls: [...supportedFeaturedContentUrls].join(`,`),
+            csrfToken,
         });
     });
 
-    app.post(`/edit`, checkAuthenticated, async (request, response, next) =>
+    app.post(`/edit`, csrfProtection, checkAuthenticated, async (request, response, next) =>
     {
         try
         {
@@ -963,7 +992,7 @@ async function run()
         }
     });
 
-    app.post(`/edit/*`, checkAuthenticated, async (request, response, next) =>
+    app.post(`/edit/*`, csrfProtection, checkAuthenticated, async (request, response, next) =>
     {
         try
         {
@@ -1070,7 +1099,7 @@ async function run()
         }
     });
 
-    app.get(`/staff`, checkAuthenticatedStaff, (request, response, next) =>
+    app.get(`/staff`, csrfProtection, checkAuthenticatedStaff, (request, response, next) =>
     {
         let myUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(request.user);
         if (!myUsername)
@@ -1151,6 +1180,7 @@ async function run()
             featuredContent.push(allUser.featuredContent);
         }
 
+        const csrfToken = request.csrfToken();
         response.render(`staff.ejs`, {
             userCountPaginated,
             usernames,
@@ -1176,11 +1206,11 @@ async function run()
             awaitingEmailUserCount,
             projectName,
             ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`,
-            csrfToken: request.csrfToken()
+            csrfToken,
         });
     });
 
-    app.post(`/staff/*`, checkAuthenticatedStaff, async (request, response, next) =>
+    app.post(`/staff/*`, csrfProtection, checkAuthenticatedStaff, async (request, response, next) =>
     {
         // ! There is not a lot of security here, so be sure you trust who is staff.
         // ! They can delete/modify ANY user, even other staff.
@@ -1451,13 +1481,13 @@ async function run()
         }
     });
 
-    app.post(`/logout`, (request, response, next) =>
+    app.post(`/logout`, csrfProtection, (request, response, next) =>
     {
         logoutUser(request, response, next);
         return response.redirect(`/login`);
     });
 
-    app.post(`/delete`, async (request, response, next) =>
+    app.post(`/delete`, csrfProtection, async (request, response, next) =>
     {
         const userEmail = request.user;
         if (!userEmail)
@@ -1492,14 +1522,18 @@ async function run()
     app.get(`/tos`, (request, response) =>
     {
         response.render(`tos.ejs`, {
-            projectName, projectDescription, ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`
+            projectName,
+            projectDescription,
+            ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`,
         });
     });
 
     app.get(`/privacy`, (request, response) =>
     {
         response.render(`privacy.ejs`, {
-            projectName, projectDescription, ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`
+            projectName,
+            projectDescription,
+            ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`,
         });
     });
 
@@ -1587,18 +1621,6 @@ async function run()
         return response.redirect(`/`);
     });
 
-    app.post(`*`, (request, response) =>
-    {
-        response.status(404);
-        return response.redirect(`/`);
-    });
-
-    app.delete(`*`, (request, response) =>
-    {
-        response.status(404);
-        return response.redirect(`/`);
-    });
-
     app.listen(port, async () =>
     {
         // eslint-disable-next-line no-restricted-syntax
@@ -1665,17 +1687,7 @@ async function initSetup()
     for (let index = 0; index < 50; index++)
         sessionSecret += possible.charAt(Math.floor(Math.random() * possible.length));
 
-    let cookieParserSecret = ``;
-    for (let index = 0; index < 50; index++)
-        cookieParserSecret += possible.charAt(Math.floor(Math.random() * possible.length));
-
-    let csrfSecret = ``;
-    for (let index = 0; index < 32; index++)
-        csrfSecret += possible.charAt(Math.floor(Math.random() * possible.length));
-
     config.secret = sessionSecret;
-    config.cookieParserSecret = cookieParserSecret;
-    config.csrfSecret = csrfSecret;
 
     fs.writeFileSync(`./src/config.json`, JSON.stringify(config, undefined, 4));
 }
