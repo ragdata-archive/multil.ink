@@ -91,46 +91,37 @@
         <section class="hero" id="pricing">
             <div class="hero-inner">
                 <h1 style="padding-bottom: 10px;">pricing</h1>
-                <div class="row row-cols-1 row-cols-md-2 mb-3 text-center align-items-center">
-                    <div class="col">
-                        <div class="card mb-4 rounded-3 shadow-sm">
-                            <div class="card-header py-3">
-                                <h4 class="my-0 fw-normal">free</h4>
-                            </div>
-                            <div class="card-body">
-                                <h1 class="card-title pricing-card-title">$0</h1>
-                                <ul class="list-unstyled mt-3 mb-4">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th scope="col">Free</th>
+                            <th scope="col">Pro ($12/yr)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>
+                                <ul>
                                     <li>7 links</li>
                                     <li>link filter</li>
                                     <li>limited theming</li>
                                     <li>small footer ad</li>
                                 </ul>
-                                <button type="button" class="w-100 btn btn-lg btn-outline-primary"
-                                    onclick="window.open('./register');">get started</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card mb-4 rounded-3 shadow-sm">
-                            <div class="card-header py-3">
-                                <h4 class="my-0 fw-normal">pro</h4>
-                            </div>
-                            <div class="card-body">
-                                <h1 class="card-title pricing-card-title">$12<small
-                                        class="text-muted fw-light">/yr</small>
-                                </h1>
-                                <ul class="list-unstyled mt-3 mb-4">
+                            </th>
+                            <th>
+                                <ul>
                                     <li>50 links</li>
                                     <li>no link filter</li>
                                     <li>custom theming</li>
-                                    <li>no footer ad</li>
+                                    <li>no small footer ad</li>
+                                    <li>featured content embed</li>
                                 </ul>
-                                <button type="button" class="w-100 btn btn-lg btn-primary"
-                                    onclick="window.open('./upgrade');">get started</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                            </th>
+                        </tr>
+                    </tbody>
+                </table>
+                <button type="button" class="btn btn-lg btn-primary" onclick="window.open('./register');">get
+                    started</button>
             </div>
         </section>
 

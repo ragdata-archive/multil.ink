@@ -82,7 +82,10 @@ function darkMode(dark)
         }
         const tables = document.querySelectorAll(`table`);
         for (const table of tables)
+        {
             table.classList.add(`table-dark`);
+            table.classList.remove(`table-light`);
+        }
         const textBlack = document.querySelectorAll(`.text-black`);
         for (const text of textBlack)
         {
@@ -127,7 +130,10 @@ function darkMode(dark)
         }
         const tables = document.querySelectorAll(`table`);
         for (const table of tables)
+        {
+            table.classList.add(`table-light`);
             table.classList.remove(`table-dark`);
+        }
         const textWhite = document.querySelectorAll(`.text-white`);
         for (const text of textWhite)
         {

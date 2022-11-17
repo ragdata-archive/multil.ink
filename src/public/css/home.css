@@ -93,19 +93,22 @@ input[type=text]:focus {
     background-color: var(--purple-color);
 }
 
-#pricing li,
-#pricing h4,
-#pricing .card-title {
-    text-align: center;
-}
-
-#pricing h4,
-#pricing .card-title {
-    max-width: 100%;
-}
-
 #pricing .hero-inner>h1 {
     color: var(--white-color) !important;
+}
+
+#pricing .hero-inner>table {
+    width: 50%;
+}
+
+@media screen and (max-width: 600px) {
+    #pricing .hero-inner>table {
+        width: 80%;
+    }
+}
+
+#pricing .hero-inner>table li {
+    padding-bottom: 10px;
 }
 
 /* Footer */
@@ -115,16 +118,11 @@ input[type=text]:focus {
     text-align: center;
 }
 
-.footerLinks {
+ul {
     list-style: none;
     text-align: center;
     list-style-position: inside;
     padding-left: 0;
-}
-
-ul {
-    text-align: center;
-    list-style-position: inside;
 }
 
 /* Misc */
