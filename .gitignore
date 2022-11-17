@@ -4,6 +4,7 @@ node_modules/
 # Private Data
 config.json
 db.*
+sessions.*
 src/public/img/ugc/*
 !src/public/img/ugc/.gitkeep
 

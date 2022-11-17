@@ -129,6 +129,7 @@ async function run()
             httpOnly: true,
             secure: https === `https`,
             sameSite: `strict`,
+            maxAge: 1000 * 60 * 60 * 24 * 7, // 7d
         },
     });
     const cookieParser = require(`cookie-parser`);
@@ -139,11 +140,21 @@ async function run()
     const app = express();
     if (!dev) app.set(`trust proxy`, 1); // trust first proxy
 
+    const SqliteStore = require(`better-sqlite3-session-store`)(session);
+    const sessionDatabase = new SQLite(`./src/sessions.db`);
+
     app.use(`/webhook`, bodyParser.raw({ type: `application/json` }));
     app.use(bodyParser.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(cookieParser(secret));
     app.use(session({
+        store: new SqliteStore({
+            client: sessionDatabase,
+            expired: {
+                clear: true,
+                intervalMs: 900_000 // how often we check for expired sessions (in ms) (15 minutes)
+            }
+        }),
         secret,
         resave: false,
         saveUninitialized: false,
