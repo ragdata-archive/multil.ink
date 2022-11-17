@@ -93,6 +93,7 @@ switch (verified)
         document.querySelector(`#bugUserToVerify`).style.display = `block`;
         document.querySelector(`#paymentThings`).style.display = `none`;
         document.querySelector(`#viewMyProfileButton`).classList.add(`disabled`);
+        document.querySelector(`#verified`).style.display = `none`;
 
         break;
     }
