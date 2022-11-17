@@ -56,7 +56,7 @@ for (let index = 0; index < userCountPaginated; index++)
     const verifiedCell = row.insertCell(2);
     const paidCell = row.insertCell(3);
     const subExpiresCell = row.insertCell(4);
-    username.innerHTML = users[index].username;
+    username.innerHTML = `<p onclick="window.open('/${ users[index].username }');">${ users[index].username }</p>`;
     email.innerHTML = users[index].email;
     email.classList.add(`email`);
 
