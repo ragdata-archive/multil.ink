@@ -98,13 +98,17 @@ input[type=text]:focus {
 }
 
 #pricing .hero-inner>table {
-    width: 50%;
+    width: 35%;
 }
 
 @media screen and (max-width: 600px) {
     #pricing .hero-inner>table {
         width: 80%;
     }
+}
+
+#pricing .hero-inner>table ul {
+    margin-bottom: 0;
 }
 
 #pricing .hero-inner>table li {
