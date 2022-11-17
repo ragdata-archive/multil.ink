@@ -60,6 +60,7 @@ if (paid)
 {
     document.querySelector(`#planText`).innerHTML += `Paid`;
     document.querySelector(`#paid`).style.display = `block`;
+    document.querySelector(`#featuredContentFormItem`).style.display = `block`;
 }
 else
 {

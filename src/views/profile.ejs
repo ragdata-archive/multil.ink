@@ -44,6 +44,7 @@
         <p id="bio">
             <%=bio%>
         </p>
+        <div id="featuredContent"></div>
         <div class="links"></div>
         <p class="ad" style="display: none;">
             <%=projectName%> - <a href="../register" target="_blank">Create an account</a>
@@ -72,6 +73,7 @@
         const links = `<%=links%>`;
         const linksNames = decodeURIComponent(atob(`<%=linkNames%>`));
         const ageGated = `<%=ageGated%>`;
+        let featuredContent = `<%=featuredContent%>`;
     </script>
     <script src="js/common.js"></script>
     <script src="js/profile.js"></script>

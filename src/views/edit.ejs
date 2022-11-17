@@ -129,6 +129,18 @@
                 <label for="image">Image</label>
                 <input type="text" id="image" name="image" value="<%=image%>" required readonly>
             </div>
+            <div id="featuredContentFormItem" style="display: none;">
+                <label for="featuredContent">Featured Content URL</label>
+                <input type="text" id="featuredContent" name="featuredContent" value="<%=featuredContent%>"
+                    placeholder="A supported URL">
+                <details>
+                    <summary>Information/Supported URLs</summary>
+                    <p>Please note that featured content does not support theming.</p>
+                    <ul id="supportedFeaturedContent">
+                        <li>Supported URLs:</li>
+                    </ul>
+                </details>
+            </div>
             <div class="links"></div>
             <div>
                 <button type="button" id="addLink" class="btn btn-primary">Add Link</button>
@@ -297,6 +309,10 @@
             document.querySelector(`#themeOptions`).innerHTML += `<option value="Custom">Custom</option>`;
         document.querySelector(`#themeOptions`).value = userTheme;
         const csrfToken = "<%=csrfToken%>";
+        const featuredContent = `<%=featuredContent%>`;
+        const supportedFeaturedContentUrls = `<%=supportedFeaturedContentUrls%>`.split(`,`);
+        for (const link of supportedFeaturedContentUrls)
+            document.querySelector(`#supportedFeaturedContent`).innerHTML += `<li>${ link }</li>`;
     </script>
     <script type="module">
         import

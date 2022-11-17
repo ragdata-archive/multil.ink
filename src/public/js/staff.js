@@ -46,6 +46,7 @@ for (let index = 0; index < userCountPaginated; index++)
         links: linkData,
         linkNames: linkNamesData,
         ageGated,
+        featuredContent: featuredContent.split(`,`)[index],
     });
 
     const table = document.querySelector(`#usersBody`);
@@ -306,6 +307,7 @@ $(`#editModal`).on(`show.bs.modal`, function (event)
     modal.find(`.modal-body #modal-displayName`).val(users[index].displayName);
     modal.find(`.modal-body #modal-bio`).val(users[index].bio);
     modal.find(`.modal-body #modal-image`).val(users[index].image);
+    modal.find(`.modal-body #modal-featuredContent`).val(users[index].featuredContent);
     let links = users[index].links;
     links = JSON.parse(links);
     const jsonLinks = links;
@@ -511,7 +513,8 @@ function prepareUserEdit()
     const links = document.querySelector(`#modal-links`).value;
     const linkNames = document.querySelector(`#modal-linkNames`).value;
     const ageGated = document.querySelector(`#modal-ageGated`).checked;
-    sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, links, linkNames, ageGated);
+    const featuredContent = document.querySelector(`#modal-featuredContent`).value;
+    sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, links, linkNames, ageGated, featuredContent);
 }
 
 /**
@@ -526,8 +529,9 @@ function prepareUserEdit()
  * @param {Array} links The links of the user
  * @param {Array} linkNames The link names of the user
  * @param {boolean} ageGated Whether the user is age gated or not
+ * @param {string} featuredContent The featured content of the user
  */
-async function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, links, linkNames, ageGated)
+async function sendUserEdit(oldUsername, newUsername, email, displayName, bio, image, links, linkNames, ageGated, featuredContent)
 {
     const protocol = window.location.protocol;
     const domain = window.location.href.split(`/`)[2];
@@ -601,6 +605,14 @@ async function sendUserEdit(oldUsername, newUsername, email, displayName, bio, i
         dataToSend = {
             ...dataToSend,
             ageGated,
+        };
+    }
+
+    if (featuredContent !== user.featuredContent)
+    {
+        dataToSend = {
+            ...dataToSend,
+            featuredContent,
         };
     }
 

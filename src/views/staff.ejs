@@ -102,6 +102,10 @@
                                         Image</button>
                                 </div>
                                 <div class="form-group">
+                                    <label for="modal-featuredContent" class="col-form-label">Featured Content:</label>
+                                    <input class="form-control" id="modal-featuredContent"></input>
+                                </div>
+                                <div class="form-group">
                                     <label for="modal-links" class="col-form-label">Links:</label>
                                     <textarea class="form-control" id="modal-links" rows="" required></textarea>
                                 </div>
@@ -214,6 +218,7 @@
         const images = `<%=images%>`;
         const links = `<%=links%>`;
         const linkNames = `<%=linkNames%>`;
+        const featuredContent = `<%=featuredContent%>`;
         const ageGatedUsers = `<%=ageGated%>`;
         const totalUserCount = `<%=totalUserCount%>`;
         const verifiedCount = `<%=verifiedCount%>`;

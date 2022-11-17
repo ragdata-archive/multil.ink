@@ -85,6 +85,15 @@ async function run()
         `jason`, // used in example screenshots
     ]);
 
+    const supportedFeaturedContentUrls = new Set([
+        `youtube.com`,
+        `youtu.be`,
+        `twitch.tv`,
+        `soundcloud.com`,
+        `open.spotify.com`,
+        `music.apple.com`,
+    ]);
+
     const themes = [];
     const files = fs.readdirSync(`./src/public/css/`);
     for (const file of files)
@@ -97,7 +106,7 @@ async function run()
         }
     }
 
-    sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT, theme TEXT, advancedTheme TEXT, ageGated TEXT)`).run();
+    sql.prepare(`CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, verified INTEGER, paid INTEGER, subExpires TEXT, lastUsernameChange TEXT, displayName TEXT, bio TEXT, image TEXT, links TEXT, linkNames TEXT, featuredContent TEXT, theme TEXT, advancedTheme TEXT, ageGated TEXT)`).run();
     sql.prepare(`CREATE TABLE IF NOT EXISTS userAuth (uid INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT, stripeCID TEXT)`).run();
     sql.prepare(`CREATE TABLE IF NOT EXISTS emailActivations (email TEXT PRIMARY KEY, username TEXT, token TEXT, expires TEXT)`).run();
     sql.prepare(`CREATE TABLE IF NOT EXISTS passwordResets (email TEXT PRIMARY KEY, username TEXT, token TEXT, expires TEXT)`).run();
@@ -302,7 +311,7 @@ async function run()
                 stripeCID = customer.id;
             }
             sql.prepare(`INSERT INTO userAuth (username, email, password, stripeCID) VALUES (?, ?, ?, ?)`).run(username, email, hashedPassword, stripeCID);
-            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, `${ VER_STATUS.AWAITING_VERIFICATION }`, `0`, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ https }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`, `Light`, ``, `0`);
+            sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames, featuredContent, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, `${ VER_STATUS.AWAITING_VERIFICATION }`, `0`, ``, `${ new Date(Date.now()).toISOString().slice(0, 10) }`, username, `No bio yet.`, `${ https }://${ request.get(`host`) }/img/person.png`, `[]`, `[]`, ``, `Light`, ``, `0`);
 
             // If this is the first user, make them staff.
             const userCount = sql.prepare(`SELECT COUNT(*) FROM userAuth`).get();
@@ -752,7 +761,9 @@ async function run()
             ageGated: (user.ageGated === `1` ? `checked` : ``),
             projectName,
             linkWhitelist: freeLinks,
-            csrfToken: request.csrfToken()
+            csrfToken: request.csrfToken(),
+            featuredContent: user.featuredContent,
+            supportedFeaturedContentUrls: [...supportedFeaturedContentUrls].join(`,`),
         });
     });
 
@@ -780,6 +791,7 @@ async function run()
             let updatedDisplayName = request.body.displayName.toString().trim().slice(0, 60);
             let updatedBio = request.body.bio.toString().trim().slice(0, 280);
             let updatedImage = request.body.image.toString().trim();
+            let featuredContent = request.body.featuredContent.toString().trim();
             let theme = request.body.theme.toString().trim();
             let backgroundColor = request.body.backgroundColor.toString().trim().slice(0, 7);
             let textColor = request.body.textColor.toString().trim().slice(0, 7);
@@ -832,6 +844,13 @@ async function run()
             if (!ASCIIRegex.test(updatedBio) || updatedBio.length > 280)
                 updatedBio = `No bio yet.`;
 
+            if (!featuredContent.startsWith(`http://`) && !featuredContent.startsWith(`https://`))
+                featuredContent = `https://${ featuredContent }`;
+            featuredContent = featuredContent.replace(`www.`, ``);
+
+            if (!linkRegex.test(featuredContent) || !isPaidUser || !supportedFeaturedContentUrls.has(new URL(featuredContent).hostname))
+                featuredContent = ``;
+
             const host = escapeRegex(request.get(`host`));
             // eslint-disable-next-line no-useless-escape
             const regexForImageUGCUrl = new RegExp(`^(http|https):\/\/${ host }\/img\/ugc\/(.*)`);
@@ -880,13 +899,14 @@ async function run()
             updatedLinks = JSON.stringify(updatedLinks);
             updatedLinkNames = JSON.stringify(updatedLinkNames);
             const currentUserInfo = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
-            sql.prepare(`UPDATE users SET displayName = ?, bio = ?, image = ?, links = ?, linkNames = ?, theme = ?, advancedTheme = ?, ageGated = ? WHERE username = ?`).run(updatedDisplayName, updatedBio, updatedImage, updatedLinks, updatedLinkNames, theme, advancedTheme, ageGated, username);
+            sql.prepare(`UPDATE users SET displayName = ?, bio = ?, image = ?, links = ?, linkNames = ?, featuredContent = ?, theme = ?, advancedTheme = ?, ageGated = ? WHERE username = ?`).run(updatedDisplayName, updatedBio, updatedImage, updatedLinks, updatedLinkNames, featuredContent, theme, advancedTheme, ageGated, username);
             let newProfileInfo = {
                 displayName: updatedDisplayName,
                 bio: updatedBio,
                 image: updatedImage,
                 links: updatedLinks,
                 linkNames: updatedLinkNames,
+                featuredContent,
                 theme,
                 backgroundColor,
                 textColor,
@@ -922,6 +942,8 @@ async function run()
                 delete newProfileInfo.ageGated;
             if (newProfileInfo.ageGated === `0` && currentUserInfo.ageGated === `0`)
                 delete newProfileInfo.ageGated;
+            if (newProfileInfo.featuredContent === currentUserInfo.featuredContent)
+                delete newProfileInfo.featuredContent;
 
             if (Object.keys(newProfileInfo).length > 0)
             {
@@ -1102,6 +1124,7 @@ async function run()
         const links = [];
         const linkNames = [];
         const ageGated = [];
+        const featuredContent = [];
 
         for (const [index, allUser] of userDataByPage.entries())
         {
@@ -1123,6 +1146,7 @@ async function run()
             linkNameData = Buffer.from(linkNameData).toString(`base64`);
             linkNames.push(linkNameData);
             ageGated.push(allUser.ageGated);
+            featuredContent.push(allUser.featuredContent);
         }
 
         response.render(`staff.ejs`, {
@@ -1138,6 +1162,7 @@ async function run()
             images,
             links,
             linkNames,
+            featuredContent,
             ageGated,
             totalUserCount,
             verifiedCount,
@@ -1232,6 +1257,16 @@ async function run()
                                     sql.prepare(`UPDATE users SET linkNames = ? WHERE username = ?`).run(`[]`, userToEdit);
                                 else
                                     sql.prepare(`UPDATE users SET linkNames = ? WHERE username = ?`).run(`${ value }`, userToEdit);
+                                break;
+                            }
+                            case `featuredContent`: {
+                                if (currentUserInfo.paid === 1)
+                                {
+                                    if (value === ``)
+                                        sql.prepare(`UPDATE users SET featuredContent = ? WHERE username = ?`).run(``, userToEdit);
+                                    else
+                                        sql.prepare(`UPDATE users SET featuredContent = ? WHERE username = ?`).run(`${ value }`, userToEdit);
+                                }
                                 break;
                             }
                             case `email`: {
@@ -1395,7 +1430,7 @@ async function run()
                     if (user)
                         return response.redirect(`/staff`);
 
-                    sql.prepare(`INSERT INTO users (username, displayName, bio, image, links, linkNames, verified, paid, subExpires, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, redirectTo, ``, ``, `[]`, `[]`, `${ VER_STATUS.SHADOW_USER }`, `0`, ``, ``, ``, `0`);
+                    sql.prepare(`INSERT INTO users (username, verified, paid, subExpires, lastUsernameChange, displayName, bio, image, links, linkNames, featuredContent, theme, advancedTheme, ageGated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(username, `${ VER_STATUS.SHADOW_USER }`, `0`, ``, ``, redirectTo, ``, ``, `[]`, `[]`, ``, ``, ``, `0`);
                     sql.prepare(`INSERT INTO userAuth (username, password, email, stripeCID) VALUES (?, ?, ?, ?)`).run(username, ``, ``, ``);
                     sendAuditLog(`|| ${ staffUsername } // ${ staffEmail } || created a new shadow user || ${ username } || which redirects to || ${ redirectTo } ||.`, discordWebhookURL);
 
@@ -1507,6 +1542,7 @@ async function run()
             const image = user.image;
             const links = JSON.parse(user.links);
             const linkNames = Buffer.from(user.linkNames).toString(`base64`);
+            const featuredContent = user.featuredContent;
             const paid = Boolean(user.paid);
             const verified = user.verified;
             const theme = user.theme;
@@ -1533,7 +1569,7 @@ async function run()
                 themeContent = `<link rel="stylesheet" href="css/theme-${ theme.toLowerCase() }.css">`;
 
             response.render(`profile.ejs`, {
-                username, displayName, bio, image, links, linkNames, paid, verified, ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`, themeContent, ageGated, projectName
+                username, displayName, bio, image, links, linkNames, featuredContent, paid, verified, ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`, themeContent, ageGated, projectName
             });
         }
         else
