@@ -189,3 +189,43 @@ async function logout()
     });
     window.location.reload();
 }
+
+/**
+ * @name checkPW
+ * @description Hides PW Requirements if valid.
+ * @param {string} password the password to check
+ */
+function checkPW(password)
+{
+    if (password.length >= 8)
+        document.querySelector(`#pwReq1`).style.display = `none`;
+    else
+        document.querySelector(`#pwReq1`).style.display = `block`;
+
+    if (/[a-z]/.test(password))
+        document.querySelector(`#pwReq2`).style.display = `none`;
+    else
+        document.querySelector(`#pwReq2`).style.display = `block`;
+
+    if (/[A-Z]/.test(password))
+        document.querySelector(`#pwReq3`).style.display = `none`;
+    else
+        document.querySelector(`#pwReq3`).style.display = `block`;
+
+    if (/\d/.test(password))
+        document.querySelector(`#pwReq4`).style.display = `none`;
+    else
+        document.querySelector(`#pwReq4`).style.display = `block`;
+
+    // eslint-disable-next-line no-useless-escape
+    if (/[!"#$%&'()*+,./:;<=>?@[\\\]^_{|}\-]/.test(password))
+        document.querySelector(`#pwReq5`).style.display = `none`;
+    else
+        document.querySelector(`#pwReq5`).style.display = `block`;
+
+    // eslint-disable-next-line no-useless-escape
+    if (password.length >= 8 && /[a-z]/.test(password) && /[A-Z]/.test(password) && /\d/.test(password) && /[!"#$%&'()*+,./:;<=>?@[\\\]^_{|}\-]/.test(password))
+        document.querySelector(`#pwReqs`).style.display = `none`;
+    else
+        document.querySelector(`#pwReqs`).style.display = `block`;
+}

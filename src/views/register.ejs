@@ -41,7 +41,18 @@
                         placeholder="Username">
                     <input type="email" id="email" class="" name="email" required maxlength="512" placeholder="Email">
                     <input type="password" id="password" class="" name="password" required maxlength="1024"
-                        placeholder="Password">
+                        placeholder="Password" onfocus="checkPW(document.getElementById('password').value)"
+                        oninput="checkPW(document.getElementById('password').value)">
+                    <div id="pwReqs" style="display: none;">
+                        <ul>
+                            <li>Your password needs at least:</li>
+                            <li id="pwReq1">8 characters</li>
+                            <li id="pwReq2">1 lowercase letter</li>
+                            <li id="pwReq3">1 uppercase letter</li>
+                            <li id="pwReq4">1 number</li>
+                            <li id="pwReq5">1 special character</li>
+                        </ul>
+                    </div>
                     <div id="formSubmitPadding"></div>
                     <div class="h-captcha" data-sitekey="<%=hcaptchaSiteKey%>">
                     </div>

@@ -138,6 +138,18 @@ async function run()
         windowMs: 1 * 30 * 1000, // Every 30s
         max: 300 // Limit each IP to X requests per windowMs.
     });
+    var PasswordValidator = require(`password-validator`);
+    var passwordPolicy = new PasswordValidator();
+    /* eslint-disable newline-per-chained-call */
+    passwordPolicy
+        .is().min(8) // Minimum length 8
+        .is().max(1024) // Maximum length 100
+        .has().uppercase() // has at least 1 uppercase letter
+        .has().lowercase() // has at least 1 lowercase letter
+        .has().digits() // has at least 1 digit
+        .has().symbols(); // has at least 1 symbol
+    /* eslint-enable newline-per-chained-call */
+
     const app = express();
     if (!dev) app.set(`trust proxy`, 1); // trust first proxy
 
@@ -315,6 +327,8 @@ async function run()
             const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(email);
             if (user || emailExists)
                 return response.redirect(`/register?message=That username/email is already in use.&type=error`);
+            if (passwordPolicy.validate(request.body.password) === false)
+                return response.redirect(`/register?message=Your password does not meet the requirements.&type=error`);
             const hashedPassword = await bcrypt.hash(request.body.password.toString().trim().slice(0, 1024), 10);
 
             const availableChars = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`;
@@ -704,6 +718,8 @@ async function run()
                 return response.redirect(`/resetpassword?token=${ token }&message=Please enter a password.&type=error`);
             if (password !== confirmPassword)
                 return response.redirect(`/resetpassword?token=${ token }&message=Passwords do not match.&type=error`);
+            if (passwordPolicy.validate(password) === false)
+                return response.redirect(`/resetpassword?token=${ token }&message=Your password does not meet the requirements.&type=error`);
             const hash = await bcrypt.hash(password.slice(0, 128), 10);
             sql.prepare(`UPDATE userAuth SET password = ? WHERE email = ?`).run(hash, tokenData.email);
             sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token);
@@ -1073,13 +1089,23 @@ async function run()
                     const newPassword = request.body.newPassword.toString().trim();
                     const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
                     const isCorrectPassword = await bcrypt.compare(oldPassword, usersHashedPassword);
+                    const meetsRequirements = passwordPolicy.validate(newPassword);
 
-                    if (isCorrectPassword && newPassword && newPassword.length > 0 && newPassword.length < 1024)
+                    if (isCorrectPassword && newPassword && meetsRequirements)
                     {
                         const hashedPassword = await bcrypt.hash(newPassword, 10);
                         sql.prepare(`UPDATE userAuth SET password = ? WHERE username = ?`).run(hashedPassword, userUsername);
                         sendAuditLog(`|| ${ userUsername } // ${ usersCurrentEmail } || changed their password.`, discordWebhookURL);
                         logoutUser(request, response, next);
+                    }
+                    else
+                    {
+                        if (!isCorrectPassword)
+                            return response.redirect(`/edit?message=The old password you entered is incorrect.&type=error`);
+                        if (!newPassword)
+                            return response.redirect(`/edit?message=You must enter a new password.&type=error`);
+                        if (!meetsRequirements)
+                            return response.redirect(`/edit?message=The new password you entered does not meet the requirements.&type=error`);
                     }
                     response.redirect(`/edit`);
                     break;
