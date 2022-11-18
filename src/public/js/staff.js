@@ -543,6 +543,14 @@ async function sendUserEdit(oldUsername, newUsername, email, displayName, bio, i
         username: oldUsername,
     };
 
+    if (newUsername !== user.username)
+    {
+        dataToSend = {
+            ...dataToSend,
+            newUsername,
+        };
+    }
+
     if (displayName !== user.displayName)
     {
         dataToSend = {
@@ -613,15 +621,6 @@ async function sendUserEdit(oldUsername, newUsername, email, displayName, bio, i
         dataToSend = {
             ...dataToSend,
             featuredContent,
-        };
-    }
-
-    // ! This should always be the last thing we check.
-    if (newUsername !== user.username)
-    {
-        dataToSend = {
-            ...dataToSend,
-            newUsername,
         };
     }
 

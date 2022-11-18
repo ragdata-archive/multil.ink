@@ -1260,7 +1260,12 @@ async function run()
                     const userToEdit = request.body.username.toString();
 
                     const currentUserInfo = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(usernameToTakeActionOn);
-                    for (const [key, value] of Object.entries(request.body))
+                    let object = Object.entries(request.body);
+                    object = object.filter(([key]) => key !== `username` && key !== `csrfToken`);
+                    object = object.filter(([key]) => key !== `newUsername`);
+                    // ! Ensure we check newUsername last. (So all the other changes go through)
+                    if (request.body.newUsername) object.push([`newUsername`, request.body.newUsername]);
+                    for (const [key, value] of object)
                     {
                         switch (key)
                         {
@@ -1292,6 +1297,8 @@ async function run()
                             case `image`: {
                                 if (value === ``)
                                     sql.prepare(`UPDATE users SET image = ? WHERE username = ?`).run(`${ https }://${ request.get(`host`) }/img/person.png`, userToEdit);
+                                else
+                                    sql.prepare(`UPDATE users SET image = ? WHERE username = ?`).run(`${ value }`, userToEdit);
                                 break;
                             }
                             case `displayName`: {
@@ -1330,7 +1337,7 @@ async function run()
                                     continue;
                                 const newEmail = value;
                                 const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
-                                if (!emailExists)
+                                if (!emailExists && emailRegex.test(newEmail) && newEmail.length <= 512)
                                 {
                                     if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
                                     {
