@@ -78,6 +78,7 @@ async function run()
         `resetpassword`,
         `upgrade`,
         `downgrade`,
+        `billing`,
         `webhook`,
         `report`,
         `jane`, // used in example screenshots
@@ -374,6 +375,10 @@ async function run()
             return response.redirect(`/login`);
         }
 
+        const verificationStatus = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userData.username).verified;
+        if (verificationStatus === VER_STATUS.AWAITING_VERIFICATION)
+            return response.redirect(`/edit?message=Please verify your email address before upgrading.&type=error`);
+
         try
         {
             if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
@@ -425,7 +430,7 @@ async function run()
         response.redirect(`/edit`);
     });
 
-    app.get(`/downgrade`, csrfProtection, checkAuthenticated, async (request, response, next) =>
+    app.get(`/billing`, csrfProtection, checkAuthenticated, async (request, response, next) =>
     {
         const userData = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(request.user);
         if (!userData)
@@ -433,6 +438,10 @@ async function run()
             logoutUser(request, response, next);
             return response.redirect(`/login`);
         }
+
+        const paidStatus = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userData.username).paid;
+        if (paidStatus === 0)
+            return response.redirect(`/edit?message=You must be a pro member to access this page.&type=error`);
 
         if (stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret)
         {
