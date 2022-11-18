@@ -33,7 +33,7 @@ async function run()
     await initSetup();
 
     const {
-        port, secret, linkWhitelist, freeLinks, projectName, projectDescription, dev,
+        port, secret, projectName, projectDescription, dev,
         emailSMTPHost, emailSMTPPort, emailSMTPSecure, emailSMTPUser, emailSMTPPass, emailFromDisplayName,
         stripeSecretKey, stripeProductID, stripeCustomerPortalURL, stripeWebhookSigningSecret,
         reportEmail
@@ -827,7 +827,6 @@ async function run()
             borderColor,
             ageGated: (user.ageGated === `1` ? `checked` : ``),
             projectName,
-            linkWhitelist: freeLinks,
             featuredContent: user.featuredContent,
             supportedFeaturedContentUrls: [...supportedFeaturedContentUrls].join(`,`),
             csrfToken,
@@ -926,7 +925,6 @@ async function run()
 
             let updatedLinks = [];
             let updatedLinkNames = [];
-            let unallowedLink = false;
             for (let index = 0; index < 50; index++)
             {
                 if (request.body[`link${ index }`] && request.body[`linkName${ index }`])
@@ -939,27 +937,8 @@ async function run()
 
                     if (linkRegex.test(link) && linkName && !updatedLinks.includes(link))
                     {
-                        let allowed = false;
-                        if (linkWhitelist)
-                        {
-                            const domain = link.split(`//`)[1].split(`/`)[0];
-                            if (!freeLinks.includes(domain) && !isPaidUser) // If free user & link is not in free list, skip.
-                            {
-                                allowed = false;
-                                unallowedLink = true;
-                                continue;
-                            }
-                            else
-                                allowed = true;
-                        }
-                        else if (!linkWhitelist)
-                            allowed = true; // they passed all checks
-
-                        if (allowed)
-                        {
-                            updatedLinks.push(link);
-                            updatedLinkNames.push(linkName);
-                        }
+                        updatedLinks.push(link);
+                        updatedLinkNames.push(linkName);
                     }
                 }
             }
@@ -1017,9 +996,6 @@ async function run()
                 newProfileInfo = JSON.stringify(newProfileInfo, undefined, 4);
                 sendAuditLog(`|| ${ username } // ${ userEmail } || updated their profile with: \`\`\`json\n${ newProfileInfo }\n\`\`\``, discordWebhookURL);
             }
-
-            if (unallowedLink)
-                return response.redirect(`/edit?message=Some of the links you tried to add are not allowed in the free plan.&type=error`);
             response.redirect(`/edit`);
         }
         catch

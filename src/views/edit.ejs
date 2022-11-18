@@ -69,10 +69,6 @@
                 <h4 id="planText">Plan: </h4>
                 <div id="free" style="display: none;">
                     <p id="freeText"></p>
-                    <details id="linkWhitelistDetails">
-                        <summary>Link Whitelist</summary>
-                        <ul id="whitelist"></ul>
-                    </details>
                     <button id="upgrade" class="btn btn-primary" onclick="window.open('../upgrade');">Upgrade</button>
                 </div>
                 <div id="paid" style="display: none;">
@@ -307,7 +303,6 @@
     </main>
 
     <script>
-        const linkWhitelist = `<%=linkWhitelist%>`.split(`,`);
         const links = `<%=links%>`;
         const linksNames = decodeURIComponent(atob(`<%=linkNames%>`));
         let paid = `<%=paid%>`;

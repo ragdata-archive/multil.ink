@@ -1,11 +1,6 @@
 {
     "port": 5000,
     "secret": "",
-    "linkWhitelist": true,
-    "freeLinks": [
-        "example.com",
-        "example.org"
-    ],
     "projectName": "multil.ink",
     "projectDescription": "the simple and free to use social media landing page.",
     "dev": true,
