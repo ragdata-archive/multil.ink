@@ -224,14 +224,8 @@ for (const embed of featuredContentEmbeds)
             if (embed.url === `twitch.tv`)
             {
                 featuredContent = featuredContent.split(`/`)[3];
-                embed.correctUrl = embed.correctUrl.replace(
-                    `%url%`,
-                    featuredContent
-                );
-                embedDiv.innerHTML = embed.embed.replace(
-                    `%url%`,
-                    embed.correctUrl
-                );
+                embed.correctUrl = embed.correctUrl.replace(`%url%`, featuredContent);
+                embedDiv.innerHTML = embed.embed.replace(`%url%`, embed.correctUrl);
                 break;
             }
             if (embed.url === `spotify.com`)
@@ -241,10 +235,7 @@ for (const embed of featuredContentEmbeds)
 
             featuredContent = `${ embed.correctUrl }${ featuredContent }`;
         }
-        embedDiv.innerHTML = embed.embed.replace(
-            `%url%`,
-            featuredContent
-        );
+        embedDiv.innerHTML = embed.embed.replace(`%url%`, featuredContent);
         // load any <script> tags that were added via callback
         const scripts = embedDiv.querySelectorAll(`script`);
         for (const script of scripts)
