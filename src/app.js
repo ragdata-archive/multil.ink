@@ -182,7 +182,7 @@ async function run()
         oldPassword: yup.string().trim().min(1).max(1024),
         newPassword: yup.string().trim().min(1).max(1024),
         page: yup.string().min(1),
-        search: yup.string().trim().min(1).max(60).matches(ASCIIRegex),
+        search: yup.string().lowercase().trim().min(1).max(60).matches(ASCIIRegex),
         newUsername: yup.string().lowercase().trim().min(1).max(60).matches(usernameRegex).notOneOf(bannedUsernames),
         months: yup.string().min(1).max(12),
         redirect: yup.string().lowercase().trim().min(1).max(60),
@@ -770,7 +770,7 @@ async function run()
                 return response.redirect(`/resetpassword?token=${ token }&message=Passwords do not match.&type=error`);
             if (passwordPolicy.validate(password) === false)
                 return response.redirect(`/resetpassword?token=${ token }&message=Your password does not meet the requirements.&type=error`);
-            const hash = await bcrypt.hash(password.slice(0, 128), 10);
+            const hash = await bcrypt.hash(password, 10);
             sql.prepare(`UPDATE userAuth SET password = ? WHERE email = ?`).run(hash, tokenData.email);
             sql.prepare(`DELETE FROM passwordResets WHERE token = ?`).run(token);
             sendAuditLog(`|| ${ tokenData.username } // ${ tokenData.email } || reset their password.`, discordWebhookURL);
@@ -904,8 +904,8 @@ async function run()
             let ageGated = request.body.adultContent;
             ageGated = ageGated ? `1` : `0`;
 
-            let updatedDisplayName = request.body.displayName;
-            let updatedBio = request.body.bio;
+            const updatedDisplayName = request.body.displayName;
+            const updatedBio = request.body.bio;
             let updatedImage = request.body.image;
             let featuredContent = request.body.featuredContent;
             let theme = request.body.theme;
@@ -953,12 +953,6 @@ async function run()
 
             if (theme !== `Custom`)
                 advancedTheme = ``;
-
-            if (!ASCIIRegex.test(updatedDisplayName) || updatedDisplayName.length > 60)
-                updatedDisplayName = username;
-
-            if (!ASCIIRegex.test(updatedBio) || updatedBio.length > 280)
-                updatedBio = `No bio yet.`;
 
             if (!featuredContent.startsWith(`http://`) && !featuredContent.startsWith(`https://`))
                 featuredContent = `https://${ featuredContent }`;
@@ -1081,9 +1075,7 @@ async function run()
                     const usersHashedPassword = sql.prepare(`SELECT * FROM userAuth WHERE username = ?`).get(userUsername).password;
                     const isCorrectPassword = await bcrypt.compare(password, usersHashedPassword);
 
-                    if ((oldEmailInput === usersCurrentEmail)
-                        && isCorrectPassword && newEmail.length <= 512
-                        && emailRegex.test(newEmail))
+                    if ((oldEmailInput === usersCurrentEmail) && isCorrectPassword)
                     {
                         const emailExists = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(newEmail);
                         if (!emailExists)
@@ -1208,10 +1200,9 @@ async function run()
         if (freeCount < 0)
             freeCount = 0;
 
-        let search = request.query.search;
+        const search = request.query.search;
         if (search)
         {
-            search = search.toString().trim().toLowerCase();
             userDataByPage = sql.prepare(`SELECT * FROM users WHERE username LIKE ?`).all(`%${ search }%`);
             userAuthDataByPage = sql.prepare(`SELECT * FROM userAuth WHERE username LIKE ?`).all(`%${ search }%`);
         }
