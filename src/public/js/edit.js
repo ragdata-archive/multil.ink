@@ -92,8 +92,12 @@ switch (verified)
     case VER_STATUS.AWAITING_VERIFICATION: {
         document.querySelector(`#bugUserToVerify`).style.display = `block`;
         document.querySelector(`#paymentThings`).style.display = `none`;
-        document.querySelector(`#viewMyProfileButton`).classList.add(`disabled`);
         document.querySelector(`#verified`).style.display = `none`;
+        document.querySelector(`#viewMyProfileButton`).classList.add(`disabled`);
+        document.querySelector(`#changePfpButton`).classList.add(`disabled`);
+        document.querySelector(`#changeUsernameButton`).classList.add(`disabled`);
+        document.querySelector(`#changeEmailButton`).classList.add(`disabled`);
+        document.querySelector(`#changePasswordButton`).classList.add(`disabled`);
 
         break;
     }

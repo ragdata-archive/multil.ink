@@ -1024,6 +1024,10 @@ async function run()
                 return response.redirect(`/login?message=An error occurred.&type=error`);
             }
             userUsername = userUsername.username;
+            const verificationStatus = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userUsername).verified;
+            if (verificationStatus === VER_STATUS.AWAITING_VERIFICATION)
+                return response.redirect(`/edit?message=You must verify your email before you can modify that.&type=error`);
+
             const actionToTake = request.params[0];
 
             switch (actionToTake)
@@ -1559,6 +1563,11 @@ async function run()
 
     app.post(`/img`, uploadImage, checkAuthenticated, (request, response) =>
     {
+        const userEmail = request.user;
+        const userUsername = sql.prepare(`SELECT * FROM userAuth WHERE email = ?`).get(userEmail).username;
+        const isEmailVerified = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(userUsername).verified;
+        if (isEmailVerified === VER_STATUS.AWAITING_VERIFICATION)
+            return response.redirect(`/edit?message=Please verify your email address before uploading an image.&type=error`);
         if (request.file)
             return response.json({ url: `${ https }://${ request.get(`host`) }/img/ugc/${ request.file.filename }` });
         return response.send(`Image upload failed.`);
