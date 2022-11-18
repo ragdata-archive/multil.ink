@@ -1512,7 +1512,7 @@ async function run()
                     const username = request.body.username.toString();
                     const redirectTo = request.body.redirect.toString();
 
-                    if (!username || !redirectTo)
+                    if (!username || !redirectTo || username === redirectTo)
                         return response.redirect(`/staff`);
 
                     const user = sql.prepare(`SELECT * FROM users WHERE username = ?`).get(username);

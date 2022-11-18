@@ -231,8 +231,6 @@ function moveDown(index)
  */
 async function deleteAccount(password)
 {
-    if (!password || password === ``)
-        return;
     const protocol = window.location.protocol;
     const domain = window.location.href.split(`/`)[2];
     await $.ajax(`${ protocol }//${ domain }/delete`, {
@@ -255,13 +253,6 @@ async function deleteAccount(password)
  */
 async function changeEmail(oldEmailGuess, newEmail, password)
 {
-    if ((newEmail === oldEmailGuess) || (newEmail.length > 512))
-        return;
-
-    const regexEmail = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/gm;
-    if (!regexEmail.test(newEmail))
-        return;
-
     const protocol = window.location.protocol;
     const domain = window.location.href.split(`/`)[2];
     await $.ajax(`${ protocol }//${ domain }/edit/changeEmail`, {
@@ -286,9 +277,6 @@ async function changeEmail(oldEmailGuess, newEmail, password)
  */
 async function changePassword(oldPasswordGuess, newPassword, newPasswordRepeat)
 {
-    if ((newPassword !== newPasswordRepeat) || newPassword.length < 0 || newPassword.length > 1024)
-        return;
-
     const protocol = window.location.protocol;
     const domain = window.location.href.split(`/`)[2];
 
@@ -312,9 +300,6 @@ async function changePassword(oldPasswordGuess, newPassword, newPasswordRepeat)
  */
 async function changeUsername(username, password)
 {
-    if (username.length > 60 || username.length === 0 || password.length === 0 || password.length > 1024)
-        return;
-
     const protocol = window.location.protocol;
     const domain = window.location.href.split(`/`)[2];
     await $.ajax(`${ protocol }//${ domain }/edit/changeUsername`, {

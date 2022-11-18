@@ -665,9 +665,6 @@ async function createShadowUser()
     const userToCreate = document.querySelector(`#modal-shadow-username`).value;
     const userToRedirectTo = document.querySelector(`#modal-shadow-redirect`).value;
 
-    if (userToCreate === `` || userToRedirectTo === `` || userToCreate === userToRedirectTo)
-        return;
-
     await $.ajax(`${ protocol }//${ domain }/staff/createShadowUser`, {
         type: `POST`,
         contentType: `application/json`,
