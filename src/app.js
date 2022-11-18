@@ -158,7 +158,7 @@ async function run()
     const yup = require(`yup`);
 
     /* eslint-disable newline-per-chained-call */
-    const formSchema = yup.object().shape({
+    const formSchemeToHotLoad = {
         username: yup.string().lowercase().trim().min(1).max(60).matches(usernameRegex).notOneOf(bannedUsernames),
         email: yup.string().lowercase().trim().min(1).max(512).email().matches(emailRegex),
         password: yup.string().trim().min(1).max(1024),
@@ -186,8 +186,14 @@ async function run()
         newUsername: yup.string().lowercase().trim().min(1).max(60).matches(usernameRegex).notOneOf(bannedUsernames),
         months: yup.string().min(1).max(12),
         redirect: yup.string().lowercase().trim().min(1).max(60),
-    });
+    };
+    for (let index = 0; index < 50; index++)
+    {
+        formSchemeToHotLoad[`link${ index }`] = yup.string().trim().min(1).max(512);
+        formSchemeToHotLoad[`linkName${ index }`] = yup.string().trim().min(1).max(60);
+    }
     /* eslint-enable newline-per-chained-call */
+    const formSchema = yup.object().shape(formSchemeToHotLoad);
 
     app.use(`/webhook`, bodyParser.raw({ type: `application/json` }));
     app.use(bodyParser.json());
@@ -973,8 +979,8 @@ async function run()
             {
                 if (request.body[`link${ index }`] && request.body[`linkName${ index }`])
                 {
-                    let link = request.body[`link${ index }`].toString().trim();
-                    const linkName = request.body[`linkName${ index }`].toString().trim();
+                    let link = request.body[`link${ index }`];
+                    const linkName = request.body[`linkName${ index }`];
                     if (!link.startsWith(`http://`) && !link.startsWith(`https://`))
                         link = `https://${ link }`;
                     link = link.replace(`www.`, ``);
