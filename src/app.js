@@ -9,6 +9,7 @@ import fs from "node:fs";
 import { verify } from 'hcaptcha';
 import fetch from 'node-fetch';
 import { rateLimit } from "express-rate-limit";
+import { execSync } from 'node:child_process';
 
 // eslint-disable-next-line no-underscore-dangle
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -70,6 +71,7 @@ async function run()
         `edit`,
         `delete`,
         `staff`,
+        `debug`,
         `tos`,
         `privacy`,
         `verifyemail`,
@@ -1559,6 +1561,30 @@ async function run()
         {
             response.redirect(`/staff`);
         }
+    });
+
+    app.get(`/debug`, checkAuthenticatedStaff, (request, response) =>
+    {
+        const gitMessage = execSync(`git show -s --format="Commit: %s (%h)"`).toString();
+        const isStripeEnabled = Boolean(stripeSecretKey && stripeProductID && stripeCustomerPortalURL && stripeWebhookSigningSecret);
+        const isEmailEnabled = Boolean(emailSMTPHost && emailSMTPUser && emailSMTPPass);
+        const isDiscordEnabled = Boolean(discordWebhookURL);
+        let hcaptchaMode = ``;
+        hcaptchaMode = hcaptchaSecret === `0x0000000000000000000000000000000000000000` ? `Developer Mode` : `Production Mode`;
+        response.render(`debug.ejs`, {
+            projectName,
+            ourImage: `${ https }://${ request.get(`host`) }/img/logo.png`,
+            gitMessage,
+            bannedUsernames: [...bannedUsernames],
+            supportedFeaturedContentUrls: [...supportedFeaturedContentUrls],
+            themes: [...themes],
+            isStripeEnabled,
+            isEmailEnabled,
+            dev,
+            https,
+            isDiscordEnabled,
+            hcaptchaMode,
+        });
     });
 
     app.post(`/logout`, csrfProtection, (request, response, next) =>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>
+        Debug - <%=projectName%>
+    </title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="../js/jquery.min.js"></script>
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <script src="../js/bootstrap.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="css/legal.css">
+    <link rel="stylesheet" href="css/staff.css">
+    <link rel="icon" type="image/png" href="<%=ourImage%>">
+</head>
+
+<body>
+    <noscript>
+        JavaScript is required to use this app.
+    </noscript>
+    <main id="main" style="display: none;">
+        <main class="container">
+
+            <ul>
+                <li>
+                    <%=gitMessage%>
+                </li>
+                <li>Stripe: <%=isStripeEnabled%>
+                </li>
+                <li>Email: <%=isEmailEnabled%>
+                </li>
+                <li>Audit Log: <%=isDiscordEnabled%>
+                </li>
+                <li>dev: <%=dev%>
+                </li>
+                <li>https: <%=https%>
+                </li>
+                <li>hCaptcha: <%=hcaptchaMode%>
+                </li>
+            </ul>
+
+            <details>
+                <summary>Routes</summary>
+                <ul>
+                    <li><a href="/">/</a></li>
+                    <li><a href="/login">/login</a></li>
+                    <li><a href="/register">/register</a></li>
+                    <li><a href="/edit">/edit</a></li>
+                    <li><a href="/upgrade">/upgrade</a> (needs email verified)</li>
+                    <li><a href="/billing">/billing</a> (pro acc only)</li>
+                    <li><a href="/verifyemail">/verifyemail</a> (needs token)</li>
+                    <li><a href="/resendactivationemail">/resendactivationemail</a></li>
+                    <li><a href="/forgotpassword">/forgotpassword</a></li>
+                    <li><a href="/resetpassword">/resetpassword</a> (needs token)</li>
+                    <li><a href="/report">/report</a></li>
+                    <li><a href="/staff">/staff</a></li>
+                    <li><a href="/tos">/tos</a></li>
+                    <li><a href="/privacy">/privacy</a></li>
+                    <li>/webhook [POST; Stripe only]</li>
+                    <li>/logout [POST]</li>
+                    <li>/delete [POST]</li>
+                    <li>/img [POST]</li>
+                </ul>
+            </details>
+
+            <details>
+                <summary>Banned Usernames</summary>
+                <ul id="bannedUsernameList"></ul>
+            </details>
+
+            <details>
+                <summary>Supported Featured Content URLs</summary>
+                <ul id="supportedFeaturedContentUrlsList"></ul>
+            </details>
+
+            <details>
+                <summary>Themes</summary>
+                <ul id="themeList"></ul>
+            </details>
+        </main>
+    </main>
+    <script>
+        const bannedUsernames = `<%=bannedUsernames%>`.split(`,`);
+        const supportedFeaturedContentUrls = `<%=supportedFeaturedContentUrls%>`.split(`,`);
+        let themes = `<%=themes%>`.split(`,`);
+        themes.push(`Custom`);
+        for (let i = 0; i < bannedUsernames.length; i++)
+        {
+            const li = document.createElement(`li`);
+            li.innerText = bannedUsernames[i];
+            document.getElementById(`bannedUsernameList`).appendChild(li);
+        }
+        for (let i = 0; i < supportedFeaturedContentUrls.length; i++)
+        {
+            const li = document.createElement(`li`);
+            li.innerText = supportedFeaturedContentUrls[i];
+            document.getElementById(`supportedFeaturedContentUrlsList`).appendChild(li);
+        }
+        for (let i = 0; i < themes.length; i++)
+        {
+            const li = document.createElement(`li`);
+            li.innerText = themes[i];
+            document.getElementById(`themeList`).appendChild(li);
+        }
+    </script>
+    <script src="js/common.js"></script>
+</body>
+
+</html>
