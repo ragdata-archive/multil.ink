@@ -5,7 +5,7 @@ import bodyParser from "body-parser";
 import cookieParser from 'cookie-parser';
 import { createRequire } from "node:module";
 import csurf from '@dr.pogodin/csurf';
-import execSync from 'node:child_process';
+import { execSync } from 'node:child_process';
 import express from 'express';
 import { fileURLToPath } from 'node:url';
 import flash from 'express-flash';
@@ -15,10 +15,10 @@ import multer from 'multer';
 import nodemailer from 'nodemailer';
 import passport from 'passport';
 import path from 'node:path';
-import rateLimit from "express-rate-limit";
+import { rateLimit } from "express-rate-limit";
 import session from 'express-session';
 import stripe from 'stripe';
-import verify from 'hcaptcha';
+import { verify } from 'hcaptcha';
 import yup from 'yup';
 import
 {
