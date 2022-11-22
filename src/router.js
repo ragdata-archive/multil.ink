@@ -63,7 +63,7 @@ router.use(`/forgotpassword`, csrfProtection, forgotpassword);
 router.use(`/resetpassword`, csrfProtection, resetpassword);
 // Staff Routes
 router.use(`/staff`, csrfProtection, staff);
-router.use(`/debug`, csrfProtection, debug);
+if (dev) router.use(`/debug`, csrfProtection, debug);
 // General Routes
 router.use(`/report`, csrfProtection, report);
 router.use(`/privacy`, privacy);
