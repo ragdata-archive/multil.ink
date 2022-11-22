@@ -70,13 +70,13 @@ if (dev)
 }
 
 https = https ? `https` : `http`;
-const usernameRegex = /^[\dA-Za-z]+$/;
-const emailRegex = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/;
+export const usernameRegex = /^[\dA-Za-z]+$/;
+export const emailRegex = /[^\t\n\r @]+@[^\t\n\r @]+\.[^\t\n\r @]+/;
 // eslint-disable-next-line no-control-regex
-const ASCIIRegex = /^[\u0000-\u007F]*$/;
-const linkRegex = /https?:\/\/(www\.)?[\w#%+.:=@~-]{1,256}\.[\d()A-Za-z]{1,6}\b([\w!#%&()+./:=?@~-]*)/;
+export const ASCIIRegex = /^[\u0000-\u007F]*$/;
+export const linkRegex = /https?:\/\/(www\.)?[\w#%+.:=@~-]{1,256}\.[\d()A-Za-z]{1,6}\b([\w!#%&()+./:=?@~-]*)/;
 
-const bannedUsernames = new Set([
+export const bannedUsernames = new Set([
     `css`,
     `js`,
     `img`,
@@ -104,7 +104,7 @@ const bannedUsernames = new Set([
     `jason`, // used in example screenshots
 ]);
 
-const supportedFeaturedContentUrls = new Set([
+export const supportedFeaturedContentUrls = new Set([
     `youtube.com`,
     `youtu.be`,
     `twitch.tv`,
@@ -113,7 +113,7 @@ const supportedFeaturedContentUrls = new Set([
     `music.apple.com`,
 ]);
 
-const themes = [];
+export const themes = [];
 const files = fs.readdirSync(`./src/public/css/`);
 for (const file of files)
 {
@@ -320,16 +320,10 @@ if (!dev)
 export
 {
     Stripe,
-    bannedUsernames,
     discordWebhookURL,
-    emailRegex,
     hcaptchaSecret,
     hcaptchaSiteKey,
     https,
-    linkRegex,
     passwordPolicy,
-    supportedFeaturedContentUrls,
-    themes,
     transporter,
-    usernameRegex,
 };
