@@ -1,5 +1,5 @@
-import express from 'express';
-import { execSync } from 'node:child_process';
+import express from "express";
+import { execSync } from "node:child_process";
 import
 {
     bannedUsernames,
@@ -17,8 +17,8 @@ import
     stripeWebhookSigningSecret,
     supportedFeaturedContentUrls,
     themes,
-} from '../app.js';
-import { checkAuthenticatedStaff } from '../functions.js';
+} from "../app.js";
+import { checkAuthenticatedStaff } from "../functions.js";
 
 const router = new express.Router();
 

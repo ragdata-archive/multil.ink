@@ -1,6 +1,6 @@
-import express from 'express';
-import SQLite from 'better-sqlite3';
-import { verify } from 'hcaptcha';
+import express from "express";
+import SQLite from "better-sqlite3";
+import { verify } from "hcaptcha";
 import
 {
     discordWebhookURL,
@@ -15,8 +15,8 @@ import
     projectDescription,
     projectName,
     transporter,
-} from '../app.js';
-import { sendAuditLog } from '../functions.js';
+} from "../app.js";
+import { sendAuditLog } from "../functions.js";
 
 const sql = new SQLite(`./src/db.sqlite`);
 

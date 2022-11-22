@@ -1,13 +1,13 @@
-import express from 'express';
-import SQLite from 'better-sqlite3';
-import multer from 'multer';
-import path from 'node:path';
-import { https } from '../app.js';
+import express from "express";
+import SQLite from "better-sqlite3";
+import multer from "multer";
+import path from "node:path";
+import { https } from "../app.js";
 import
 {
     VER_STATUS,
     checkAuthenticated
-} from '../functions.js';
+} from "../functions.js";
 
 const sql = new SQLite(`./src/db.sqlite`);
 

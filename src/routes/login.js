@@ -1,6 +1,6 @@
-import express from 'express';
-import { verify } from 'hcaptcha';
-import passport from 'passport';
+import express from "express";
+import { verify } from "hcaptcha";
+import passport from "passport";
 import
 {
     hcaptchaSecret,
@@ -8,8 +8,8 @@ import
     https,
     projectDescription,
     projectName,
-} from '../app.js';
-import { checkNotAuthenticated } from '../functions.js';
+} from "../app.js";
+import { checkNotAuthenticated } from "../functions.js";
 
 const router = new express.Router();
 

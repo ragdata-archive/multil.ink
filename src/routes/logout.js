@@ -1,5 +1,5 @@
-import express from 'express';
-import { logoutUser } from '../functions.js';
+import express from "express";
+import { logoutUser } from "../functions.js";
 
 const router = new express.Router();
 

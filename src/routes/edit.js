@@ -1,6 +1,6 @@
-import express from 'express';
-import SQLite from 'better-sqlite3';
-import bcrypt from 'bcrypt';
+import express from "express";
+import SQLite from "better-sqlite3";
+import bcrypt from "bcrypt";
 import
 {
     Stripe,
@@ -17,7 +17,7 @@ import
     supportedFeaturedContentUrls,
     themes,
     usernameRegex,
-} from '../app.js';
+} from "../app.js";
 import
 {
     VER_STATUS,
@@ -25,7 +25,7 @@ import
     escapeRegex,
     logoutUser,
     sendAuditLog,
-} from '../functions.js';
+} from "../functions.js";
 
 const sql = new SQLite(`./src/db.sqlite`);
 

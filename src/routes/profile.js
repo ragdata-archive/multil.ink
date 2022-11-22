@@ -1,11 +1,11 @@
-import express from 'express';
-import SQLite from 'better-sqlite3';
+import express from "express";
+import SQLite from "better-sqlite3";
 import
 {
     https,
     projectName,
-} from '../app.js';
-import { VER_STATUS } from '../functions.js';
+} from "../app.js";
+import { VER_STATUS } from "../functions.js";
 
 const sql = new SQLite(`./src/db.sqlite`);
 

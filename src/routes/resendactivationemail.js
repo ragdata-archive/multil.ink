@@ -1,5 +1,5 @@
-import express from 'express';
-import SQLite from 'better-sqlite3';
+import express from "express";
+import SQLite from "better-sqlite3";
 import
 {
     discordWebhookURL,
@@ -10,14 +10,14 @@ import
     emailSMTPUser,
     https,
     transporter,
-} from '../app.js';
+} from "../app.js";
 import
 {
     VER_STATUS,
     checkAuthenticated,
     logoutUser,
     sendAuditLog,
-} from '../functions.js';
+} from "../functions.js";
 
 const sql = new SQLite(`./src/db.sqlite`);
 

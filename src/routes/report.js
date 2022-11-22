@@ -1,5 +1,5 @@
-import express from 'express';
-import { verify } from 'hcaptcha';
+import express from "express";
+import { verify } from "hcaptcha";
 import
 {
     discordWebhookURL,
@@ -15,8 +15,8 @@ import
     projectName,
     reportEmail,
     transporter,
-} from '../app.js';
-import { sendAuditLog } from '../functions.js';
+} from "../app.js";
+import { sendAuditLog } from "../functions.js";
 
 const router = new express.Router();
 

@@ -1,7 +1,7 @@
-import express from 'express';
-import { verify } from 'hcaptcha';
-import bcrypt from 'bcrypt';
-import SQLite from 'better-sqlite3';
+import express from "express";
+import { verify } from "hcaptcha";
+import bcrypt from "bcrypt";
+import SQLite from "better-sqlite3";
 import
 {
     Stripe,
@@ -25,13 +25,13 @@ import
     stripeWebhookSigningSecret,
     transporter,
     usernameRegex,
-} from '../app.js';
+} from "../app.js";
 import
 {
     VER_STATUS,
     checkNotAuthenticated,
     sendAuditLog,
-} from '../functions.js';
+} from "../functions.js";
 
 const sql = new SQLite(`./src/db.sqlite`);
 

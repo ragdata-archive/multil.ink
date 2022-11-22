@@ -1,8 +1,8 @@
-import SQLite from 'better-sqlite3';
-import bcrypt from 'bcrypt';
+import SQLite from "better-sqlite3";
+import bcrypt from "bcrypt";
 import { createRequire } from "node:module";
-import fs from 'node:fs';
-import { Strategy as LocalStrategy } from 'passport-local';
+import fs from "node:fs";
+import { Strategy as LocalStrategy } from "passport-local";
 
 const require = createRequire(import.meta.url);
 const sql = new SQLite(`./src/db.sqlite`);

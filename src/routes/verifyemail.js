@@ -1,11 +1,11 @@
-import express from 'express';
-import SQLite from 'better-sqlite3';
-import { discordWebhookURL } from '../app.js';
+import express from "express";
+import SQLite from "better-sqlite3";
+import { discordWebhookURL } from "../app.js";
 import
 {
     VER_STATUS,
     sendAuditLog,
-} from '../functions.js';
+} from "../functions.js";
 
 const sql = new SQLite(`./src/db.sqlite`);
 

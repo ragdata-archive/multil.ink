@@ -1,22 +1,22 @@
 /* eslint-disable import/no-mutable-exports */
-import PasswordValidator from 'password-validator';
-import SQLite from 'better-sqlite3';
+import PasswordValidator from "password-validator";
+import SQLite from "better-sqlite3";
 import bodyParser from "body-parser";
-import cookieParser from 'cookie-parser';
-import express from 'express';
-import flash from 'express-flash';
+import cookieParser from "cookie-parser";
+import express from "express";
+import flash from "express-flash";
 import fs from "node:fs";
 import helmet from "helmet";
-import nodemailer from 'nodemailer';
-import passport from 'passport';
-import path from 'node:path';
-import session from 'express-session';
-import stripe from 'stripe';
-import yup from 'yup';
+import nodemailer from "nodemailer";
+import passport from "passport";
+import path from "node:path";
+import session from "express-session";
+import stripe from "stripe";
+import yup from "yup";
 import { createRequire } from "node:module";
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath } from "node:url";
 import { rateLimit } from "express-rate-limit";
-import router from './router.js';
+import router from "./router.js";
 import
 {
     checkExpiredSubscriptions,
@@ -24,7 +24,7 @@ import
     deleteExpiredTokens,
     initSetup,
     initializePassport,
-} from './functions.js';
+} from "./functions.js";
 
 // eslint-disable-next-line no-underscore-dangle
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

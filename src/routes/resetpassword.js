@@ -1,7 +1,7 @@
-import express from 'express';
-import { verify } from 'hcaptcha';
-import SQLite from 'better-sqlite3';
-import bcrypt from 'bcrypt';
+import express from "express";
+import { verify } from "hcaptcha";
+import SQLite from "better-sqlite3";
+import bcrypt from "bcrypt";
 import
 {
     discordWebhookURL,
@@ -11,8 +11,8 @@ import
     passwordPolicy,
     projectDescription,
     projectName,
-} from '../app.js';
-import { sendAuditLog } from '../functions.js';
+} from "../app.js";
+import { sendAuditLog } from "../functions.js";
 
 const sql = new SQLite(`./src/db.sqlite`);
 

@@ -1,5 +1,5 @@
-import express from 'express';
-import SQLite from 'better-sqlite3';
+import express from "express";
+import SQLite from "better-sqlite3";
 import
 {
     Stripe,
@@ -8,13 +8,13 @@ import
     stripeProductID,
     stripeSecretKey,
     stripeWebhookSigningSecret,
-} from '../app.js';
+} from "../app.js";
 import
 {
     VER_STATUS,
     checkAuthenticated,
     logoutUser,
-} from '../functions.js';
+} from "../functions.js";
 
 const sql = new SQLite(`./src/db.sqlite`);
 
