@@ -60,18 +60,34 @@ for (let index = 0; index < userCountPaginated; index++)
     email.innerHTML = users[index].email;
     email.classList.add(`email`);
 
-    if (users[index].verified === VER_STATUS.VERIFIED_MEMBER)
-        verifiedCell.innerHTML = `Yes`;
-    else if (users[index].verified === VER_STATUS.STAFF_MEMBER)
-        verifiedCell.innerHTML = `Staff Member`;
-    else if (users[index].verified === VER_STATUS.MEMBER)
-        verifiedCell.innerHTML = `No`;
-    else if (users[index].verified === VER_STATUS.SUSPENDED)
-        verifiedCell.innerHTML = `Suspended`;
-    else if (users[index].verified === VER_STATUS.SHADOW_USER)
-        verifiedCell.innerHTML = `Shadow Profile`;
-    else if (users[index].verified === VER_STATUS.AWAITING_VERIFICATION)
-        verifiedCell.innerHTML = `Awaiting Email Verification`;
+    switch (users[index].verified)
+    {
+        case VER_STATUS.VERIFIED_MEMBER: {
+            verifiedCell.innerHTML = `Yes`;
+            break;
+        }
+        case VER_STATUS.STAFF_MEMBER: {
+            verifiedCell.innerHTML = `Staff Member`;
+            break;
+        }
+        case VER_STATUS.MEMBER: {
+            verifiedCell.innerHTML = `No`;
+            break;
+        }
+        case VER_STATUS.SUSPENDED: {
+            verifiedCell.innerHTML = `Suspended`;
+            break;
+        }
+        case VER_STATUS.SHADOW_USER: {
+            verifiedCell.innerHTML = `Shadow Profile`;
+            break;
+        }
+        case VER_STATUS.AWAITING_VERIFICATION: {
+            verifiedCell.innerHTML = `Awaiting Email Verification`;
+            break;
+        }
+        // No default
+    }
 
     if (users[index].paid === `1`)
         paidCell.innerHTML = `Yes`;
@@ -103,63 +119,69 @@ for (let index = 0; index < userCountPaginated; index++)
 
     actions.append(editButton);
 
-    if (users[index].verified === VER_STATUS.MEMBER || users[index].verified === VER_STATUS.AWAITING_VERIFICATION)
+    switch (users[index].verified)
     {
-        const verifyButton = document.createElement(`button`);
-        verifyButton.setAttribute(`class`, `btn btn-primary`);
-        verifyButton.setAttribute(`type`, `button`);
-        verifyButton.setAttribute(`onclick`, `verifyUser('${ users[index].username }')`);
-        verifyButton.innerHTML = `Verify`;
-        if (users[index].username === myUsername)
-            verifyButton.setAttribute(`disabled`, `true`);
+        case VER_STATUS.MEMBER:
+        case VER_STATUS.AWAITING_VERIFICATION: {
+            const verifyButton = document.createElement(`button`);
+            verifyButton.setAttribute(`class`, `btn btn-primary`);
+            verifyButton.setAttribute(`type`, `button`);
+            verifyButton.setAttribute(`onclick`, `verifyUser('${ users[index].username }')`);
+            verifyButton.innerHTML = `Verify`;
+            if (users[index].username === myUsername)
+                verifyButton.setAttribute(`disabled`, `true`);
 
-        actions.append(verifyButton);
-    }
-    else if (users[index].verified === VER_STATUS.VERIFIED_MEMBER)
-    {
-        const unverifyButton = document.createElement(`button`);
-        unverifyButton.setAttribute(`class`, `btn btn-secondary`);
-        unverifyButton.setAttribute(`type`, `button`);
-        unverifyButton.setAttribute(`onclick`, `unverifyUser('${ users[index].username }')`);
-        unverifyButton.innerHTML = `Unverify`;
-        if (users[index].username === myUsername)
-            unverifyButton.setAttribute(`disabled`, `true`);
+            actions.append(verifyButton);
+            break;
+        }
+        case VER_STATUS.VERIFIED_MEMBER: {
+            const unverifyButton = document.createElement(`button`);
+            unverifyButton.setAttribute(`class`, `btn btn-secondary`);
+            unverifyButton.setAttribute(`type`, `button`);
+            unverifyButton.setAttribute(`onclick`, `unverifyUser('${ users[index].username }')`);
+            unverifyButton.innerHTML = `Unverify`;
+            if (users[index].username === myUsername)
+                unverifyButton.setAttribute(`disabled`, `true`);
 
-        actions.append(unverifyButton);
+            actions.append(unverifyButton);
 
-        const promoteButton = document.createElement(`button`);
-        promoteButton.setAttribute(`class`, `btn btn-primary`);
-        promoteButton.setAttribute(`type`, `button`);
-        promoteButton.setAttribute(`onclick`, `promoteUser('${ users[index].username }')`);
-        promoteButton.innerHTML = `Promote`;
-        if (users[index].username === myUsername)
-            promoteButton.setAttribute(`disabled`, `true`);
+            const promoteButton = document.createElement(`button`);
+            promoteButton.setAttribute(`class`, `btn btn-primary`);
+            promoteButton.setAttribute(`type`, `button`);
+            promoteButton.setAttribute(`onclick`, `promoteUser('${ users[index].username }')`);
+            promoteButton.innerHTML = `Promote`;
+            if (users[index].username === myUsername)
+                promoteButton.setAttribute(`disabled`, `true`);
 
-        actions.append(promoteButton);
-    }
-    else if (users[index].verified === VER_STATUS.STAFF_MEMBER)
-    {
-        const demoteButton = document.createElement(`button`);
-        demoteButton.setAttribute(`class`, `btn btn-warning`);
-        demoteButton.setAttribute(`type`, `button`);
-        demoteButton.setAttribute(`onclick`, `demoteUser('${ users[index].username }')`);
-        demoteButton.innerHTML = `Demote`;
-        if (users[index].username === myUsername)
-            demoteButton.setAttribute(`disabled`, `true`);
+            actions.append(promoteButton);
+            break;
+        }
+        case VER_STATUS.STAFF_MEMBER: {
+            const demoteButton = document.createElement(`button`);
+            demoteButton.setAttribute(`class`, `btn btn-warning`);
+            demoteButton.setAttribute(`type`, `button`);
+            demoteButton.setAttribute(`onclick`, `demoteUser('${ users[index].username }')`);
+            demoteButton.innerHTML = `Demote`;
+            if (users[index].username === myUsername)
+                demoteButton.setAttribute(`disabled`, `true`);
 
-        actions.append(demoteButton);
-    }
-    else if (users[index].verified === VER_STATUS.SUSPENDED)
-    {
-        const unsuspendButton = document.createElement(`button`);
-        unsuspendButton.setAttribute(`class`, `btn btn-success`);
-        unsuspendButton.setAttribute(`type`, `button`);
-        unsuspendButton.setAttribute(`onclick`, `unsuspendUser('${ users[index].username }')`);
-        unsuspendButton.innerHTML = `Unsuspend`;
-        if (users[index].username === myUsername)
-            unsuspendButton.setAttribute(`disabled`, `true`);
+            actions.append(demoteButton);
 
-        actions.append(unsuspendButton);
+            break;
+        }
+        case VER_STATUS.SUSPENDED: {
+            const unsuspendButton = document.createElement(`button`);
+            unsuspendButton.setAttribute(`class`, `btn btn-success`);
+            unsuspendButton.setAttribute(`type`, `button`);
+            unsuspendButton.setAttribute(`onclick`, `unsuspendUser('${ users[index].username }')`);
+            unsuspendButton.innerHTML = `Unsuspend`;
+            if (users[index].username === myUsername)
+                unsuspendButton.setAttribute(`disabled`, `true`);
+
+            actions.append(unsuspendButton);
+            break;
+        }
+        // No default
     }
 
     if (users[index].verified !== VER_STATUS.SUSPENDED && users[index].verified !== VER_STATUS.STAFF_MEMBER

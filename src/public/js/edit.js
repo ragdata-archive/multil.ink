@@ -126,7 +126,7 @@ function addLink(index, link, linkName)
         hrForMobile.id = `hrForMobile`;
         linkDiv.append(hrForMobile);
     }
-    linkDiv.innerHTML += linkName !== `` ? `<input type="text" id="linkName${ index }" name="linkName${ index }" value="${ linksNamesArray[index] }" placeholder="Link Name" required>` : `<input type="text" id="linkName${ index }" name="linkName${ index }" placeholder="Link Name" required>`;
+    linkDiv.innerHTML += linkName === `` ? `<input type="text" id="linkName${ index }" name="linkName${ index }" placeholder="Link Name" required>` : `<input type="text" id="linkName${ index }" name="linkName${ index }" value="${ linksNamesArray[index] }" placeholder="Link Name" required>`;
 
     const brForLinkName = document.createElement(`br`);
     brForLinkName.id = `pageBreakForButtons`;
