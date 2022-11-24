@@ -54,7 +54,8 @@ input[type=text]:focus {
     color: var(--white-color);
 }
 
-#claimButton:hover {
+#claimButton:hover,
+#claimButton:focus {
     background-color: var(--dark-pink-color);
     color: var(--white-color);
 }

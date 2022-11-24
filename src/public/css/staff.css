@@ -4,7 +4,8 @@
     filter: blur(5px) opacity(0.15);
 }
 
-.email:hover {
+.email:hover,
+.email:focus {
     filter: blur(0px) opacity(1);
 }
 

@@ -26,7 +26,8 @@ h2 {
     margin: 20px 8px 10px 8px;
 }
 
-.underlineHover:hover:after {
+.underlineHover:hover:after,
+.underlineHover:focus:after {
     width: 100%;
 }
 
@@ -93,7 +94,10 @@ input[type=reset] {
 
 input[type=button]:hover,
 input[type=submit]:hover,
-input[type=reset]:hover {
+input[type=reset]:hover,
+input[type=button]:focus,
+input[type=submit]:focus,
+input[type=reset]:focus {
     background-color: var(--dark-baby-blue-color) !important;
 }
 
@@ -138,7 +142,8 @@ textarea:placeholder {
     color: #cccccc;
 }
 
-.underlineHover:hover {
+.underlineHover:hover,
+.underlineHover:focus {
     color: var(--link-hover-color);
 }
 
