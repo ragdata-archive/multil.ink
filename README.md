@@ -43,7 +43,7 @@ node . # or: pm2 start npm --name "multilink" -- start
 ### Adding Default Themes
 1. Using `theme-dark.css` as a base, create a new CSS file in `./src/public/css/` with the name `theme-yourname.css` (all lowercase).
 
-Note: The theme name will have it's first letter capitalized and the rest of the name will be lowercased. (As an example, if your theme file is called `theme-bloodmoon.css`, the theme name will be `Bloodmoon`.)
+Note: The theme name will have it's first letter capitalized and the rest of the name will be lowercased. (For example, if your theme file is called `theme-bloodmoon.css`, the theme name will be `Bloodmoon`.)
 
 ### Adding new Featured Content Embeds
 1. Add URL to `./src/app.js` -> `supportedFeaturedContentUrls`.
