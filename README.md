@@ -10,7 +10,7 @@
 
 ## Installation
 
-#### Requirements  
+#### Requirements
 - [Git](https://git-scm.com/)
 - [Node.js](https://nodejs.org/) >= v16.14.0
 - [pm2](https://www.npmjs.com/package/pm2) (`npm i -g pm2`)
