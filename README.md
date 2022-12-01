@@ -38,7 +38,7 @@ node . # or: pm2 start npm --name "multilink" -- start
 4. Add the font CSS to `./src/public/css/font-*.css`.
 
 ### Changing Custom Theme CSS
-1. Look in `./src/app.js` -> `app.post('/edit')` -> `advancedTheme`.
+1. Look in `./src/routes/edit.js` -> `app.post('/')` -> `advancedTheme`.
 
 ### Adding Default Themes
 1. Using `theme-dark.css` as a base, create a new CSS file in `./src/public/css/` with the name `theme-yourname.css` (all lowercase).
