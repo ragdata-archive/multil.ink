@@ -26,7 +26,7 @@
     },
     "homepage": "https://github.com/multilinkhq/multil.ink#readme",
     "dependencies": {
-        "@dr.pogodin/csurf": "1.12.1",
+        "@dr.pogodin/csurf": "1.12.2",
         "@fortawesome/fontawesome-free": "6.2.1",
         "@popperjs/core": "2.11.6",
         "bcrypt": "5.1.0",
