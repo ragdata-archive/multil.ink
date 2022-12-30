@@ -232,7 +232,7 @@ for (let index = 0; index < userCountPaginated; index++)
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item" href="#" onclick="extendUser('${ users[index].username }', -1)">Forever</a>
                 </div>
-               `;
+                `;
         if (!users[index].username === myUsername || !users[index].subExpires.startsWith(`9999`))
             actions.innerHTML += extendButton;
     }
