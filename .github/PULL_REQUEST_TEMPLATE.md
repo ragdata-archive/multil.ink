@@ -1,4 +1,4 @@
-**Please describe the changes this PR makes and why it should be merged:**  
+**Please describe the changes this PR makes and why it should be merged:**
 
 <!--
 Please move lines that apply to you out of the comment:
