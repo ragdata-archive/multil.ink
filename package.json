@@ -50,7 +50,7 @@
         "passport": "0.6.0",
         "passport-local": "1.0.0",
         "password-validator": "5.3.0",
-        "stripe": "11.5.0",
+        "stripe": "11.6.0",
         "uppy": "3.3.1",
         "yup": "0.32.11"
     },
