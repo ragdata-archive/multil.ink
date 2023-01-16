@@ -14,3 +14,6 @@ indent_size = 2
 
 [*.json]
 insert_final_newline = unset
+
+[*.md]
+indent_size = unset
