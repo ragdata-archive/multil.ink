@@ -8,6 +8,15 @@
 <a href="https://github.com/multilinkhq/multil.ink/blob/main/LICENSE.md"><img alt="GitHub license" src="https://badges.chse.dev:/github/license/multilinkhq/multil.ink"></a>
 </h1></div>
 
+<details>
+<summary>Screenshots</summary>
+
+![img](https://i.imgur.com/NSBAGY5.png)
+![img](https://i.imgur.com/w8DvzfS.png)
+![img](https://i.imgur.com/bycccfY.png)
+
+</details>
+
 ## Installation
 
 #### Requirements
